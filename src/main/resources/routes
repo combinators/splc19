@@ -1,0 +1,13 @@
+
+->    /                              org.combinators.cls.git.Routes
+
+GET   /guidemo                          org.combinators.guidemo.Productline.overview()
+GET   /guidemo/raw_:number              org.combinators.guidemo.Productline.raw(number: Long)
+GET   /guidemo/prepare                  org.combinators.guidemo.Productline.prepare(number: Long)
+GET   /guidemo/guidemo.git/*file  	    org.combinators.guidemo.Productline.serveFile(file)
+GET   /guidemo/logo.png                 org.combinators.guidemo.GUIDemoDataServer.logo()
+GET   /guidemo/alternatelogo.png        org.combinators.guidemo.GUIDemoDataServer.alternatelogo()
+GET   /guidemo/productoptions           org.combinators.guidemo.GUIDemoDataServer.productOptions()
+
+
+
