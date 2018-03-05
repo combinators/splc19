@@ -1,34 +1,36 @@
 package org.combinators.guidemo
 
 import java.io.InputStream
-import java.nio.file.Paths
+import java.nio.file.{Path, Paths}
 
 import com.github.javaparser.ast.CompilationUnit
-import org.combinators.templating.persistable.{BundledResource, ResourcePersistable}
+import org.combinators.templating.persistable.{BundledResource, Persistable, ResourcePersistable}
 import org.combinators.cls.git.{InhabitationController, Results}
 import org.combinators.templating.twirl.Java
 
+import scala.meta._
+import scala.meta.contrib._
+
 object Helpers {
   implicit val persistable: ResourcePersistable.Aux = ResourcePersistable.apply
-  type Form = CompilationUnit
-  type OptionSelection = Form => Runnable
+  type CoffeeBarModifier = CompilationUnit => Runnable
 
-  def addOptionSelection(form: Form, optionSelction: OptionSelection): Unit = {
-    optionSelction(form).run
+  def addOptionSelection(coffeeBar: CompilationUnit, optionSelection: CoffeeBarModifier): Unit = {
+    optionSelection(coffeeBar).run
   }
 
-  def addTitle(form: Form, title: String): Unit = {
-    val cls = form.getClassByName("CustomerForm").get
+  def addTitle(coffeeBar: CompilationUnit, title: String): Unit = {
+    val cls = coffeeBar.getClassByName("CustomerForm").get
     val initMethod = cls.getMethodsByName("initComponents").get(0)
     initMethod
       .getBody.get()
       .addStatement(0, Java(s"""this.setTitle("$title");""").statement())
   }
 
-  def addLogo(form: Form, logoLocation: java.net.URL): Unit = {
-    val cls = form.getClassByName("CustomerForm").get
+  def addLogo(coffeeBar: CompilationUnit, logoLocation: java.net.URL): Unit = {
+    val cls = coffeeBar.getClassByName("CustomerForm").get
     val initMethod = cls.getMethodsByName("initComponents").get(0)
-    form.addImport("java.net.URL")
+    coffeeBar.addImport("java.net.URL")
     initMethod
       .getBody.get()
       .addStatement(0, Java(
@@ -40,10 +42,17 @@ object Helpers {
            |}""".stripMargin).statement())
   }
 
+  def addDatabaseAccessCode(coffeeBar: CompilationUnit, databaseAccessCode: CoffeeBarModifier): Unit = {
+    databaseAccessCode(coffeeBar).run()
+  }
+
   def readFile(name: String): String =
     scala.io.Source.fromInputStream(getClass.getResourceAsStream(name)).mkString
 
-  def addDependencies(controller: InhabitationController)(results: Results): Results = {
-    results.addExternalArtifact(BundledResource("build.sbt", Paths.get("build.sbt"), getClass))
+  object BuildFilePersistable extends Persistable {
+    type T = scala.meta.Source
+    def rawText(elem: scala.meta.Source): Array[Byte] =
+      elem.toString().getBytes()
+    def path(elem: scala.meta.Source): Path = Paths.get("build.sbt")
   }
 }
