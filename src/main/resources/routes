@@ -5,7 +5,8 @@
 ->    /                              org.combinators.guidemo.CopenhagenController
 ->    /                              org.combinators.guidemo.DortmundController
 
-GET   /coffeebar/json/productoptions           org.combinators.guidemo.GUIDemoDataServer.productOptions()
+GET   /coffeebar/json/productoptions           org.combinators.guidemo.DataProviderController.productOptions()
+GET   /coffeebar/sql/productoptions                      org.combinators.guidemo.DataProviderController.sqlTest()
 
 
 

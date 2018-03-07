@@ -16,7 +16,7 @@ public class Copenhagen extends CoffeeBar {
             super.setMenuLayout(MenuLayout.RadioButtons);
 
             Database db = new Database();
-            db.setDatabaseLocation(new URL("http://localhost:9000/coffeebar/json/productoptions"));
+            db.setDatabaseLocation(DatabaseType.RestJSON.defaultLocation);
             db.setDatabaseType(DatabaseType.RestJSON);
             super.setProductDatabase(db);
 

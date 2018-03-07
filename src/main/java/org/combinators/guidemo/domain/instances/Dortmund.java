@@ -16,7 +16,7 @@ public class Dortmund extends CoffeeBar {
             super.setMenuLayout(MenuLayout.DropDown);
 
             Database db = new Database();
-            db.setDatabaseLocation(new URL("http://localhost:9000/coffeebar/json/productoptions"));
+            db.setDatabaseLocation(DatabaseType.JDBC.defaultLocation);
             db.setDatabaseType(DatabaseType.JDBC);
             super.setProductDatabase(db);
 

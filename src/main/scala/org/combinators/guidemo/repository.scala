@@ -5,15 +5,16 @@ import java.net.URL
 import java.nio.file.{Path, Paths}
 
 import com.github.javaparser.ast.CompilationUnit
-import org.combinators.cls.git.{EmptyInhabitationBatchJobResults, InhabitationBatchJobResults, ResultLocation}
+import org.combinators.cls.git.{EmptyInhabitationBatchJobResults, InhabitationBatchJobResults, ResultLocation, Results}
 import org.combinators.cls.interpreter.{ReflectedRepository, combinator}
 import org.combinators.templating.persistable.JavaPersistable._
+import org.combinators.templating.persistable.ResourcePersistable._
+import org.combinators.templating.persistable.BundledResource
 import org.combinators.cls.types.{Kinding, Type, Variable}
 import org.combinators.cls.types.syntax._
 import org.combinators.templating.twirl.Java
 import org.combinators.guidemo.Helpers._
 import org.combinators.guidemo.domain.{CoffeeBar, DatabaseType, MenuLayout}
-import org.combinators.templating.persistable.Persistable
 
 import scala.meta._
 
@@ -56,7 +57,7 @@ class Repository(coffeeBar: CoffeeBar) {
     val semanticType: Type = 'BranchName
   }
   @combinator object databaseLocation {
-    def apply: URL = coffeeBar.getProductDatabase.getDatabaseLocation
+    def apply: String = coffeeBar.getProductDatabase.getDatabaseLocation
     val semanticType: Type = 'Location('Database)
   }
   @combinator object logoLocation {
@@ -66,7 +67,7 @@ class Repository(coffeeBar: CoffeeBar) {
 
 
   object restJSONProductProvider {
-    def apply(databaseLocation: URL): CoffeeBarModifier =
+    def apply(databaseLocation: String): CoffeeBarModifier =
       coffeBar => new Runnable() {
         def run() = {
           coffeBar.addImport("java.util.List")
@@ -87,8 +88,51 @@ class Repository(coffeeBar: CoffeeBar) {
                  |        mapper.getTypeFactory().constructCollectionType(List.class, String.class));
                  |    } catch (Exception e) {
                  |        options = new ArrayList<>();
-                 |        options.add("");
                  |        JOptionPane.showMessageDialog(this, String.format("Could not load options: %s", e.getMessage()));
+                 |    }
+                 |    return options;
+                 |}
+               """.stripMargin).methodDeclarations().head
+
+          cls.addMember(productsMethod)
+        }
+      }
+
+    val semanticType: Type = 'Location('Database) =>: 'DatabaseAccessCode
+  }
+
+  object jdbcProductProvider {
+    def apply(databaseLocation: String): CoffeeBarModifier =
+      coffeBar => new Runnable() {
+        def run() = {
+          coffeBar.addImport("java.sql.*")
+          coffeBar.addImport("java.util.List")
+          coffeBar.addImport("java.util.ArrayList")
+
+          val cls = coffeBar.getClassByName("CustomerForm").get
+          val productsMethod =
+            Java(
+              s"""
+                 |public List<String> getProductOptions() {
+                 |    List<String> options = new ArrayList<>();
+                 |    Connection connection = null;
+                 |    try{
+                 |        Class.forName("org.h2.Driver");
+                 |        connection = DriverManager.getConnection("$databaseLocation", "sa", "");
+                 |        ResultSet results = connection.prepareStatement("SELECT name FROM coffee").executeQuery();
+                 |        while (results.next()) {
+                 |            options.add(results.getString("name"));
+                 |        }
+                 |    } catch (Exception e) {
+                 |        JOptionPane.showMessageDialog(this, String.format("Could not load options: %s", e.getMessage()));
+                 |    } finally {
+                 |        if (connection != null) {
+                 |            try {
+                 |                connection.close();
+                 |            } catch (Exception ex) {
+                 |                throw new RuntimeException(ex);
+                 |            }
+                 |        }
                  |    }
                  |    return options;
                  |}
@@ -113,9 +157,11 @@ class Repository(coffeeBar: CoffeeBar) {
               s"""
                  |List<String> options = getProductOptions();
                  |JComboBox optionBox = new JComboBox(options.toArray(new String[0]));
-                 |optionBox.setSelectedIndex(0);
-                 |selectedOrder = options.get(0);
-                 |optionBox.addActionListener(e -> { selectedOrder = (String)optionBox.getSelectedItem(); });
+                 |if (options.size() > 0) {
+                 |    optionBox.setSelectedIndex(0);
+                 |    selectedOrder = options.get(0);
+                 |    optionBox.addActionListener(e -> { selectedOrder = (String)optionBox.getSelectedItem(); });
+                 |}
                  |this.add(optionBox);
                """.stripMargin).statements()
 
@@ -133,6 +179,15 @@ class Repository(coffeeBar: CoffeeBar) {
             "com.fasterxml.jackson.core" % "jackson-annotations" % "2.8.8",
             "com.fasterxml.jackson.core" % "jackson-core" % "2.8.8",
             "com.fasterxml.jackson.core" % "jackson-databind" % "2.8.8"
+         )""" match { case q"Seq(..$xs)" => xs }
+
+    val semanticType: Type = 'ExtraDependencies
+  }
+
+  object jdbcDependencies {
+    def apply: Seq[scala.meta.Term] =
+      q"""Seq(
+           "com.h2database" % "h2" % "1.4.196"
          )""" match { case q"Seq(..$xs)" => xs }
 
     val semanticType: Type = 'ExtraDependencies
@@ -156,7 +211,9 @@ class Repository(coffeeBar: CoffeeBar) {
                  |  group.add(optionButton);
                  |  this.add(optionButton);
                  |}
-                 |selectedOrder = options.get(0);
+                 |if (options.size() > 0) {
+                 |    selectedOrder = options.get(0);
+                 |}
                  """.stripMargin).statements()
           getOrders.reverse.foreach(stmt => initMethod.getBody.get().addStatement(0, stmt))
         }
@@ -168,7 +225,10 @@ class Repository(coffeeBar: CoffeeBar) {
 
   private def addDatabaseCombinators(repository: ReflectedRepository[Repository]): ReflectedRepository[Repository] = {
     coffeeBar.getProductDatabase.getDatabaseType match {
-      case DatabaseType.JDBC => repository.addCombinator(???)
+      case DatabaseType.JDBC =>
+        repository
+          .addCombinator(jdbcProductProvider)
+          .addCombinator(jdbcDependencies)
       case DatabaseType.RestJSON =>
         repository
           .addCombinator(restJSONProductProvider)
@@ -199,10 +259,13 @@ class Repository(coffeeBar: CoffeeBar) {
     addOptionMenuCombinators(addDatabaseCombinators(repo))
   }
 
-  def getResults(implicit resultLocation: ResultLocation): InhabitationBatchJobResults = {
+  def getResults(implicit resultLocation: ResultLocation): Results = {
     EmptyInhabitationBatchJobResults(this.forInhabitation)
       .addJob[CompilationUnit](semanticTarget)
       .addJob[scala.meta.Source]('BuildFile)(tag = implicitly, persistable = BuildFilePersistable)
+      .compute()
+      .addExternalArtifact(BundledResource("gitignore", Paths.get(".gitignore"), getClass))
+      .addExternalArtifact(BundledResource("build.properties", Paths.get("project", "build.properties"), getClass))
   }
 
 }

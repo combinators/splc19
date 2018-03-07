@@ -4,7 +4,7 @@ import java.net.URL;
 
 public class Database {
     private DatabaseType databaseType;
-    private URL databaseLocation;
+    private String databaseLocation;
 
     public DatabaseType getDatabaseType() {
         return databaseType;
@@ -14,11 +14,11 @@ public class Database {
         this.databaseType = databaseType;
     }
 
-    public URL getDatabaseLocation() {
+    public String getDatabaseLocation() {
         return databaseLocation;
     }
 
-    public void setDatabaseLocation(URL databaseLocation) {
+    public void setDatabaseLocation(String databaseLocation) {
         this.databaseLocation = databaseLocation;
     }
 }
