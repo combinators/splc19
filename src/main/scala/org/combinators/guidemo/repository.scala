@@ -145,7 +145,7 @@ class Repository(coffeeBar: CoffeeBar) {
     val semanticType: Type = 'Location('Database) =>: 'DatabaseAccessCode
   }
 
-  object dropDownSelector {
+  @combinator object dropDownSelector {
     def apply(databaseAccessCode: CoffeeBarModifier): CoffeeBarModifier = {
       coffeBar => new Runnable() {
         def run() = {
@@ -193,7 +193,7 @@ class Repository(coffeeBar: CoffeeBar) {
     val semanticType: Type = 'ExtraDependencies
   }
 
-  object radioButtonSelector {
+  @combinator object radioButtonSelector {
     def apply(databaseAccessCode: CoffeeBarModifier): CoffeeBarModifier = {
       coffeBar => new Runnable() {
         def run() = {
@@ -236,13 +236,6 @@ class Repository(coffeeBar: CoffeeBar) {
     }
   }
 
-  private def addOptionMenuCombinators(repository: ReflectedRepository[Repository]): ReflectedRepository[Repository] = {
-    coffeeBar.getMenuLayout match {
-      case MenuLayout.DropDown => repository.addCombinator(dropDownSelector)
-      case MenuLayout.RadioButtons => repository.addCombinator(radioButtonSelector)
-    }
-  }
-
   private def semanticTarget: Type = {
     'OrderMenu(coffeeBar.getMenuLayout match {
       case MenuLayout.DropDown => 'DropDown
@@ -256,7 +249,7 @@ class Repository(coffeeBar: CoffeeBar) {
         classLoader = this.getClass.getClassLoader,
         substitutionSpace = this.kinding
       )
-    addOptionMenuCombinators(addDatabaseCombinators(repo))
+    addDatabaseCombinators(repo)
   }
 
   def getResults(implicit resultLocation: ResultLocation): Results = {
