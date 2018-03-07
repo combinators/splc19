@@ -1,29 +1,26 @@
 package org.combinators.guidemo
 
-import java.io.File
 import java.net.URL
-import java.nio.file.{Path, Paths}
+import java.nio.file.Paths
 
 import com.github.javaparser.ast.CompilationUnit
-import org.combinators.cls.git.{EmptyInhabitationBatchJobResults, InhabitationBatchJobResults, ResultLocation, Results}
+import org.combinators.cls.git.{EmptyInhabitationBatchJobResults, ResultLocation, Results}
 import org.combinators.cls.interpreter.{ReflectedRepository, combinator}
-import org.combinators.templating.persistable.JavaPersistable._
-import org.combinators.templating.persistable.ResourcePersistable._
-import org.combinators.templating.persistable.BundledResource
-import org.combinators.cls.types.{Kinding, Type, Variable}
 import org.combinators.cls.types.syntax._
-import org.combinators.templating.twirl.Java
+import org.combinators.cls.types.{Kinding, Type, Variable}
 import org.combinators.guidemo.Helpers._
 import org.combinators.guidemo.domain.{CoffeeBar, DatabaseType, MenuLayout}
+import org.combinators.templating.persistable.BundledResource
+import org.combinators.templating.persistable.JavaPersistable._
+import org.combinators.templating.twirl.Java
 
 import scala.meta._
 
 class Repository(coffeeBar: CoffeeBar) {
   lazy val alpha = Variable("alpha")
   lazy val kinding: Kinding =
-
-  Kinding(alpha)
-    .addOption('DropDown).addOption('RadioButtons)
+    Kinding(alpha)
+      .addOption('DropDown).addOption('RadioButtons)
 
   @combinator object customerForm {
     def apply(title: String,
@@ -260,5 +257,4 @@ class Repository(coffeeBar: CoffeeBar) {
       .addExternalArtifact(BundledResource("gitignore", Paths.get(".gitignore"), getClass))
       .addExternalArtifact(BundledResource("build.properties", Paths.get("project", "build.properties"), getClass))
   }
-
 }
