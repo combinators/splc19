@@ -10,18 +10,14 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.List;
 
-public class ComboboxOrderModule implements Provider<List<Component>> {
-    private final Provider<List<String>> productOptions;
-    private final Provider<ProductSelector> productSelector;
-    @Inject
-    public ComboboxOrderModule(Provider<List<String>> productOptions, Provider<ProductSelector> productSelector) {
-        this.productOptions = productOptions;
-        this.productSelector = productSelector;
-    }
+public class ComboboxOrderModule extends AbstractModule {
+    @Override
+    public void configure() {}
 
-    public List<Component> get() {
-        JComboBox<String> optionSelection = new JComboBox<>(productOptions.get().toArray(new String[0]));
-        optionSelection.addActionListener(e -> productSelector.get().select((String)optionSelection.getSelectedItem()));
+    @Provides
+    public List<Component> provideProductSelectionComponents(List<String> productOptions, ProductSelector productSelector) {
+        JComboBox<String> optionSelection = new JComboBox<>(productOptions.toArray(new String[0]));
+        optionSelection.addActionListener(e -> productSelector.select((String)optionSelection.getSelectedItem()));
         return Lists.newArrayList(optionSelection);
     }
 }

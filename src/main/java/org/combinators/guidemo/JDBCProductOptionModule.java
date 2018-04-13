@@ -2,28 +2,23 @@ package org.combinators.guidemo;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
+import com.google.inject.TypeLiteral;
 
-import javax.inject.Inject;
 import javax.inject.Named;
-import javax.inject.Provider;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
 
-public class JDBCProductOptionProvider implements Provider<List<String>> {
-    private final String location;
-    private final Provider<ProductOptionErrorHandler> errorHandler;
+public class JDBCProductOptionModule extends AbstractModule {
+    @Override
+    public void configure() {}
 
-    @Inject
-    public JDBCProductOptionProvider(@Named("jdbc database location") String location,
-                                     Provider<ProductOptionErrorHandler> errorHandler) {
-        this.location = location;
-        this.errorHandler = errorHandler;
-    }
 
-    public List<String> get() {
+    @Provides
+    public List<String> provideProductOptions(@Named("jdbc database location") String location,
+                                              ProductOptionErrorHandler errorHandler) {
         List<String> options = new ArrayList<>();
         Connection connection = null;
         try {
@@ -34,7 +29,7 @@ public class JDBCProductOptionProvider implements Provider<List<String>> {
                 options.add(results.getString("name"));
             }
         } catch (Exception e) {
-            errorHandler.get().handle(e);
+            errorHandler.handle(e);
         } finally {
             if (connection != null) {
                 try {

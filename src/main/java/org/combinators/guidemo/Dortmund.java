@@ -11,12 +11,8 @@ import java.net.URL;
 public class Dortmund extends AbstractModule {
     @Override
     public void configure() {
-        bind(CustomerForm.class).toProvider(CustomerFormProvider.class);
-        bind(ProductOptionErrorHandler.class).toProvider(CustomerFormProvider.class);
-        bind(ProductSelector.class).toProvider(CustomerFormProvider.class);
-        bind(new TypeLiteral<List<String>>() {}).toProvider(JDBCProductOptionProvider.class);
-        bind(new TypeLiteral<List<Component>>() {}).toProvider(ComboboxOrderModule.class);
-        bind(String.class).annotatedWith(Names.named("Default Order")).toProvider(DefaultOrderProvider.class);
+        bind(ProductOptionErrorHandler.class).to(CustomerForm.class);
+        bind(ProductSelector.class).to(CustomerForm.class);
     }
 
     @Provides
@@ -38,8 +34,13 @@ public class Dortmund extends AbstractModule {
     public static void main(String[] args) {
         Injector injector = Guice.createInjector(
                 new Dortmund(),
-                new DatabaseLocationModule());
+                new DatabaseLocationModule(),
+                new ComboboxOrderModule(),
+                new DefaultOrderModule(),
+                new JDBCProductOptionModule()
+                );
         CustomerForm form = injector.getInstance(CustomerForm.class);
+        EventQueue.invokeLater(form::initComponents);
     }
 
 }

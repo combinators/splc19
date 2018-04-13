@@ -2,6 +2,7 @@ package org.combinators.guidemo;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.inject.Provider;
 import javax.swing.*;
 import java.awt.*;
 import java.util.List;
@@ -13,18 +14,19 @@ public class CustomerForm extends JFrame implements ProductSelector, ProductOpti
 
     private String selectedOrder;
 
-    private List<Component> productSelectionComponents;
+    private final Provider<List<Component>> productSelectionComponents;
 
-    private String title;
+    private final String title;
 
-    private URL logoLocation;
+    private final URL logoLocation;
 
-    private String defaultOrder;
+    private final Provider<String> defaultOrder;
 
-    public CustomerForm(String title,
-                        URL logoLocation,
-                        List<Component> productSelectionComponents,
-                        String defaultOrder) {
+    @Inject
+    public CustomerForm(@Named("branch title") String title,
+                        @Named("logo location") URL logoLocation,
+                        Provider<List<Component>> productSelectionComponents,
+                        @Named("Default Order") Provider<String> defaultOrder) {
         super();
         this.title = title;
         this.logoLocation = logoLocation;
@@ -34,14 +36,10 @@ public class CustomerForm extends JFrame implements ProductSelector, ProductOpti
         FlowLayout layout = new FlowLayout();
         layout.setAlignment(FlowLayout.TRAILING);
         this.setLayout(layout);
-        initComponents();
-        this.pack();
-        this.setVisible(true);
-        this.setDefaultCloseOperation(EXIT_ON_CLOSE);
     }
 
     public void initComponents() {
-        for (Component component : productSelectionComponents) {
+        for (Component component : productSelectionComponents.get()) {
             this.add(component);
         }
         try {
@@ -49,12 +47,15 @@ public class CustomerForm extends JFrame implements ProductSelector, ProductOpti
         } catch (Exception e) {
         }
         this.setTitle(title);
-        selectedOrder = defaultOrder;
+        selectedOrder = defaultOrder.get();
 
         orderButton = new JButton();
         orderButton.setText("Order");
         orderButton.addActionListener(e -> JOptionPane.showMessageDialog(orderButton, String.format("You ordered: %s", selectedOrder)));
         this.add(orderButton);
+        this.pack();
+        this.setVisible(true);
+        this.setDefaultCloseOperation(EXIT_ON_CLOSE);
     }
 
     @Override
