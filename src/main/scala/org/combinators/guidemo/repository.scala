@@ -4,67 +4,62 @@ import java.net.URL
 import java.nio.file.Paths
 
 import com.github.javaparser.ast.CompilationUnit
+import com.google.inject._
 import org.combinators.cls.git.{EmptyInhabitationBatchJobResults, ResultLocation, Results}
 import org.combinators.cls.interpreter.{ReflectedRepository, combinator}
-import org.combinators.cls.types.syntax._
-import org.combinators.cls.types.{Kinding, Type, Variable}
 import org.combinators.guidemo.Helpers._
+import org.combinators.guidemo.concepts.Concepts._
 import org.combinators.guidemo.domain.{CoffeeBar, DatabaseType, MenuLayout}
-import org.combinators.templating.persistable.BundledResource
 import org.combinators.templating.persistable.JavaPersistable._
+import org.combinators.templating.persistable.{BundledResource, Persistable}
 import org.combinators.templating.twirl.Java
 
 import scala.meta._
 
-class Repository(coffeeBar: CoffeeBar) {
-  lazy val alpha = Variable("alpha")
-  lazy val kinding: Kinding =
-    Kinding(alpha)
-      .addOption('DropDown).addOption('RadioButtons)
+class Repository(coffeeBar: CoffeeBar) extends AbstractModule {
 
-  @combinator object customerForm {
-    def apply(title: String,
-      logoLocation: URL,
-      optionSelector: CoffeeBarModifier): CompilationUnit = {
-      val coffeeBar = Java(readFile("CustomerForm.java")).compilationUnit()
-      addOptionSelection(coffeeBar, optionSelector)
-      addTitle(coffeeBar, title)
-      addLogo(coffeeBar, logoLocation)
-      coffeeBar
-    }
-    val semanticType: Type =
-      'BranchName =>: 'Location('Logo) =>: 'ChoiceDialog(alpha) =>: 'OrderMenu(alpha)
+  override def configure(): Unit = {}
+
+  @Provides
+  @OrderMenu
+  def provideCustomerForm(@BranchName title: String,
+      @Location(of = Locatable.Logo) logoLocation: URL,
+      @ChoiceDialog optionSelector: CoffeeBarModifier): CompilationUnit = {
+    val coffeeBar = Java(readFile("CustomerForm.java")).compilationUnit()
+    addOptionSelection(coffeeBar, optionSelector)
+    addTitle(coffeeBar, title)
+    addLogo(coffeeBar, logoLocation)
+    coffeeBar
   }
 
-  @combinator object projectBuildFile {
-    def apply(extraDependencies: Seq[scala.meta.Term]): scala.meta.Source = {
-      val buildFile = scala.meta.dialects.Sbt1(readFile("build.sbt")).parse[scala.meta.Source].get
-      buildFile.copy(buildFile.children.map {
-        case q"libraryDependencies ++= Seq(..$oldDependencies)" =>
-          q"""libraryDependencies ++= Seq(..${oldDependencies ++ extraDependencies.toList})"""
-        case q"$x" => x
-      })
-    }
-    val semanticType: Type = 'ExtraDependencies =>: 'BuildFile
+  @Provides
+  @BuildFile
+  def provideProjectBuildFile(@ExtraDependencies extraDependencies: Seq[scala.meta.Term]): scala.meta.Source = {
+    val buildFile = scala.meta.dialects.Sbt1(readFile("build.sbt")).parse[scala.meta.Source].get
+    buildFile.copy(buildFile.children.map {
+      case q"libraryDependencies ++= Seq(..$oldDependencies)" =>
+        q"""libraryDependencies ++= Seq(..${oldDependencies ++ extraDependencies.toList})"""
+      case q"$x" => x
+    })
   }
 
 
-  @combinator object branchName {
-    def apply: String = coffeeBar.getBranchName
-    val semanticType: Type = 'BranchName
-  }
-  @combinator object databaseLocation {
-    def apply: String = coffeeBar.getProductDatabase.getDatabaseLocation
-    val semanticType: Type = 'Location('Database)
-  }
-  @combinator object logoLocation {
-    def apply: URL = coffeeBar.getLogoLocation
-    val semanticType: Type  = 'Location('Logo)
-  }
+  @Provides
+  @BranchName
+  def provideBranchName: String = coffeeBar.getBranchName
+  @Provides
+  @Location(of = Locatable.Database)
+  def provideDatabaseLocation(): String = coffeeBar.getProductDatabase.getDatabaseLocation
+  @Provides
+  @Location(of = Locatable.Logo)
+  def provideLogoLocation: URL = coffeeBar.getLogoLocation
 
+  class RestJSONDatabaseModule extends AbstractModule {
+    override def configure(): Unit = {}
 
-  object restJSONProductProvider {
-    def apply(databaseLocation: String): CoffeeBarModifier =
+    @Provides
+    @DatabaseAccessCode
+    def provideRestJSONProductProvider(@Location(of = Locatable.Database) databaseLocation: String): CoffeeBarModifier =
       coffeBar => new Runnable() {
         def run() = {
           coffeBar.addImport("java.util.List")
@@ -95,11 +90,22 @@ class Repository(coffeeBar: CoffeeBar) {
         }
       }
 
-    val semanticType: Type = 'Location('Database) =>: 'DatabaseAccessCode
+    @Provides
+    @ExtraDependencies
+    def provideJSONDependencies: Seq[scala.meta.Term] =
+      q"""Seq(
+            "com.fasterxml.jackson.core" % "jackson-annotations" % "2.8.8",
+            "com.fasterxml.jackson.core" % "jackson-core" % "2.8.8",
+            "com.fasterxml.jackson.core" % "jackson-databind" % "2.8.8"
+         )""" match { case q"Seq(..$xs)" => xs }
   }
 
-  object jdbcProductProvider {
-    def apply(databaseLocation: String): CoffeeBarModifier =
+  class JDBCDatabaseModule extends AbstractModule {
+    override def configure(): Unit = {}
+
+    @Provides
+    @DatabaseAccessCode
+    def provideJDBCDatabaseProductProvider(@Location(of = Locatable.Database) databaseLocation: String): CoffeeBarModifier =
       coffeBar => new Runnable() {
         def run() = {
           coffeBar.addImport("java.sql.*")
@@ -139,11 +145,20 @@ class Repository(coffeeBar: CoffeeBar) {
         }
       }
 
-    val semanticType: Type = 'Location('Database) =>: 'DatabaseAccessCode
+    @Provides
+    @ExtraDependencies
+    def provideJDBCDependencies: Seq[scala.meta.Term] =
+      q"""Seq(
+           "com.h2database" % "h2" % "1.4.196"
+         )""" match { case q"Seq(..$xs)" => xs }
   }
 
-  @combinator object dropDownSelector {
-    def apply(databaseAccessCode: CoffeeBarModifier): CoffeeBarModifier = {
+  class DropDownModule extends AbstractModule {
+    override def configure(): Unit = {}
+
+    @Provides
+    @ChoiceDialog
+    def provideDropDownSelector(@DatabaseAccessCode databaseAccessCode: CoffeeBarModifier): CoffeeBarModifier = {
       coffeBar => new Runnable() {
         def run() = {
           addDatabaseAccessCode(coffeBar, databaseAccessCode)
@@ -160,101 +175,89 @@ class Repository(coffeeBar: CoffeeBar) {
                  |    optionBox.addActionListener(e -> { selectedOrder = (String)optionBox.getSelectedItem(); });
                  |}
                  |this.add(optionBox);
-               """.stripMargin).statements()
+             """.stripMargin).statements()
 
           getOrders.reverse.foreach(stmt => initMethod.getBody.get().addStatement(0, stmt))
         }
       }
     }
-    val semanticType: Type =
-      'DatabaseAccessCode =>: 'ChoiceDialog('DropDown)
   }
-
-  object jsonDependencies {
-    def apply: Seq[scala.meta.Term] =
-      q"""Seq(
-            "com.fasterxml.jackson.core" % "jackson-annotations" % "2.8.8",
-            "com.fasterxml.jackson.core" % "jackson-core" % "2.8.8",
-            "com.fasterxml.jackson.core" % "jackson-databind" % "2.8.8"
-         )""" match { case q"Seq(..$xs)" => xs }
-
-    val semanticType: Type = 'ExtraDependencies
-  }
-
-  object jdbcDependencies {
-    def apply: Seq[scala.meta.Term] =
-      q"""Seq(
-           "com.h2database" % "h2" % "1.4.196"
-         )""" match { case q"Seq(..$xs)" => xs }
-
-    val semanticType: Type = 'ExtraDependencies
-  }
-
-  @combinator object radioButtonSelector {
-    def apply(databaseAccessCode: CoffeeBarModifier): CoffeeBarModifier = {
-      coffeBar => new Runnable() {
-        def run() = {
-          addDatabaseAccessCode(coffeBar, databaseAccessCode)
-          val cls = coffeBar.getClassByName("CustomerForm").get
-          val initMethod = cls.getMethodsByName("initComponents").get(0)
-          val getOrders =
-            Java(
-              s"""
-                 |List<String> options = getProductOptions();
-                 |ButtonGroup group = new ButtonGroup();
-                 |for (String option : options) {
-                 |  JRadioButton optionButton = new JRadioButton(option);
-                 |  optionButton.addActionListener(e -> { selectedOrder = option; });
-                 |  group.add(optionButton);
-                 |  this.add(optionButton);
-                 |}
-                 |if (options.size() > 0) {
-                 |    selectedOrder = options.get(0);
-                 |}
+  class RadioButtonModule extends AbstractModule {
+    override def configure(): Unit = {}
+    @Provides
+    @ChoiceDialog
+    def provideRadioButtonSelector(@DatabaseAccessCode databaseAccessCode: CoffeeBarModifier): CoffeeBarModifier = {
+      coffeBar =>
+        new Runnable() {
+          def run() = {
+            addDatabaseAccessCode(coffeBar, databaseAccessCode)
+            val cls = coffeBar.getClassByName("CustomerForm").get
+            val initMethod = cls.getMethodsByName("initComponents").get(0)
+            val getOrders =
+              Java(
+                s"""
+                   |List<String> options = getProductOptions();
+                   |ButtonGroup group = new ButtonGroup();
+                   |for (String option : options) {
+                   |  JRadioButton optionButton = new JRadioButton(option);
+                   |  optionButton.addActionListener(e -> { selectedOrder = option; });
+                   |  group.add(optionButton);
+                   |  this.add(optionButton);
+                   |}
+                   |if (options.size() > 0) {
+                   |    selectedOrder = options.get(0);
+                   |}
                  """.stripMargin).statements()
-          getOrders.reverse.foreach(stmt => initMethod.getBody.get().addStatement(0, stmt))
+            getOrders.reverse.foreach(stmt => initMethod.getBody.get().addStatement(0, stmt))
+          }
         }
-      }
     }
-    val semanticType: Type =
-      'DatabaseAccessCode  =>: 'ChoiceDialog('RadioButtons)
   }
 
-  private def addDatabaseCombinators(repository: ReflectedRepository[Repository]): ReflectedRepository[Repository] = {
+  private def databaseModule: AbstractModule = {
     coffeeBar.getProductDatabase.getDatabaseType match {
       case DatabaseType.JDBC =>
-        repository
-          .addCombinator(jdbcProductProvider)
-          .addCombinator(jdbcDependencies)
+        new JDBCDatabaseModule
       case DatabaseType.RestJSON =>
-        repository
-          .addCombinator(restJSONProductProvider)
-          .addCombinator(jsonDependencies)
+        new RestJSONDatabaseModule
     }
   }
 
-  private def semanticTarget: Type = {
-    'OrderMenu(coffeeBar.getMenuLayout match {
-      case MenuLayout.DropDown => 'DropDown
-      case MenuLayout.RadioButtons => 'RadioButtons
-    })
+  private def uiSelectorModule: AbstractModule = {
+    coffeeBar.getMenuLayout match {
+      case MenuLayout.DropDown =>
+        new DropDownModule
+      case MenuLayout.RadioButtons =>
+        new RadioButtonModule
+    }
   }
 
-  def forInhabitation: ReflectedRepository[Repository] = {
-    val repo = ReflectedRepository(
-        this,
-        classLoader = this.getClass.getClassLoader,
-        substitutionSpace = this.kinding
-      )
-    addDatabaseCombinators(repo)
+  lazy val injector: Injector =
+    Guice.createInjector(this, databaseModule, uiSelectorModule)
+
+  class DummyRepository {
+    @combinator object Dummy {
+      def apply(): Unit = ()
+    }
+  }
+  def forInhabitation: ReflectedRepository[DummyRepository] =
+    ReflectedRepository[DummyRepository](new DummyRepository, classLoader = getClass.getClassLoader)
+
+  implicit val unitPersistable: Persistable.Aux[Unit] = new Persistable {
+    type T = Unit
+    override def rawText(elem: Unit): Array[Byte] = Array.emptyByteArray
+    override def path(elem: Unit) = Paths.get("EMPTY")
   }
 
   def getResults(implicit resultLocation: ResultLocation): Results = {
-    EmptyInhabitationBatchJobResults(this.forInhabitation)
-      .addJob[CompilationUnit](semanticTarget)
-      .addJob[scala.meta.Source]('BuildFile)(tag = implicitly, persistable = BuildFilePersistable)
+    val generatedCode = injector.getInstance(Key.get(classOf[CompilationUnit], classOf[OrderMenu]))
+    val generatedBuildFile = injector.getInstance(Key.get(classOf[scala.meta.Source], classOf[BuildFile]))
+    EmptyInhabitationBatchJobResults(forInhabitation)
+      .addJob[Unit]()
       .compute()
       .addExternalArtifact(BundledResource("gitignore", Paths.get(".gitignore"), getClass))
       .addExternalArtifact(BundledResource("build.properties", Paths.get("project", "build.properties"), getClass))
+      .addExternalArtifact(generatedCode)
+      .addExternalArtifact(generatedBuildFile)(persistable = BuildFilePersistable)
   }
 }
