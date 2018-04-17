@@ -2,6 +2,7 @@ package org.combinators.guidemo;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
+import org.combinators.guidemo.concepts.Concepts.*;
 
 import javax.inject.Named;
 import java.util.List;
@@ -12,8 +13,8 @@ public class DefaultOrderModule extends AbstractModule {
     }
 
     @Provides
-    @Named("Default Order")
-    public String provideDefaultOrder(List<String> productOptions) {
+    @DefaultOrder
+    public String provideDefaultOrder(@ProductOptions List<String> productOptions) {
         return (productOptions.isEmpty() ? "" : productOptions.get(0));
     }
 }

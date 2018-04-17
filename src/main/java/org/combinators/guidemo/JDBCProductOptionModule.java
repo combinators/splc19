@@ -2,9 +2,8 @@ package org.combinators.guidemo;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
-import com.google.inject.TypeLiteral;
+import org.combinators.guidemo.concepts.Concepts.*;
 
-import javax.inject.Named;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -17,8 +16,10 @@ public class JDBCProductOptionModule extends AbstractModule {
 
 
     @Provides
-    public List<String> provideProductOptions(@Named("jdbc database location") String location,
-                                              ProductOptionErrorHandler errorHandler) {
+    @ProductOptions
+    public List<String> provideProductOptions(
+            @Location(of = Locatable.Database) String location,
+            @OrderMenu ProductOptionErrorHandler errorHandler) {
         List<String> options = new ArrayList<>();
         Connection connection = null;
         try {
@@ -40,5 +41,11 @@ public class JDBCProductOptionModule extends AbstractModule {
             }
         }
         return options;
+    }
+
+    @Provides
+    @Location(of = Locatable.Database)
+    public String provideJDBCDatabaseLocation() {
+        return "jdbc:h2:tcp://localhost/mem:coffee";
     }
 }

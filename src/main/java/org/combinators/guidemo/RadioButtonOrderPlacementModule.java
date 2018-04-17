@@ -2,6 +2,7 @@ package org.combinators.guidemo;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
+import org.combinators.guidemo.concepts.Concepts.*;
 
 import javax.swing.*;
 import java.awt.*;
@@ -13,7 +14,10 @@ public class RadioButtonOrderPlacementModule extends AbstractModule {
     protected void configure() { }
 
     @Provides
-    public List<Component> provideRadioButtonOrder(List<String> productOptions, ProductSelector productSelector) {
+    @ChoiceDialog
+    public List<Component> provideRadioButtonOrder(
+            @ProductOptions List<String> productOptions,
+            @OrderMenu ProductSelector productSelector) {
         ButtonGroup group = new ButtonGroup();
         List<Component> components = new ArrayList<>();
         for (String option : productOptions) {

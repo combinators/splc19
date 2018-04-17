@@ -1,5 +1,7 @@
 package org.combinators.guidemo;
 
+import org.combinators.guidemo.concepts.Concepts.*;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
@@ -16,8 +18,10 @@ public class JSONProductOptionModule extends AbstractModule {
 
 
     @Provides
-    public List<String> provideProductOptions(@Named("json database location") String location,
-                                              ProductOptionErrorHandler errorHandler) {
+    @ProductOptions
+    public List<String> provideProductOptions(
+            @Location(of = Locatable.Database) String location,
+            @OrderMenu ProductOptionErrorHandler errorHandler) {
         ObjectMapper mapper = new ObjectMapper();
         List<String> options;
         try {
@@ -27,5 +31,12 @@ public class JSONProductOptionModule extends AbstractModule {
             errorHandler.handle(e);
         }
         return options;
+    }
+
+
+    @Provides
+    @Location(of = Locatable.Database)
+    public String provideJSONDatabaseLocation() {
+        return"http://localhost:9000/coffeebar/json/productoptions";
     }
 }

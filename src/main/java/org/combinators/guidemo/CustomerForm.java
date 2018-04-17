@@ -1,7 +1,8 @@
 package org.combinators.guidemo;
 
+import org.combinators.guidemo.concepts.Concepts.*;
+
 import javax.inject.Inject;
-import javax.inject.Named;
 import javax.inject.Provider;
 import javax.swing.*;
 import java.awt.*;
@@ -23,10 +24,10 @@ public class CustomerForm extends JFrame implements ProductSelector, ProductOpti
     private final Provider<String> defaultOrder;
 
     @Inject
-    public CustomerForm(@Named("branch title") String title,
-                        @Named("logo location") URL logoLocation,
-                        Provider<List<Component>> productSelectionComponents,
-                        @Named("Default Order") Provider<String> defaultOrder) {
+    public CustomerForm(@BranchName String title,
+                        @Location(of = Locatable.Logo) URL logoLocation,
+                        @ChoiceDialog Provider<List<Component>> productSelectionComponents,
+                        @DefaultOrder Provider<String> defaultOrder) {
         super();
         this.title = title;
         this.logoLocation = logoLocation;
