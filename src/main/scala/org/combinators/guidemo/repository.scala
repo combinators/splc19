@@ -16,11 +16,8 @@ import org.combinators.templating.twirl.Java
 
 import scala.meta._
 
-class Repository(coffeeBar: CoffeeBar) {
-  lazy val alpha = Variable("alpha")
-  lazy val kinding: Kinding =
-    Kinding(alpha)
-      .addOption('DropDown).addOption('RadioButtons)
+class Repository(coffeeBar: CoffeeBar) extends SemanticConcepts {
+  lazy val kinding = FormShape.formShapeKinding
 
   @combinator object customerForm {
     def apply(title: String,
@@ -33,7 +30,7 @@ class Repository(coffeeBar: CoffeeBar) {
       coffeeBar
     }
     val semanticType: Type =
-      'BranchName =>: 'Location('Logo) =>: 'ChoiceDialog(alpha) =>: 'OrderMenu(alpha)
+      BranchName =>: Location(Location.Logo) =>: ChoiceDialog(FormShape.variableFormShape) =>: OrderMenu(FormShape.variableFormShape)
   }
 
   @combinator object projectBuildFile {
@@ -45,21 +42,21 @@ class Repository(coffeeBar: CoffeeBar) {
         case q"$x" => x
       })
     }
-    val semanticType: Type = 'ExtraDependencies =>: 'BuildFile
+    val semanticType: Type = BuildFile.ExtraDependencies =>: BuildFile.Code
   }
 
 
   @combinator object branchName {
     def apply: String = coffeeBar.getBranchName
-    val semanticType: Type = 'BranchName
+    val semanticType: Type = BranchName
   }
   @combinator object databaseLocation {
     def apply: String = coffeeBar.getProductDatabase.getDatabaseLocation
-    val semanticType: Type = 'Location('Database)
+    val semanticType: Type = Location(Location.Database)
   }
   @combinator object logoLocation {
     def apply: URL = coffeeBar.getLogoLocation
-    val semanticType: Type  = 'Location('Logo)
+    val semanticType: Type  = Location(Location.Logo)
   }
 
 
@@ -95,7 +92,7 @@ class Repository(coffeeBar: CoffeeBar) {
         }
       }
 
-    val semanticType: Type = 'Location('Database) =>: 'DatabaseAccessCode
+    val semanticType: Type = Location(Location.Database) =>: DatabaseAccessCode
   }
 
   object jdbcProductProvider {
@@ -139,7 +136,7 @@ class Repository(coffeeBar: CoffeeBar) {
         }
       }
 
-    val semanticType: Type = 'Location('Database) =>: 'DatabaseAccessCode
+    val semanticType: Type = Location(Location.Database) =>: DatabaseAccessCode
   }
 
   @combinator object dropDownSelector {
@@ -167,7 +164,7 @@ class Repository(coffeeBar: CoffeeBar) {
       }
     }
     val semanticType: Type =
-      'DatabaseAccessCode =>: 'ChoiceDialog('DropDown)
+      DatabaseAccessCode =>: ChoiceDialog(FormShape.DropDown)
   }
 
   object jsonDependencies {
@@ -178,7 +175,7 @@ class Repository(coffeeBar: CoffeeBar) {
             "com.fasterxml.jackson.core" % "jackson-databind" % "2.8.8"
          )""" match { case q"Seq(..$xs)" => xs }
 
-    val semanticType: Type = 'ExtraDependencies
+    val semanticType: Type = BuildFile.ExtraDependencies
   }
 
   object jdbcDependencies {
@@ -187,7 +184,7 @@ class Repository(coffeeBar: CoffeeBar) {
            "com.h2database" % "h2" % "1.4.196"
          )""" match { case q"Seq(..$xs)" => xs }
 
-    val semanticType: Type = 'ExtraDependencies
+    val semanticType: Type = BuildFile.ExtraDependencies
   }
 
   @combinator object radioButtonSelector {
@@ -217,7 +214,7 @@ class Repository(coffeeBar: CoffeeBar) {
       }
     }
     val semanticType: Type =
-      'DatabaseAccessCode  =>: 'ChoiceDialog('RadioButtons)
+      DatabaseAccessCode  =>: ChoiceDialog(FormShape.RadioButtons)
   }
 
   private def addDatabaseCombinators(repository: ReflectedRepository[Repository]): ReflectedRepository[Repository] = {
@@ -234,9 +231,9 @@ class Repository(coffeeBar: CoffeeBar) {
   }
 
   private def semanticTarget: Type = {
-    'OrderMenu(coffeeBar.getMenuLayout match {
-      case MenuLayout.DropDown => 'DropDown
-      case MenuLayout.RadioButtons => 'RadioButtons
+    OrderMenu(coffeeBar.getMenuLayout match {
+      case MenuLayout.DropDown => FormShape.DropDown
+      case MenuLayout.RadioButtons => FormShape.RadioButtons
     })
   }
 
@@ -252,7 +249,7 @@ class Repository(coffeeBar: CoffeeBar) {
   def getResults(implicit resultLocation: ResultLocation): Results = {
     EmptyInhabitationBatchJobResults(this.forInhabitation)
       .addJob[CompilationUnit](semanticTarget)
-      .addJob[scala.meta.Source]('BuildFile)(tag = implicitly, persistable = BuildFilePersistable)
+      .addJob[scala.meta.Source](BuildFile.Code)
       .compute()
       .addExternalArtifact(BundledResource("gitignore", Paths.get(".gitignore"), getClass))
       .addExternalArtifact(BundledResource("build.properties", Paths.get("project", "build.properties"), getClass))
