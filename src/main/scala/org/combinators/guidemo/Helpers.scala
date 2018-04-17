@@ -49,10 +49,11 @@ object Helpers {
   def readFile(name: String): String =
     scala.io.Source.fromInputStream(getClass.getResourceAsStream(name)).mkString
 
-  object BuildFilePersistable extends Persistable {
-    type T = scala.meta.Source
-    def rawText(elem: scala.meta.Source): Array[Byte] =
-      elem.toString().getBytes()
-    def path(elem: scala.meta.Source): Path = Paths.get("build.sbt")
-  }
+  implicit val BuildFilePersistable: Persistable.Aux[scala.meta.Source] =
+    new Persistable {
+      type T = scala.meta.Source
+      def rawText(elem: scala.meta.Source): Array[Byte] =
+        elem.toString().getBytes()
+      def path(elem: scala.meta.Source): Path = Paths.get("build.sbt")
+    }
 }
