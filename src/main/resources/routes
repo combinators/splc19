@@ -10,4 +10,9 @@ GET   /guidemo/alternatelogo.png        org.combinators.guidemo.GUIDemoDataServe
 GET   /guidemo/productoptions           org.combinators.guidemo.GUIDemoDataServer.productOptions()
 
 
+GET   /simple                          gpl.productline.Simple.overview()
+GET   /simple/raw_:number              gpl.productline.Simple.raw(number: Long)
+GET   /simple/prepare                  gpl.productline.Simple.prepare(number: Long)
+GET   /simple/simple.git/*file  	   gpl.productline.Simple.serveFile(file)
+
 
