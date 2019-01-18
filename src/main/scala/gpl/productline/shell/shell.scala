@@ -1,10 +1,10 @@
 package gpl.productline.shell
 
 import javax.inject.Inject
-
 import org.webjars.play.WebJarsUtil
 import com.github.javaparser.ast.CompilationUnit
 import gpl.domain._
+import gpl.productline.{GPLDomain, extensions}
 import org.combinators.cls.interpreter.ReflectedRepository
 import org.combinators.cls.git._
 import org.combinators.cls.types.Constructor

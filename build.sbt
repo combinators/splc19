@@ -22,7 +22,7 @@ lazy val commonSettings = Seq(
   libraryDependencies ++= Seq(
     "org.combinators" %% "cls-scala" % "2.0.0-RC1",
     "org.combinators" %% "templating" % "1.0.0-RC1+4-ca285511",
-    "org.combinators" %% "cls-scala-presentation-play-git" % "1.0.0-RC1+1-00659e19",
+    "org.combinators" %% "cls-scala-presentation-play-git" % "1.0.0-RC1+8-63d5cf0b",
     "org.scalactic" %% "scalactic" % "3.0.1" % "test",
     "org.scalatest" %% "scalatest" % "3.0.1" % "test",
     guice
@@ -30,13 +30,13 @@ lazy val commonSettings = Seq(
 
 )
 
-lazy val root = (Project(id = "guidemo", base = file(".")))
+lazy val root = (Project(id = "splc19", base = file(".")))
   .settings(commonSettings: _*)
   .enablePlugins(SbtTwirl)
   .enablePlugins(PlayScala)
   .disablePlugins(PlayLayoutPlugin)
   .settings(
-    moduleName := "guidemo",
+    moduleName := "splc19",
 
     sourceDirectories in (Compile, TwirlKeys.compileTemplates) := Seq(
       sourceDirectory.value / "main" / "java-templates",
