@@ -47,8 +47,11 @@ class Simple @Inject()(webJars: WebJarsUtil, lifeCycle: ApplicationLifecycle) ex
 //
 //  lazy val onlyTarget = Seq(tinySemantics(tinySemantics.base))
 
-  lazy val targets:Seq[Constructor]= Seq(vertexLogic(vertexLogic.base, vertexLogic.empty),
-    edgeLogic(edgeLogic.base2, 'Weighted))
+  lazy val targets:Seq[Constructor]= Seq(
+    vertexLogic(vertexLogic.base, vertexLogic.empty),
+    edgeLogic(edgeLogic.base2, 'Weighted),
+    'PleaseWork
+  )
 
   lazy val results: Results = EmptyInhabitationBatchJobResults(Gamma)
       .addJobs[CompilationUnit](targets).compute() //hacking

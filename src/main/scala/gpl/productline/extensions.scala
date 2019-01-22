@@ -9,7 +9,12 @@ import org.combinators.cls.types.{Arrow, Constructor, Type}
 import org.combinators.templating.twirl.Java
 import org.combinators.cls.types.syntax._
 
-trait extensions extends GraphDomain with Base with SemanticTypes {
+/**
+  * Based upon the information stored in the model, the init() method adds
+  * combinators into the repository, customzied based on the attributes in the
+  * Scala model.
+  */
+trait extensions extends GraphDomain with Base with SemanticTypes with GraphStructureDomain {
 
   // dynamic combinators added as needed in this trait
   override def init[G <: GraphDomain](gamma: ReflectedRepository[G], g: Graph):
@@ -28,6 +33,38 @@ trait extensions extends GraphDomain with Base with SemanticTypes {
 
     if (g.weighted){
       updated= updated.addCombinator(new WeightedGR())
+    }
+
+    g.edgeStorage match {
+      case gpl.domain.AdjacencyMatrix() => {
+        // add combinators
+        updated = updated.addCombinator(new GraphExtension1)
+        updated = updated.addCombinator(new GraphExtension3)
+        updated = updated.addCombinator (new TwoGraph(
+          graphLogic(graphLogic.base, 'Extension1),
+          graphLogic(graphLogic.base, 'Extension3)
+        ))
+//        updated = updated.addCombinator(new ChainedGraph(
+//          graphLogic(graphLogic.base, 'Extension1),
+//          graphLogic(graphLogic.base, 'Extension3)
+//        ))
+      }
+      case gpl.domain.NeighboringNodes() => {
+        updated = updated.addCombinator(new GraphExtension3)
+        updated = updated.addCombinator(new GraphExtension5)
+
+        updated = updated.addCombinator (new TwoGraph(
+          graphLogic(graphLogic.base, 'Extension3),
+          graphLogic(graphLogic.base, 'Extension5)
+        ))
+//        updated = updated.addCombinator(new ChainedGraph(
+//          graphLogic(graphLogic.base, 'Extension3),
+//          graphLogic(graphLogic.base, 'Extension5)
+//        ))
+      }
+      case gpl.domain.EdgeInstances() => {
+
+      }
     }
 
     var body: Seq[BodyDeclaration[_]] = Seq.empty
@@ -59,11 +96,11 @@ trait extensions extends GraphDomain with Base with SemanticTypes {
       .addCombinator(new ChainedWorkSpace(
         workSpaceCNSemantics(workSpaceCNSemantics.extensions),
         workSpaceCCSemantics(workSpaceCCSemantics.extensions)))
-      .addCombinator(new ChainedGraph(graphCCSemantics(graphCCSemantics.extensions),
-        graphCNSemantics(graphCNSemantics.extensions), graphDGRSemantics(graphDGRSemantics.extensions),
-        graphBMSemantics(graphBMSemantics.extensions), graphProgSemantics(graphProgSemantics.extensions),
-        graphWGRSemantics(graphWGRSemantics.extensions),
-        graphDCSemantics(graphDCSemantics.extensions)))
+//      .addCombinator(new ChainedGraph(graphCCSemantics(graphCCSemantics.extensions),
+//        graphCNSemantics(graphCNSemantics.extensions), graphDGRSemantics(graphDGRSemantics.extensions),
+//        graphBMSemantics(graphBMSemantics.extensions), graphProgSemantics(graphProgSemantics.extensions),
+//        graphWGRSemantics(graphWGRSemantics.extensions),
+//        graphDCSemantics(graphDCSemantics.extensions)))
 
     // any changes to the repository are passed back...
     updated
@@ -260,4 +297,64 @@ class VertexMethods(bd:Seq[BodyDeclaration[_]]) {
   /** connected is done here, may need to fix Graph   */
 
   // do more computations here...
+
+  class GraphExtension1 {
+    def apply(): Seq[BodyDeclaration[_]] = {
+      Java(
+        s"""
+           |public void method1() {
+           |  System.out.println ("meth1");
+           |}
+           |
+           |public void method2() {
+           |   System.out.println ("meth2");
+           |}
+         """.stripMargin).classBodyDeclarations()
+    }
+
+    val semanticType: Type = graphLogic(graphLogic.base, 'Extension1)
+  }
+
+  class GraphExtension5 {
+    def apply(): Seq[BodyDeclaration[_]] = {
+      Java(
+        s"""
+           |public void method5() {
+           |  System.out.println ("meth5");
+           |}
+           |
+           |public void method6() {
+           |   System.out.println ("meth6");
+           |}
+         """.stripMargin).classBodyDeclarations()
+    }
+
+    val semanticType: Type = graphLogic(graphLogic.base, 'Extension5)
+  }
+
+
+  class GraphExtension3 {
+    def apply(): Seq[BodyDeclaration[_]] = {
+      Java(
+        s"""
+           |public void method3() {
+           |  System.out.println ("meth3");
+           |}
+           |
+           |public void method4() {
+           |   System.out.println ("meth4");
+           |}
+         """.stripMargin).classBodyDeclarations()
+    }
+
+    val semanticType: Type = graphLogic(graphLogic.base, 'Extension3)
+  }
+
+  class TwoGraph(t1: Type, t2: Type) {
+    def apply(bd1:Seq[BodyDeclaration[_]], bd2:Seq[BodyDeclaration[_]]) : Seq[BodyDeclaration[_]] =
+      bd1 ++ bd2
+
+    val semanticType:Type = t1 =>: t2 =>: graphLogic(graphLogic.base, graphLogic.extensions)
+  }
+
 }

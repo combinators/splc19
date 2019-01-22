@@ -3,15 +3,26 @@ package gpl.domain
 import org.combinators.cls.interpreter.ReflectedRepository
 
 /**
-  * Every graph must specify its type of edge and type of vertex
+  * Every graph must specify information about vertices and edges
   */
 abstract class Graph extends Vertex with Edge {
   val name:String
 }
 
+/**
+  * Any information about vertices goes here. Right now only labeling is available.
+  */
 trait Vertex {
-  def labeled : Boolean = false
+  def labeled : Boolean = true
 }
+
+// really the same thing as an Enum in Java
+sealed trait EdgeStorage
+
+case class AdjacencyMatrix() extends EdgeStorage
+case class NeighboringNodes() extends EdgeStorage
+case class EdgeInstances() extends EdgeStorage
+
 
 
 /**
@@ -20,57 +31,70 @@ trait Vertex {
 trait Edge {
   def directed : Boolean = false
   def weighted : Boolean = false
+
+  // are these edges actually instantiated and stored with the graph, or are they
+  // only generated on demand
+  def edgeStorage : EdgeStorage
 }
 
 // A Marker Interface that suggests there will be weights in an edge
-trait WeightedEdge extends Edge {
-  override def weighted: Boolean = true
-}
-
-trait unWeightedEdge extends Edge {
-  override def weighted: Boolean = false
-}
-
-
-
-trait DirectedEdge extends Edge {
-  override def directed = true
-}
-
-trait unDirectedEdge extends Edge {
-  override def directed = false
-}
+//trait WeightedEdge extends Edge {
+//  override def weighted: Boolean = true
+//}
+//
+//trait unWeightedEdge extends Edge {
+//  override def weighted: Boolean = false
+//}
+//
+//
+//
+//trait DirectedEdge extends Edge {
+//  override def directed = true
+//}
+//
+//trait unDirectedEdge extends Edge {
+//  override def directed = false
+//}
 
 
 // these are the desired instances in the product line for structure
-class DirectedGraph extends Graph with DirectedEdge {
+class DirectedWeightedGraphAdjacencyMatrix extends Graph  {
   val name:String = "DirectedGraph"
-}
 
-class UndirectedGraph extends Graph {
-  val name:String = "UndirectedGraph"
+  override def weighted: Boolean = true
+  override def directed: Boolean = true
+  override def edgeStorage: EdgeStorage = AdjacencyMatrix()
 }
+//
+//class UndirectedGraph extends Graph {
+//  val name:String = "UndirectedGraph"
+//}
 
-class DirectedWeightedGraph extends Graph with DirectedEdge with WeightedEdge {
-  val name:String = "DirectedWeightedGraph"
-}
 
 // all GPL algorithms must extend this trait
-trait Algo { }
+trait Algo {
+  def algoName : String
+}
 
 trait Search extends Algo {
-
+  def algoName : String = "search"
 }
 
 // these are the desired algorithms over the graphs
 
 
-trait Num extends Algo
-trait Prim extends Algo
+trait Num extends Algo {
+  def algoName : String = "Number"
+}
+trait Prim extends Algo {
+  def algoName : String = "Prim"
+}
+
 class BFS extends Search
 class DFS extends Search
-// this is the final specification
-class FinalDirectedGraph extends DirectedGraph with Num with Prim {
+
+// this is the final specification: NOTE: ONLY ONE ALGO ALLOWED
+class FinalDirectedGraph extends DirectedWeightedGraphAdjacencyMatrix with Prim {
 
 }
 
