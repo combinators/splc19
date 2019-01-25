@@ -23,7 +23,10 @@ case class AdjacencyMatrix() extends EdgeStorage
 case class NeighboringNodes() extends EdgeStorage
 case class EdgeInstances() extends EdgeStorage
 
+sealed trait EdgeAlgo
 
+case class primAlg() extends EdgeAlgo
+case class kruskalAlg() extends EdgeAlgo
 
 /**
   * Provides 'superclass' concepts for any edge
@@ -31,6 +34,7 @@ case class EdgeInstances() extends EdgeStorage
 trait Edge {
   def directed : Boolean = false
   def weighted : Boolean = false
+  def edgeAlgo: EdgeAlgo
 
   // are these edges actually instantiated and stored with the graph, or are they
   // only generated on demand
@@ -63,8 +67,38 @@ class DirectedWeightedGraphAdjacencyMatrix extends Graph  {
 
   override def weighted: Boolean = true
   override def directed: Boolean = true
+  override def edgeAlgo: EdgeAlgo= primAlg()
   override def edgeStorage: EdgeStorage = AdjacencyMatrix()
 }
+
+class DirectedunWeightedGraphAdjacencyMatrix extends Graph  {
+  val name:String = "DirectedGraph"
+
+  override def weighted: Boolean = false
+  override def directed: Boolean = true
+  override def edgeAlgo: EdgeAlgo= primAlg()
+  override def edgeStorage: EdgeStorage = AdjacencyMatrix()
+}
+
+class unDirectedunWeightedGraphAdjacencyMatrix extends Graph  {
+  val name:String = "DirectedGraph"
+
+  override def weighted: Boolean = false
+  override def directed: Boolean = false
+  override def edgeAlgo: EdgeAlgo= primAlg()
+  override def edgeStorage: EdgeStorage = AdjacencyMatrix()
+}
+
+class unDirectedWeightedGraphAdjacencyMatrix extends Graph  {
+  val name:String = "DirectedGraph"
+
+  override def weighted: Boolean = true
+  override def directed: Boolean = false
+  override def edgeAlgo: EdgeAlgo= primAlg()
+  override def edgeStorage: EdgeStorage = AdjacencyMatrix()
+}
+
+// correct so far?
 //
 //class UndirectedGraph extends Graph {
 //  val name:String = "UndirectedGraph"
@@ -72,6 +106,7 @@ class DirectedWeightedGraphAdjacencyMatrix extends Graph  {
 
 
 // all GPL algorithms must extend this trait
+
 trait Algo {
   def algoName : String
 }
@@ -90,13 +125,19 @@ trait Prim extends Algo {
   def algoName : String = "Prim"
 }
 
+trait Kruskal extends Algo {
+  def algoName : String = "Kruskal"
+}
+
+
 class BFS extends Search
 class DFS extends Search
 
-// this is the final specification: NOTE: ONLY ONE ALGO ALLOWED
-class FinalDirectedGraph extends DirectedWeightedGraphAdjacencyMatrix with Prim {
 
-}
+// this is the final specification: NOTE: ONLY ONE ALGO ALLOWED
+//class FinalDirectedGraph extends DirectedWeightedGraphAdjacencyMatrix with Prim {
+
+//}
 
 /**
 
