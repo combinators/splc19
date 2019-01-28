@@ -48,8 +48,14 @@ class Simple @Inject()(webJars: WebJarsUtil, lifeCycle: ApplicationLifecycle) ex
 //  lazy val onlyTarget = Seq(tinySemantics(tinySemantics.base))
 
   lazy val targets:Seq[Constructor]= Seq(
-    vertexLogic(vertexLogic.base, vertexLogic.empty),
-    edgeLogic(edgeLogic.base2, 'Weighted),
+    vertexLogic(vertexLogic.base, vertexLogic.complete),
+    //edgeLogic(edgeLogic.base,edgeLogic.empty),
+    edgeLogic(edgeLogic.base,edgeLogic.complete),
+    vertexIterLogic(vertexIterLogic.base,vertexIterLogic.complete ),
+    edgeIfcLogic(edgeIfcLogic.base,edgeIfcLogic.complete ),
+    edgeIterLogic(edgeIterLogic.base,edgeIterLogic.complete ),
+    neighborIfcLogic(neighborIfcLogic.base,neighborIfcLogic.complete ),
+    neighborLogic(neighborLogic.base,neighborLogic.complete),
     graphLogic(graphLogic.base, graphLogic.complete)
   )
 

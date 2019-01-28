@@ -32,6 +32,7 @@ trait EdgeDomain extends SemanticTypes {
            |
            |    public void adjustAdorns( EdgeIfc the_edge ) {}
            |
+           |
            |    public Vertex getOtherVertex(Vertex vertex)
            |    {
            |        if(vertex == start)
@@ -69,16 +70,6 @@ trait EdgeDomain extends SemanticTypes {
         s"""
            |private int weight;
            |
-           |    public void EdgeConstructor( Vertex the_start,  Vertex the_end,
-           |                int the_weight ) {
-           |        Super( Vertex, Vertex ).EdgeConstructor( the_start,the_end );
-           |        weight = the_weight;
-           |    }
-           |
-           |    public void adjustAdorns( Edge the_edge ) {
-           |        setWeight(the_edge.getWeight());
-           |        Super( Edge ).adjustAdorns( the_edge );
-           |    }
            |
            |             public void setWeight(int weight)
            |    {
@@ -88,11 +79,6 @@ trait EdgeDomain extends SemanticTypes {
            |    public int getWeight()
            |    {
            |        return this.weight;
-           |    }
-           |
-           |    public void display() {
-           |        System.out.print( " Weight=" + weight );
-           |        Super().display();
            |    }
            |
          """.stripMargin).classBodyDeclarations()
@@ -107,9 +93,10 @@ trait EdgeDomain extends SemanticTypes {
       unit
     }
 
-    val semanticType: Type = edgeLogic(edgeLogic.base, Wgt) =>:
-                             edgeLogic(edgeLogic.base2, Wgt :&: 'Weighted)
+    val semanticType: Type = edgeLogic(edgeLogic.base, edgeLogic.empty) =>:
+                             edgeLogic(edgeLogic.base, edgeLogic.complete)
   }
 
-
+// val semanticType: Type = graphLogic(graphLogic.base, graphLogic.extensions) =>:
+  //      graphLogic(graphLogic.base, graphLogic.complete)
 }

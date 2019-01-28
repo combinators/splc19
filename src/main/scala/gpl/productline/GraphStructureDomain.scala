@@ -9,6 +9,10 @@ import org.combinators.cls.interpreter.combinator
 import org.combinators.cls.types.{Arrow, Type}
 import org.combinators.cls.types.syntax._
 import org.combinators.templating.twirl.Java
+import java.util
+import java.util.Collections
+import java.util.Comparator
+
 
 trait GraphStructureDomain extends SemanticTypes {
 
@@ -22,10 +26,10 @@ trait GraphStructureDomain extends SemanticTypes {
            |Graph Prim( Vertex r ) {
            |        Vertex root;
            |
- |        root = r;
+           |        root = r;
            |        Vertex x;
            |
- |        // 2. and 3. Initializes the vertices
+           |        // 2. and 3. Initializes the vertices
            |        for ( VertexIter vxiter = getVertices(); vxiter.hasNext(); )
            |        {
            |        x = vxiter.next();
@@ -33,17 +37,17 @@ trait GraphStructureDomain extends SemanticTypes {
            |        x.key = Integer.MAX_VALUE;
            |        }
            |
- |        // 4. and 5.
+           |        // 4. and 5.
            |        root.key = 0;
            |        root.pred = null;
            |
- |        // 2. S <- empty set
+           |        // 2. S <- empty set
            |
- |        // 1. Queue <- V[G], copy the vertex in the graph in the priority queue
+           |        // 1. Queue <- V[G], copy the vertex in the graph in the priority queue
            |        LinkedList Queue = new LinkedList();
            |        Set indx = new HashSet( );
            |
- |        // Inserts the root at the head of the queue
+           |        // Inserts the root at the head of the queue
            |        Queue.add( root );
            |        indx.add( root.getName( ) );
            |        for ( VertexIter vxiter = getVertices(); vxiter.hasNext(); )
@@ -56,10 +60,10 @@ trait GraphStructureDomain extends SemanticTypes {
            |        }
            |        }
            |
- |        // Inserts the root at the head of the queue
+           |        // Inserts the root at the head of the queue
            |        // Queue.addFirst( root );
            |
- |        // 6. while Q!=0
+           |        // 6. while Q!=0
            |        Vertex ucurrent;
            |        int j,k,l;
            |        int pos;
@@ -68,10 +72,10 @@ trait GraphStructureDomain extends SemanticTypes {
            |        EdgeIfc en;
            |        NeighborIfc vn;
            |
- |        int wuv;
+           |        int wuv;
            |        boolean isNeighborInQueue = false;
            |
- |        // Queue is a list ordered by key values.
+           |        // Queue is a list ordered by key values.
            |        // At the beginning all key values are INFINITUM except
            |        // for the root whose value is 0.
            |        while ( Queue.size()!=0 )
@@ -81,33 +85,33 @@ trait GraphStructureDomain extends SemanticTypes {
            |        u = ( Vertex )Queue.removeFirst();
            |        indx.remove( u.getName( ) );
            |
- |        // 8. for each vertex v adjacent to u
+           |        // 8. for each vertex v adjacent to u
            |        Uneighbors = u.getNeighborsObj( );
            |
- |        k = 0;
+           |        k = 0;
            |        for( EdgeIter edgeiter = u.getEdges(); edgeiter.hasNext(); k++ )
            |        {
            |        vn = ( NeighborIfc )Uneighbors.get( k );
            |        en = edgeiter.next();
            |
- |        v = en.getOtherVertex(u);
+           |        v = en.getOtherVertex(u);
            |
- |        // Check to see if the neighbor is in the queue
+           |        // Check to see if the neighbor is in the queue
            |        isNeighborInQueue = false;
            |
- |        // if the Neighor is in the queue
+           |        // if the Neighor is in the queue
            |        if ( indx.contains( v.getName( ) ) )
            |        isNeighborInQueue = true;
            |        wuv = en.getWeight();
            |
- |        // 9. Relax (u,v w)
+           |        // 9. Relax (u,v w)
            |        if ( isNeighborInQueue && ( wuv < v.key ) )
            |        {
            |        v.key = wuv;
            |        v.pred = u.getName();
            |        Uneighbors.set( k,vn ); // adjust values in the neighbors
            |
- |        // update the values of v in the queue
+           |        // update the values of v in the queue
            |        // Remove v from the Queue so that we can reinsert it
            |        // in a new place according to its new value to keep
            |        // the Linked List ordered
@@ -115,9 +119,9 @@ trait GraphStructureDomain extends SemanticTypes {
            |        Queue.remove( residue );
            |        // Object residue = Queue.remove( indexNeighbor );
            |
- |        indx.remove( v.getName( ) );
+           |        indx.remove( v.getName( ) );
            |
- |        // Get the new position for v
+           |        // Get the new position for v
            |        int position = Collections.binarySearch( Queue,v,
            |        new Comparator() {
            |public int compare( Object o1, Object o2 )
@@ -125,7 +129,7 @@ trait GraphStructureDomain extends SemanticTypes {
            |        Vertex v1 = ( Vertex )o1;
            |        Vertex v2 = ( Vertex )o2;
            |
- |        if ( v1.key < v2.key )
+           |        if ( v1.key < v2.key )
            |        return -1;
            |        if ( v1.key == v2.key )
            |        return 0;
@@ -133,7 +137,7 @@ trait GraphStructureDomain extends SemanticTypes {
            |        }
            |        } );
            |
- |        // Adds v in its new position in Queue
+           |        // Adds v in its new position in Queue
            |        if ( position < 0 )  // means it is not there
            |        {
            |        Queue.add( - ( position+1 ),v );
@@ -144,46 +148,46 @@ trait GraphStructureDomain extends SemanticTypes {
            |        }
            |        indx.add( v.getName( ) );
            |
- |        } // if 8-9.
+           |        } // if 8-9.
            |        } // for all neighbors
            |        } // of while
            |
- |        // Creates the new Graph that contains the SSSP
+           |        // Creates the new Graph that contains the SSSP
            |        String theName;
            |        Graph newGraph = new  Graph();
            |
- |        // Creates and adds the vertices with the same name
+           |        // Creates and adds the vertices with the same name
            |        for ( VertexIter vxiter = getVertices( ); vxiter.hasNext( ); )
            |        {
            |        Vertex vtx = vxiter.next( );
            |        theName = vtx.name;
            |
- |        newGraph.addVertex( new  Vertex().assignName( theName ) );
+           |        newGraph.addVertex( new  Vertex().assignName( theName ) );
            |        }
            |
- |        // Creates the edges from the NewGraph
+           |        // Creates the edges from the NewGraph
            |        Vertex theVertex, thePred;
            |        Vertex theNewVertex, theNewPred;
            |        EdgeIfc   e;
            |
- |        // Creates and adds the vertices with the same name
+           |        // Creates and adds the vertices with the same name
            |        for ( VertexIter vxiter = getVertices( ); vxiter.hasNext( ); )
            |        {
            |        // theVertex and its Predecessor
            |        theVertex = vxiter.next( );
            |
- |        thePred = findsVertex( theVertex.pred );
+           |        thePred = findsVertex( theVertex.pred );
            |
- |        // if theVertex is the source then continue we dont need
+           |        // if theVertex is the source then continue we dont need
            |        // to create a new edge at all
            |        if ( thePred==null )
            |        continue;
            |
- |        // Find the references in the new Graph
+           |        // Find the references in the new Graph
            |        theNewVertex = newGraph.findsVertex( theVertex.name );
            |        theNewPred = newGraph.findsVertex( thePred.name );
            |
- |        // Creates the new edge from predecessor -> vertex in the newGraph
+           |        // Creates the new edge from predecessor -> vertex in the newGraph
            |        // and ajusts the adorns based on the old edge
            |        EdgeIfc theNewEdge = newGraph.addEdge( theNewPred, theNewVertex );
            |        e = findsEdge( thePred,theVertex );
@@ -194,6 +198,72 @@ trait GraphStructureDomain extends SemanticTypes {
     }
 
     val semanticType: Type = 'primImplementation
+  }
+
+  @combinator object undirectedGenR {
+    def apply() : Seq[BodyDeclaration[_]] = {
+      Java(
+        s"""
+           |    LinkedList edges = new LinkedList();
+           |
+           |    public void sortEdges(Comparator c) {
+           |        Collections.sort(edges, c);
+           |    }
+           |
+           |    // Adds an edge without weights if Weighted layer is not present
+           |    public EdgeIfc addEdge(Vertex start,  Vertex end) {
+           |        Edge theEdge = new  Edge();
+           |        theEdge.EdgeConstructor( start, end );
+           |        edges.add( theEdge );
+           |        start.addNeighbor( new  Neighbor( end, theEdge ) );
+           |        end.addNeighbor( new  Neighbor( start, theEdge ) );
+           |
+           |        return theEdge;
+           |    }
+           |
+           |    public EdgeIter getEdges() {
+           |        return new EdgeIter() {
+           |                private Iterator iter = edges.iterator();
+           |                public EdgeIfc next() { return (EdgeIfc)iter.next(); }
+           |                public boolean hasNext() { return iter.hasNext(); }
+           |            };
+           |    }
+           |
+           |    // Finds an Edge given both of its vertices
+           |    public  EdgeIfc findsEdge( Vertex theSource,
+           |                    Vertex theTarget )
+           |       {
+           |        EdgeIfc theEdge;
+           |
+           |        for( EdgeIter edgeiter = theSource.getEdges(); edgeiter.hasNext(); )
+           |         {
+           |            theEdge = edgeiter.next();
+           |            if ( ( theEdge.getStart().getName().equals( theSource.getName() ) &&
+           |                  theEdge.getEnd().getName().equals( theTarget.getName() ) ) ||
+           |                 ( theEdge.getStart().getName().equals( theTarget.getName() ) &&
+           |                  theEdge.getEnd().getName().equals( theSource.getName() ) ) )
+           |                return theEdge;
+           |        }
+           |        return null;
+           |    }
+           |
+           |    public void display() {
+           |        System.out.println( "******************************************" );
+           |        System.out.println( "Vertices " );
+           |        for ( VertexIter vxiter = getVertices(); vxiter.hasNext() ; )
+           |            vxiter.next().display();
+           |
+           |        System.out.println( "******************************************" );
+           |        System.out.println( "Edges " );
+           |        for ( EdgeIter edgeiter = getEdges(); edgeiter.hasNext(); )
+           |            edgeiter.next().display();
+           |
+           |        System.out.println( "******************************************" );
+           |
+           |}""".stripMargin).classBodyDeclarations()
+    }
+
+    val semanticType: Type = graphLogic(graphLogic.base, 'undirectedGenR)//'undirectedGenR
   }
 
   //        val options = Seq(graphLogic(graphLogic.base, 'primImplementation),
@@ -213,16 +283,26 @@ trait GraphStructureDomain extends SemanticTypes {
 
   @combinator object graphBase {
     def apply(body : Seq[BodyDeclaration[_]]): CompilationUnit = {
-      println ("SAMPLE:" )
+      //println ("SAMPLE:" )
       val options = Seq(graphLogic(graphLogic.base, 'primImplementation),
-                graphLogic(graphLogic.base, 'Extension3))
+                graphLogic(graphLogic.base, 'undirectedGenR))
       val cv = new ChainedHere(graphLogic(graphLogic.base, graphLogic.extensions), options : _ *)
-      println ("cv:" + cv.semanticType)
-      println ("my:" + semanticType)
+   //   println ("cv:" + cv.semanticType)
+   //   println ("my:" + semanticType)
 
       Java(
         s"""
            |package gpl;
+           |
+           |import java.util.LinkedList;
+           |
+           |import java.util.Iterator;
+           |import java.util.Collections;
+           |import java.util.Set;
+           |import java.util.Comparator;
+           |import java.util.HashMap;
+           |import java.util.Map;
+           |import java.util.HashSet;
            |
            |public class Graph  {
            |LinkedList vertices;
@@ -230,18 +310,51 @@ trait GraphStructureDomain extends SemanticTypes {
            |     vertices = new LinkedList();
            |   }
            |
- |   public VertexIter getVertices( ) {
+           |   public VertexIter getVertices( ) {
            |      return new VertexIter(this);
            |   }
            |
- |   public void sortVertices(Comparator c) {
+           |   public void sortVertices(Comparator c) {
            |      Collections.sort(vertices, c);
            |   }
            |
- |   EdgeIfc addEdge( Vertex v1, Vertex v2 ) { return null; }
+           |   EdgeIfc addEdge( Vertex v1, Vertex v2 ) { return null; }
            |   Vertex findsVertex( String name ) { return null; }
            |   void display() { }
            |   void addVertex( Vertex v ) { }
+           |
+           | LinkedList edges = new LinkedList();
+           |
+           |    public void sortEdges(Comparator c) {
+           |        Collections.sort(edges, c);
+           |    }
+           |
+           |    public EdgeIter getEdges() {
+           |        return new EdgeIter() {
+           |                private Iterator iter = edges.iterator();
+           |                public EdgeIfc next() { return (EdgeIfc)iter.next(); }
+           |                public boolean hasNext() { return iter.hasNext(); }
+           |            };
+           |    }
+           |
+           |    // Finds an Edge given both of its vertices
+           |    public  EdgeIfc findsEdge( Vertex theSource,
+           |                    Vertex theTarget )
+           |       {
+           |        EdgeIfc theEdge;
+           |
+           |        for( EdgeIter edgeiter = theSource.getEdges(); edgeiter.hasNext(); )
+           |         {
+           |            theEdge = edgeiter.next();
+           |            if ( ( theEdge.getStart().getName().equals( theSource.getName() ) &&
+           |                  theEdge.getEnd().getName().equals( theTarget.getName() ) ) ||
+           |                 ( theEdge.getStart().getName().equals( theTarget.getName() ) &&
+           |                  theEdge.getEnd().getName().equals( theSource.getName() ) ) )
+           |                return theEdge;
+           |        }
+           |        return null;
+           |    }
+           |
            | ${body.mkString("\n")}
            |
            |}
@@ -251,6 +364,5 @@ trait GraphStructureDomain extends SemanticTypes {
     val semanticType: Type = graphLogic(graphLogic.base, graphLogic.extensions) =>:
       graphLogic(graphLogic.base, graphLogic.complete)
   }
-
 
 }

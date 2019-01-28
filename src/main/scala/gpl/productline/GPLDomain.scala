@@ -8,6 +8,8 @@ import org.combinators.cls.interpreter.combinator
 import org.combinators.cls.types.Type
 import org.combinators.cls.types.syntax._
 import org.combinators.templating.twirl.Java
+import java.util.Iterator
+import java.util.LinkedList
 
 
 class GPLDomain(override val graph:Graph) extends GraphDomain(graph) with SemanticTypes {
@@ -18,6 +20,10 @@ class GPLDomain(override val graph:Graph) extends GraphDomain(graph) with Semant
     def apply(extensions:Seq[BodyDeclaration[_]]): CompilationUnit = Java(
       s"""
          |package gpl;
+         |
+         |import java.util.Iterator;
+         |import java.util.LinkedList;
+         |
          |
          |public class Graph {
          |LinkedList vertices;

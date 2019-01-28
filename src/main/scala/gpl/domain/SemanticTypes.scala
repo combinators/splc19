@@ -46,8 +46,8 @@ trait SemanticTypes {
     val implements:Type = 'Implements
     val base:Type = 'Base
     val base2:Type = 'Base2
-
     val empty : Type = 'Empty
+    val complete : Type = 'Complete
   }
 
   // parts of the widgets during move : Dynamic Behavior
@@ -59,6 +59,52 @@ trait SemanticTypes {
     val base:Type = 'Base
     val base2:Type = 'Base2
     val empty : Type = 'Empty
+    val complete : Type = 'Complete
+  }
+
+  object vertexIterLogic{
+    def apply (part:Type, features:Type): Constructor = 'VertexIter (part, features)
+    val extensions:Type = 'Extensions
+    val implements:Type = 'Implements
+    val base:Type = 'Base
+    val empty : Type = 'Empty
+    val complete : Type = 'Complete
+  }
+
+  object edgeIfcLogic{
+    def apply (part:Type, features:Type): Constructor = 'EdgeIfc (part, features)
+    val extensions:Type = 'Extensions
+    val implements:Type = 'Implements
+    val base:Type = 'Base
+    val empty : Type = 'Empty
+    val complete : Type = 'Complete
+  }
+
+  object edgeIterLogic{
+    def apply (part:Type, features:Type): Constructor = 'EdgeIter (part, features)
+    val extensions:Type = 'Extensions
+    val implements:Type = 'Implements
+    val base:Type = 'Base
+    val empty : Type = 'Empty
+    val complete : Type = 'Complete
+  }
+
+  object neighborIfcLogic{
+    def apply (part:Type, features:Type): Constructor = 'neighborIfc (part, features)
+    val extensions:Type = 'Extensions
+    val implements:Type = 'Implements
+    val base:Type = 'Base
+    val empty : Type = 'Empty
+    val complete : Type = 'Complete
+  }
+
+  object neighborLogic{
+    def apply (part:Type, features:Type): Constructor = 'neighbor (part, features)
+    val extensions:Type = 'Extensions
+    val implements:Type = 'Implements
+    val base:Type = 'Base
+    val empty : Type = 'Empty
+    val complete : Type = 'Complete
   }
 
   // Original
