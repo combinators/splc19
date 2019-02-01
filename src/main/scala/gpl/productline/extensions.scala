@@ -14,7 +14,7 @@ import org.combinators.cls.types.syntax._
   * combinators into the repository, customzied based on the attributes in the
   * Scala model.
   */
-trait extensions extends GraphDomain with Base with SemanticTypes with GraphStructureDomain {
+trait extensions extends GraphDomain with VertexDomain with EdgeDomain with Base with SemanticTypes with GraphStructureDomain {
 
   // dynamic combinators added as needed in this trait
   override def init[G <: GraphDomain](gamma: ReflectedRepository[G], g: Graph):
@@ -24,30 +24,50 @@ trait extensions extends GraphDomain with Base with SemanticTypes with GraphStru
 
     // from a specification, this goes and adds into the repository the combinators
     // that are necessary. It builds up dynamic combinator fragments as needed.
+    // VERTEX extensions
+    var vertexExtensions:Seq[Symbol] = Seq.empty
+    g.edgeStorage match {
+      case gpl.domain.NeighboringNodes() =>
+        updated = updated.addCombinator (new VertexNeighborList())
+        vertexExtensions = vertexExtensions :+ vertexLogic.var_neighborList
+      case gpl.domain.EdgeInstances() =>
+
+      case _ =>
+        // any defaults would go here.
+    }
+
+    // VERTEX extensions
+    if (g.colored) {
+      updated = updated.addCombinator (new ColoredVertex())
+      vertexExtensions = vertexExtensions :+ vertexLogic.var_colored
+    }
+
+    // AT THIS POINT I have all Vertex extensions KNOWN then can CHAIN TOGETHER
+    // the different Seq[BodyDeclaration[_]] from the vertexExtensions
+    updated = updated.addCombinator (new VertexChained2(vertexExtensions(0), vertexExtensions(1)))
 
     // might not be useful in long run..
     //val cons = new VertexExtension("DirectedGRSemantics").implements
+    // EDGE EXTENSIONS
     if (g.directed) {
       updated = updated.addCombinator(new DirectedGR())
     }
 
+    // EDGE extensions
     if (g.weighted){
-      updated= updated.addCombinator(new WeightedGR())
+     // updated= updated.addCombinator(new WeightedGR())
+      // updated = updated.addCombinator(new EdgeWeighted())
+      // HACK top get to work
+      updated = updated.addCombinator (new NoEdgeExtensions())
+    } else {
+      updated = updated.addCombinator (new NoEdgeExtensions())
     }
 
-    g.edgeAlgo match{
-      case gpl.domain.primAlg() => {
-        updated= updated.addCombinator(new MSTPrim)
-      }
-      case gpl.domain.kruskalAlg() => {
-        updated = updated.addCombinator(new MSTKruskal)
-      }
-    }
-
-
+    // eventually need to choose based upon chosen algorithms
+    updated= updated.addCombinator(new MSTPrim)
 
     g.edgeStorage match {
-      case gpl.domain.AdjacencyMatrix() => {
+      case gpl.domain.EdgeInstances () =>
         // add combinators
         updated = updated.addCombinator(new GraphExtension1)
         updated = updated.addCombinator(new GraphExtension3)
@@ -69,7 +89,7 @@ trait extensions extends GraphDomain with Base with SemanticTypes with GraphStru
 //          graphLogic(graphLogic.base, 'Extension1),
 //          graphLogic(graphLogic.base, 'Extension3)
 //        ))
-      }
+
       case gpl.domain.NeighboringNodes() => {
         updated = updated.addCombinator(new GraphExtension3)
         updated = updated.addCombinator(new GraphExtension5)
@@ -86,15 +106,15 @@ trait extensions extends GraphDomain with Base with SemanticTypes with GraphStru
 //          graphLogic(graphLogic.base, 'Extension5)
 //        ))
       }
-      case gpl.domain.EdgeInstances() => {
-        updated = updated.addCombinator(new GraphExtension3)
-        updated = updated.addCombinator(new GraphExtension5)
-
-        updated = updated.addCombinator (new TwoGraph(
-          graphLogic(graphLogic.base, 'Extension3),
-          graphLogic(graphLogic.base, 'Extension7)
-        ))
-      }
+//      case gpl.domain.EdgeInstances() => {
+//        updated = updated.addCombinator(new GraphExtension3)
+//        updated = updated.addCombinator(new GraphExtension5)
+//
+//        updated = updated.addCombinator (new TwoGraph(
+//          graphLogic(graphLogic.base, 'Extension3),
+//          graphLogic(graphLogic.base, 'Extension7)
+//        ))
+//      }
     }
 
     var body: Seq[BodyDeclaration[_]] = Seq.empty

@@ -16,7 +16,7 @@ import org.combinators.cls.types.syntax._
 
 class Simple @Inject()(webJars: WebJarsUtil, lifeCycle: ApplicationLifecycle) extends InhabitationController(webJars, lifeCycle) with SemanticTypes with RoutingEntries {
 
-  val graph:Graph = new DirectedWeightedGraphAdjacencyMatrix
+  val graph:Graph = new undirectedNeighborNodes
 
   /** KlondikeDomain for Klondike defined herein. Controllers are defined in Controllers area. */
   lazy val repository = new GPLDomain(graph) with VertexDomain with EdgeDomain with extensions {}
@@ -47,6 +47,7 @@ class Simple @Inject()(webJars: WebJarsUtil, lifeCycle: ApplicationLifecycle) ex
 //
 //  lazy val onlyTarget = Seq(tinySemantics(tinySemantics.base))
 
+  // ALL intersection types must be *.complete because those are the CompilationUnits
   lazy val targets:Seq[Constructor]= Seq(
     vertexLogic(vertexLogic.base, vertexLogic.complete),
     //edgeLogic(edgeLogic.base,edgeLogic.empty),
@@ -56,7 +57,7 @@ class Simple @Inject()(webJars: WebJarsUtil, lifeCycle: ApplicationLifecycle) ex
     edgeIterLogic(edgeIterLogic.base,edgeIterLogic.complete ),
     neighborIfcLogic(neighborIfcLogic.base,neighborIfcLogic.complete ),
     neighborLogic(neighborLogic.base,neighborLogic.complete),
-    graphLogic(graphLogic.base, graphLogic.complete)
+    graphLogic(graphLogic.base,graphLogic.complete )//graphLogic.complete)
   )
 
   lazy val results: Results = EmptyInhabitationBatchJobResults(Gamma)

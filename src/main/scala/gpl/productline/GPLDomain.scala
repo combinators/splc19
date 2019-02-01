@@ -86,7 +86,7 @@ class GPLDomain(override val graph:Graph) extends GraphDomain(graph) with Semant
     }
 
     val semanticType: Type = edgeIfcSemantics(edgeIfcSemantics.extensions) =>:
-      edgeIfcSemantics(edgeIfcSemantics.base)
+      edgeIfcLogic(edgeIfcLogic.base,edgeIfcLogic.complete )
 
   }
 

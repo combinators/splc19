@@ -18,7 +18,7 @@ trait GraphStructureDomain extends SemanticTypes {
 
   val graph:Graph
 
-  @combinator object sampleTemplate {
+  @combinator object primAlgorithm {
     def apply() : Seq[BodyDeclaration[_]] = {
       // NOT WORKINGalgorithms.java.render().compilationUnit()
       Java(
@@ -200,6 +200,69 @@ trait GraphStructureDomain extends SemanticTypes {
     val semanticType: Type = 'primImplementation
   }
 
+  // this SHOULD be replaced with dynamic combinator that glues together multiple extensions into one
+  @combinator object HACK_GLUEPrim {
+    def apply(bd:Seq[BodyDeclaration[_]]): Seq[BodyDeclaration[_]] = bd
+
+    val semanticType: Type = 'primImplementation =>:
+                              graphLogic(graphLogic.base, graphLogic.extensions)
+  }
+
+  @combinator object GraphUND {
+    def apply() : Seq[BodyDeclaration[_]] = {
+      // NOT WORKINGalgorithms.java.render().compilationUnit()
+      Java(
+        s"""
+           |public void addAnEdge( Vertex start,  Vertex end, int weight )
+           |    {
+           |        addEdge( start,end );
+           |    }
+           |
+           |    // Adds and edge by setting start as adjacent to end and
+           |    // viceversa
+           |    public EdgeIfc addEdge( Vertex start,  Vertex end )
+           |    {
+           |        start.addAdjacent( end );
+           |        end.addAdjacent( start );
+           |        return ( EdgeIfc ) start;
+           |    }
+           |
+           |    public void display() {
+           |        int s = vertices.size();
+           |        int i;
+           |
+           |        System.out.println( "******************************************" );
+           |        System.out.println( "Vertices " );
+           |        for ( i=0; i<s; i++ )
+           |            ( ( Vertex ) vertices.get( i ) ).display();
+           |        System.out.println( "******************************************" );
+           |
+           |    }
+           |   public  EdgeIfc findsEdge( Vertex theSource,
+           |                    Vertex theTarget )
+           |       {
+           |        Vertex v1 = theSource;
+           |        for( EdgeIter edgeiter = v1.getEdges(); edgeiter.hasNext(); )
+           |            {
+           |                EdgeIfc theEdge = edgeiter.next();
+           |            Vertex v2 = theEdge.getOtherVertex( v1 );
+           |              if ( ( v1.getName().equals( theSource.getName() ) &&
+           |                       v2.getName().equals( theTarget.getName() ) ) ||
+           |                         ( v1.getName().equals( theTarget.getName() ) &&
+           |                     v2.getName().equals( theSource.getName() ) ) )
+           |                    return theEdge;
+           |            }
+           |        return null;
+           |    }
+           |
+           |}""".stripMargin).classBodyDeclarations()
+    }
+
+    val semanticType: Type = 'undirectedGR
+  }
+
+
+
   @combinator object undirectedGenR {
     def apply() : Seq[BodyDeclaration[_]] = {
       Java(
@@ -263,7 +326,7 @@ trait GraphStructureDomain extends SemanticTypes {
            |}""".stripMargin).classBodyDeclarations()
     }
 
-    val semanticType: Type = graphLogic(graphLogic.base, 'undirectedGenR)//'undirectedGenR
+    val semanticType: Type = 'undirectedGenR//'undirectedGenR
   }
 
   //        val options = Seq(graphLogic(graphLogic.base, 'primImplementation),
@@ -284,7 +347,7 @@ trait GraphStructureDomain extends SemanticTypes {
   @combinator object graphBase {
     def apply(body : Seq[BodyDeclaration[_]]): CompilationUnit = {
       //println ("SAMPLE:" )
-      val options = Seq(graphLogic(graphLogic.base, 'primImplementation),
+      val options = Seq(graphLogic(graphLogic.base, 'undirectedGR),
                 graphLogic(graphLogic.base, 'undirectedGenR))
       val cv = new ChainedHere(graphLogic(graphLogic.base, graphLogic.extensions), options : _ *)
    //   println ("cv:" + cv.semanticType)
@@ -294,19 +357,11 @@ trait GraphStructureDomain extends SemanticTypes {
         s"""
            |package gpl;
            |
-           |import java.util.LinkedList;
-           |
-           |import java.util.Iterator;
-           |import java.util.Collections;
-           |import java.util.Set;
-           |import java.util.Comparator;
-           |import java.util.HashMap;
-           |import java.util.Map;
-           |import java.util.HashSet;
+           |import java.util.*;
            |
            |public class Graph  {
            |LinkedList vertices;
-           |   Graph(){
+           |   public Graph(){
            |     vertices = new LinkedList();
            |   }
            |
@@ -323,7 +378,7 @@ trait GraphStructureDomain extends SemanticTypes {
            |   void display() { }
            |   void addVertex( Vertex v ) { }
            |
-           | LinkedList edges = new LinkedList();
+           |    LinkedList edges = new LinkedList();
            |
            |    public void sortEdges(Comparator c) {
            |        Collections.sort(edges, c);
@@ -362,7 +417,7 @@ trait GraphStructureDomain extends SemanticTypes {
     }
 
     val semanticType: Type = graphLogic(graphLogic.base, graphLogic.extensions) =>:
-      graphLogic(graphLogic.base, graphLogic.complete)
+                             graphLogic(graphLogic.base, graphLogic.complete)
   }
 
 }

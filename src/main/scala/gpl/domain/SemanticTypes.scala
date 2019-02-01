@@ -43,9 +43,15 @@ trait SemanticTypes {
     def apply (part:Type, features:Type): Constructor = 'VertexLogic (part, features)
 
     val extensions:Type = 'Extensions
+
+    // known variations for storage of neighbor information
+    val var_neighborList = 'NeighborList
+    val var_edgeList = 'EdgeList
+
+    val var_colored = 'Colored
+
     val implements:Type = 'Implements
     val base:Type = 'Base
-    val base2:Type = 'Base2
     val empty : Type = 'Empty
     val complete : Type = 'Complete
   }
@@ -56,8 +62,11 @@ trait SemanticTypes {
 
     val extensions:Type = 'Extensions
     val implements:Type = 'Implements
+
+    // known variations
+    val var_weighted:Type = 'Weighted
+
     val base:Type = 'Base
-    val base2:Type = 'Base2
     val empty : Type = 'Empty
     val complete : Type = 'Complete
   }

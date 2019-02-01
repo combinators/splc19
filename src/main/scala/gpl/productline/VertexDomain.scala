@@ -1,22 +1,21 @@
 package gpl.productline
 
 import com.github.javaparser.ast.CompilationUnit
-import com.github.javaparser.ast.body.BodyDeclaration
+import com.github.javaparser.ast.body.{BodyDeclaration, FieldDeclaration, MethodDeclaration}
 import gpl.domain.{Graph, GraphDomain, SemanticTypes}
 import org.combinators.cls.interpreter.combinator
-import org.combinators.cls.types.Type
-import org.combinators.templating.twirl.Java
-
+import org.combinators.cls.types.{Arrow, Type}
 import org.combinators.cls.types.Type
 import org.combinators.cls.types.syntax._
 import org.combinators.templating.twirl.Java
-
+//(extensions:Seq[BodyDeclaration[_]]): CompilationUnit
+//(): CompilationUnit =
 trait VertexDomain extends SemanticTypes {
 
   val graph:Graph
 
   @combinator object vertexBase{
-    def apply(): CompilationUnit = {
+    def apply(extensions:Seq[BodyDeclaration[_]]): CompilationUnit = {
       Java(
         s"""
            |package gpl;
@@ -103,17 +102,114 @@ trait VertexDomain extends SemanticTypes {
            |
            |
            |
-           |
-           |   }
-           |
-           |
-           |
-           |
-         """.stripMargin).compilationUnit
+           |${extensions.mkString("\n")}
+           |}""".stripMargin).compilationUnit
     }
 
-    val semanticType: Type = vertexLogic(vertexLogic.base, vertexLogic.complete)
+    val semanticType: Type = vertexLogic(vertexLogic.base,vertexLogic.extensions) =>:
+                             vertexLogic(vertexLogic.base, vertexLogic.complete)
   }
+
+  class ColoredVertex {
+    def apply() : Seq[BodyDeclaration[_]] = {
+            Java(s"""
+               |    private int color;
+               |    public void setColor(int c)
+               |    {
+               |       this.color = c;
+               |    }
+               |
+               |    public int getColor()
+               |    {
+               |        return this.color;
+               |    }
+               |""".stripMargin).classBodyDeclarations()
+        }
+
+        val semanticType: Type = vertexLogic(vertexLogic.base, vertexLogic.var_colored)
+
+    }
+
+
+  /**
+    * Extensions to the Vertex concept
+    *
+    * 1. adjacentVertices as linked list
+    * 2. get neighbors as iterator
+    */
+    class VertexNeighborList {
+           def apply(): Seq[BodyDeclaration[_]] = {
+      Java(
+        s"""
+           | public LinkedList<Vertex> adjacentVertices = new LinkedList<>();
+           |
+           |    public VertexIter getNeighbors( ) {
+           |
+           |        return new VertexIter( )
+           |        {
+           |            private Iterator<Vertex> iter = adjacentVertices.iterator();
+           |            public Vertex next( )
+           |            {
+           |               return iter.next( );
+           |            }
+           |
+           |            public boolean hasNext( )
+           |            {
+           |               return iter.hasNext( );
+           |            }
+           |        };
+           |    }
+           |
+           |    public void display() {
+           |        int s = adjacentVertices.size();
+           |        int i;
+           |
+           |        System.out.print( "Vertex " + name + " connected to: " );
+           |        for (Vertex v : adjacentVertices()) {
+           |           System.out.print( v.name + ", " );
+           |        }
+           |        System.out.println();
+           |    }
+           |//--------------------
+           |// differences
+           |//--------------------
+           |
+           |    public void addAdjacent( Vertex n ) {
+           |        adjacentVertices.add( n );
+           |    }
+           |
+           |
+           |    public LinkedList<Vertex> getNeighborsObj( )
+           |    {
+           |      return adjacentVertices;
+           |    }
+           |
+           |    public EdgeIter getEdges( )
+           |    {
+           |        final Vertex self = this;
+           |
+           |        return new EdgeIter( )
+           |        {
+           |            private Iterator<Vertex> iter = adjacentVertices.iterator( );
+           |            public EdgeIfc next( )
+           |            {
+           |              Vertex other = iter.next( );
+           |              return new Edge (self, other);
+           |            }
+           |            public boolean hasNext( )
+           |            {
+           |              return iter.hasNext( );
+           |            }
+           |        };
+           |    }
+           |
+         """.stripMargin).classBodyDeclarations()
+    }
+
+    val semanticType: Type = vertexLogic(vertexLogic.base, vertexLogic.var_neighborList)
+  }
+
+
 
   @combinator object VertexIter{
     def apply(): CompilationUnit  = {
@@ -134,11 +230,11 @@ trait VertexDomain extends SemanticTypes {
          """.stripMargin).compilationUnit
     }
 
-    val semanticType: Type = vertexIterLogic(vertexIterLogic.base,vertexLogic.complete )
+    val semanticType: Type = vertexIterLogic(vertexIterLogic.base,vertexIterLogic.complete )
 
   }
 
-  @combinator object EdgeIfc {
+  @combinator object FixedWeightedEdgeIfc {
     def apply(): CompilationUnit  =  {
       Java(
         s"""
@@ -207,25 +303,16 @@ trait VertexDomain extends SemanticTypes {
 
   }
 
-  @combinator object EdgeIter{
-    def apply(): CompilationUnit = {
-      Java(
-        s"""
-           |package gpl;
-           |public class EdgeIter
-           |{
-           |    // methods whose bodies will be overridden by subsequent layers
-           |    public boolean hasNext( ) { return false; }
-           |    public EdgeIfc next( ) { return null; }
-           |
-           |}
-         """.stripMargin).compilationUnit
-    }
 
-    val semanticType: Type = edgeIterLogic(edgeIterLogic.base,edgeIterLogic.complete )
 
+  class VertexChained2(t1:Type, t2:Type) {
+    def apply(bd1:Seq[BodyDeclaration[_]], bd2:Seq[BodyDeclaration[_]])  : Seq[BodyDeclaration[_]] =
+      bd1 ++ bd2
+
+    val semanticType:Type = vertexLogic(vertexLogic.base, t1) =>:
+                            vertexLogic(vertexLogic.base, t2) =>:
+                            vertexLogic(vertexLogic.base, vertexLogic.extensions)
   }
 
-
-
+  // vertexLogic(vertexLogic.base, vertexLogic.var_neighborList)
 }

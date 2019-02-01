@@ -12,8 +12,29 @@ trait EdgeDomain extends SemanticTypes {
 
   val graph:Graph
 
-  @combinator object edgeBase {
+
+  @combinator object EdgeIter{
     def apply(): CompilationUnit = {
+      Java(
+        s"""
+           |package gpl;
+           |public class EdgeIter
+           |{
+           |    // methods whose bodies will be overridden by subsequent layers
+           |    public boolean hasNext( ) { return false; }
+           |    public EdgeIfc next( ) { return null; }
+           |
+           |}
+         """.stripMargin).compilationUnit
+    }
+
+    val semanticType: Type = edgeIterLogic(edgeIterLogic.base,edgeIterLogic.complete )
+
+  }
+
+
+  @combinator object edgeBase {
+    def apply(extensions: Seq[BodyDeclaration[_]]): CompilationUnit = {
       Java(
         s"""
            |package gpl;
@@ -56,23 +77,30 @@ trait EdgeDomain extends SemanticTypes {
            |    public void display() {
            |        System.out.println( " start=" + start.getName() + " end=" + end.getName() );
            |    }
-           |}
            |
-         """.stripMargin).compilationUnit
+           |   ${extensions.mkString("\n")}
+           |}""".stripMargin).compilationUnit
     }
 
-    val semanticType: Type = edgeLogic(edgeLogic.base, edgeLogic.empty)
+    val semanticType: Type = edgeLogic(edgeLogic.base, edgeLogic.extensions) =>:
+      edgeLogic(edgeLogic.base, edgeLogic.complete)
   }
 
-  @combinator object weightedEdge {
-    def apply(unit:CompilationUnit): CompilationUnit = {
-      val extras = Java(
+
+  /** This is how you define a combinator that does NOTHING but it resolves a dependency. */
+  class NoEdgeExtensions() {
+    def apply(): Seq[BodyDeclaration[_]] = Seq.empty
+    val semanticType:Type = edgeLogic(edgeLogic.base, edgeLogic.extensions)
+  }
+
+  class EdgeWeighted() {
+    def apply(): Seq[BodyDeclaration[_]] = {
+      Java(
         s"""
-           |private int weight;
-           |
-           |
-           |             public void setWeight(int weight)
+           |    private int weight;
+           |    public void setWeight(int weight)
            |    {
+           |        int x = 10;  // ignore. Just checking
            |        this.weight = weight;
            |    }
            |
@@ -82,19 +110,9 @@ trait EdgeDomain extends SemanticTypes {
            |    }
            |
          """.stripMargin).classBodyDeclarations()
-
-      extras.foreach(bd => {
-        bd match {
-          case fd:FieldDeclaration => unit.getType(0).addMember(fd)
-          case md:MethodDeclaration => unit.getType(0).addMember(md)
-        }
-      })
-
-      unit
     }
 
-    val semanticType: Type = edgeLogic(edgeLogic.base, edgeLogic.empty) =>:
-                             edgeLogic(edgeLogic.base, edgeLogic.complete)
+    val semanticType: Type = edgeLogic(edgeLogic.base, edgeLogic.var_weighted)
   }
 
 // val semanticType: Type = graphLogic(graphLogic.base, graphLogic.extensions) =>:

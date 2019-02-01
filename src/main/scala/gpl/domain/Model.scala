@@ -13,13 +13,13 @@ abstract class Graph extends Vertex with Edge {
   * Any information about vertices goes here. Right now only labeling is available.
   */
 trait Vertex {
-  def labeled : Boolean = true
+  def labeled : Boolean
+  def colored : Boolean
 }
 
 // really the same thing as an Enum in Java
 sealed trait EdgeStorage
 
-case class AdjacencyMatrix() extends EdgeStorage
 case class NeighboringNodes() extends EdgeStorage
 case class EdgeInstances() extends EdgeStorage
 
@@ -32,9 +32,9 @@ case class kruskalAlg() extends EdgeAlgo
   * Provides 'superclass' concepts for any edge
   */
 trait Edge {
-  def directed : Boolean = false
-  def weighted : Boolean = false
-  def edgeAlgo: EdgeAlgo
+  def directed : Boolean
+  def weighted : Boolean
+  //def edgeAlgo: EdgeAlgo
 
   // are these edges actually instantiated and stored with the graph, or are they
   // only generated on demand
@@ -62,40 +62,36 @@ trait Edge {
 
 
 // these are the desired instances in the product line for structure
-class DirectedWeightedGraphAdjacencyMatrix extends Graph  {
+class FinalConcept(val algos:Seq[Algo], val wt:Boolean, val dir:Boolean, val stor:EdgeStorage) extends Graph  {
   val name:String = "DirectedGraph"
 
-  override def weighted: Boolean = true
-  override def directed: Boolean = true
-  override def edgeAlgo: EdgeAlgo= primAlg()
-  override def edgeStorage: EdgeStorage = AdjacencyMatrix()
+  override def weighted: Boolean = wt
+  override def directed: Boolean = dir
+  override def labeled: Boolean = true
+  override def colored: Boolean = false
+  override def edgeStorage: EdgeStorage = stor
 }
 
-class DirectedunWeightedGraphAdjacencyMatrix extends Graph  {
-  val name:String = "DirectedGraph"
+//// these are the desired instances in the product line for structure
+//class DirectedWeightedGraphAdjacencyMatrix extends Graph  {
+//  val name:String = "DirectedGraph"
+//
+//  override def weighted: Boolean = true
+//  override def directed: Boolean = false
+//  override def edgeStorage: EdgeStorage = NeighboringNodes()
+//}
 
-  override def weighted: Boolean = false
-  override def directed: Boolean = true
-  override def edgeAlgo: EdgeAlgo= primAlg()
-  override def edgeStorage: EdgeStorage = AdjacencyMatrix()
-}
-
-class unDirectedunWeightedGraphAdjacencyMatrix extends Graph  {
-  val name:String = "DirectedGraph"
+// Choose to store an undirected graph by having each vertex store its
+// neighbor nodes; when asking for edges, they are instantiated on the fly
+// on demand.
+class undirectedNeighborNodes extends Graph  {
+  val name:String = "undirectedNeighborNodes"
 
   override def weighted: Boolean = false
   override def directed: Boolean = false
-  override def edgeAlgo: EdgeAlgo= primAlg()
-  override def edgeStorage: EdgeStorage = AdjacencyMatrix()
-}
-
-class unDirectedWeightedGraphAdjacencyMatrix extends Graph  {
-  val name:String = "DirectedGraph"
-
-  override def weighted: Boolean = true
-  override def directed: Boolean = false
-  override def edgeAlgo: EdgeAlgo= primAlg()
-  override def edgeStorage: EdgeStorage = AdjacencyMatrix()
+  override def colored: Boolean = true
+  override def labeled: Boolean = true
+  override def edgeStorage: EdgeStorage = NeighboringNodes()
 }
 
 // correct so far?
