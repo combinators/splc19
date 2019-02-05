@@ -5,8 +5,8 @@ import org.combinators.cls.interpreter.ReflectedRepository
 /**
   * Every graph must specify information about vertices and edges
   */
-abstract class Graph extends Vertex with Edge {
-  val name:String
+abstract class Graph extends Vertex with Edge with Algo {
+  def name:String
 }
 
 /**
@@ -22,11 +22,11 @@ sealed trait EdgeStorage
 
 case class NeighboringNodes() extends EdgeStorage
 case class EdgeInstances() extends EdgeStorage
-
-sealed trait EdgeAlgo
-
-case class primAlg() extends EdgeAlgo
-case class kruskalAlg() extends EdgeAlgo
+//
+//sealed trait EdgeAlgo
+//
+//case class primAlg() extends EdgeAlgo
+//case class kruskalAlg() extends EdgeAlgo
 
 /**
   * Provides 'superclass' concepts for any edge
@@ -41,29 +41,44 @@ trait Edge {
   def edgeStorage : EdgeStorage
 }
 
-// A Marker Interface that suggests there will be weights in an edge
-//trait WeightedEdge extends Edge {
-//  override def weighted: Boolean = true
-//}
-//
-//trait unWeightedEdge extends Edge {
-//  override def weighted: Boolean = false
-//}
-//
-//
-//
-//trait DirectedEdge extends Edge {
-//  override def directed = true
-//}
-//
-//trait unDirectedEdge extends Edge {
-//  override def directed = false
-//}
 
+
+trait UndirectedEdges {
+  def directed:Boolean = false
+}
+
+trait UncoloredVertex {
+  def colored:Boolean = false
+}
+
+trait LabeledVertex {
+  def labeled:Boolean = true
+}
+
+trait NeighborStorage {
+  def edgeStorage:EdgeStorage = NeighboringNodes()
+}
+
+trait WeightedEdges {
+  def weighted:Boolean = true
+}
+
+trait UnWeightedEdges {
+  def weighted:Boolean = false
+}
+
+abstract class Target extends Graph with Algo {
+
+  // Ensure constructor validates algorithm models by checking
+  if (!modelCheck(this)) {
+    throw new scala.RuntimeException("Model not appropriate for algorithm")
+  }
+
+}
 
 // these are the desired instances in the product line for structure
 class FinalConcept(val algos:Seq[Algo], val wt:Boolean, val dir:Boolean, val stor:EdgeStorage) extends Graph  {
-  val name:String = "DirectedGraph"
+  override val name:String = "DirectedGraph"
 
   override def weighted: Boolean = wt
   override def directed: Boolean = dir
@@ -71,6 +86,8 @@ class FinalConcept(val algos:Seq[Algo], val wt:Boolean, val dir:Boolean, val sto
   override def colored: Boolean = false
   override def edgeStorage: EdgeStorage = stor
 }
+
+
 
 //// these are the desired instances in the product line for structure
 //class DirectedWeightedGraphAdjacencyMatrix extends Graph  {
@@ -85,9 +102,9 @@ class FinalConcept(val algos:Seq[Algo], val wt:Boolean, val dir:Boolean, val sto
 // neighbor nodes; when asking for edges, they are instantiated on the fly
 // on demand.
 class undirectedNeighborNodes extends Graph  {
-  val name:String = "undirectedNeighborNodes"
+  override val name:String = "undirectedNeighborNodes"
 
-  override def weighted: Boolean = false
+  override def weighted: Boolean = true
   override def directed: Boolean = false
   override def colored: Boolean = true
   override def labeled: Boolean = true
@@ -104,25 +121,42 @@ class undirectedNeighborNodes extends Graph  {
 // all GPL algorithms must extend this trait
 
 trait Algo {
-  def algoName : String
+  def name : String = ""
+
+  def capabilities : Seq[String] = Seq.empty
+
+  // by default always checks
+  def modelCheck(g:Graph):Boolean = true
 }
 
 trait Search extends Algo {
-  def algoName : String = "search"
+  override def name : String = "Search" + super.name
+
 }
 
 // these are the desired algorithms over the graphs
 
 
 trait Num extends Algo {
-  def algoName : String = "Number"
-}
-trait Prim extends Algo {
-  def algoName : String = "Prim"
+  override def name : String = "Number" + super.name
+
 }
 
-trait Kruskal extends Algo {
-  def algoName : String = "Kruskal"
+trait MST extends Algo {
+  override def capabilities: Seq[String] = super.capabilities :+ "MST"
+}
+
+trait Prim extends MST {
+  override def name : String = "Prim" + super.name
+
+  override def modelCheck(g:Graph):Boolean = {
+    g.weighted && !g.directed && super.modelCheck(g)
+  }
+}
+
+trait Kruskal extends MST {
+  override def name : String = "Kruskal" + super.name
+
 }
 
 

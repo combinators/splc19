@@ -49,7 +49,7 @@ trait SemanticTypes {
     val var_edgeList = 'EdgeList
 
     val var_colored = 'Colored
-
+    val var_weighted = 'Weighted
     val implements:Type = 'Implements
     val base:Type = 'Base
     val empty : Type = 'Empty

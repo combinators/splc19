@@ -16,7 +16,13 @@ import org.combinators.cls.types.syntax._
 
 class Simple @Inject()(webJars: WebJarsUtil, lifeCycle: ApplicationLifecycle) extends InhabitationController(webJars, lifeCycle) with SemanticTypes with RoutingEntries {
 
-  val graph:Graph = new undirectedNeighborNodes
+  // specify desired target by (a) declaring algorithm traits; (b) graph structure
+  val graph:Graph = new Target
+    with UndirectedEdges with WeightedEdges
+    with NeighborStorage with LabeledVertex with UncoloredVertex
+    with Prim
+
+    //new undirectedNeighborNodes
 
   /** KlondikeDomain for Klondike defined herein. Controllers are defined in Controllers area. */
   lazy val repository = new GPLDomain(graph) with VertexDomain with EdgeDomain with extensions {}

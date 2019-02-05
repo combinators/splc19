@@ -48,6 +48,18 @@ trait VertexDomain extends SemanticTypes {
            |      return neighbors;
            |    }
            |
+           |        public void display( )
+           |    {
+           |        System.out.print( " Node " + name + " connected to: " );
+           |
+           |        for ( VertexIter vxiter = getNeighbors( ); vxiter.hasNext( ); )
+           |        {
+           |            System.out.print( vxiter.next().getName() + ", " );
+           |        }
+           |
+           |        System.out.println( );
+           |    }
+           |
            |    public VertexIter getNeighbors( )
            |    {
            |        return new VertexIter( )
@@ -63,18 +75,6 @@ trait VertexDomain extends SemanticTypes {
            |            }
            |        };
            |    }
-           |
-           |    public void display( )
-           |    {
-           |        System.out.print( " Node " + name + " connected to: " );
-           |
-           |        for ( VertexIter vxiter = getNeighbors( ); vxiter.hasNext( ); )
-           |        {
-           |            System.out.print( vxiter.next().getName() + ", " );
-           |        }
-           |
-           |        System.out.println( );
-           |    }
            |//--------------------
            |// differences
            |//--------------------
@@ -89,10 +89,10 @@ trait VertexDomain extends SemanticTypes {
            |        return new EdgeIter( )
            |        {
            |            private Iterator iter = neighbors.iterator( );
-           |            public EdgeIfc next( )
-           |            {
-           |              return ( ( EdgeIfc ) ( ( Neighbor )iter.next( ) ).edge );
-           |            }
+           |        //    public EdgeIfc next( )
+           |        //    {
+           |        //      return ( ( EdgeIfc ) ( ( Neighbor )iter.next( ) ).edge );
+           |        //    }
            |            public boolean hasNext( )
            |            {
            |              return iter.hasNext( );
@@ -113,17 +113,16 @@ trait VertexDomain extends SemanticTypes {
   class ColoredVertex {
     def apply() : Seq[BodyDeclaration[_]] = {
             Java(s"""
-               |    private int color;
-               |    public void setColor(int c)
-               |    {
-               |       this.color = c;
-               |    }
-               |
-               |    public int getColor()
-               |    {
-               |        return this.color;
-               |    }
-               |""".stripMargin).classBodyDeclarations()
+                    |    private int color;
+                    |
+                    |    public void setColor(int c) {
+                    |        this.color = c;
+                    |    }
+                    |
+                    |    public int getColor() {
+                    |        return this.color;
+                    |    }
+                    |""".stripMargin).classBodyDeclarations()
         }
 
         val semanticType: Type = vertexLogic(vertexLogic.base, vertexLogic.var_colored)
@@ -142,7 +141,7 @@ trait VertexDomain extends SemanticTypes {
       Java(
         s"""
            | public LinkedList<Vertex> adjacentVertices = new LinkedList<>();
-           |
+           |/*
            |    public VertexIter getNeighbors( ) {
            |
            |        return new VertexIter( )
@@ -158,17 +157,6 @@ trait VertexDomain extends SemanticTypes {
            |               return iter.hasNext( );
            |            }
            |        };
-           |    }
-           |
-           |    public void display() {
-           |        int s = adjacentVertices.size();
-           |        int i;
-           |
-           |        System.out.print( "Vertex " + name + " connected to: " );
-           |        for (Vertex v : adjacentVertices()) {
-           |           System.out.print( v.name + ", " );
-           |        }
-           |        System.out.println();
            |    }
            |//--------------------
            |// differences
@@ -202,7 +190,7 @@ trait VertexDomain extends SemanticTypes {
            |            }
            |        };
            |    }
-           |
+           |*/
          """.stripMargin).classBodyDeclarations()
     }
 
@@ -275,38 +263,93 @@ trait VertexDomain extends SemanticTypes {
 
 
   @combinator object Neighbor {
-    def apply(): CompilationUnit  = {
+    def apply(extensions:Seq[BodyDeclaration[_]]): CompilationUnit  = {
       Java(
         s"""
            |package gpl;
            |
            |public class Neighbor {
+           |    public  Vertex neighbor;
            |    public  Vertex end;
            |    public  Edge edge;
-           |
-           |    public Neighbor() {
-           |        end = null;
-           |        edge = null;
-           |    }
            |
            |    public Neighbor( Vertex v,  Edge e ) {
            |        end = v;
            |        edge = e;
            |    }
            |
-           |}
+           |     public Neighbor()  {
+           |        neighbor = null;
+           |    }
            |
+           |    public Neighbor( Vertex theNeighbor )
+           |   {
+           |        NeighborConstructor( theNeighbor );
+           |    }
+           |    public void NeighborConstructor( Vertex theNeighbor ) {
+           |        neighbor = theNeighbor;
+           |    }
+           |    public Vertex getStart( ) { return null; }
+           |    public Vertex getEnd( ) { return neighbor; }
+           |
+           |    public Vertex getOtherVertex( Vertex vertex )
+           |    {
+           |        return neighbor;
+           |    }
+           |
+           |
+           |${extensions.mkString("\n")}
+           |}
          """.stripMargin).compilationUnit
     }
 
-    val semanticType: Type = neighborLogic(neighborLogic.base,neighborLogic.complete )
+    val semanticType: Type =neighborLogic(neighborLogic.base,neighborLogic.extensions ) =>: neighborLogic(neighborLogic.base,neighborLogic.complete )
 
   }
 
+  class neighborWeighted {
+    def apply(): Seq[BodyDeclaration[_]]  =  {
+      Java(
+        s"""
+           |public int weight;
+           |
+           |    public Neighbor( Vertex theNeighbor, int theWeight ) {
+           |        NeighborConstructor( theNeighbor, theWeight );
+           |    }
+           |
+           |    public void NeighborConstructor( Vertex theNeighbor, int theWeight )
+           |    {
+           |        NeighborConstructor( theNeighbor );
+           |        weight = theWeight;
+           |    }
+           |
+           |    public void setWeight(int weight)
+           |    {
+           |        this.weight = weight;
+           |    }
+           |
+           |    public int getWeight()
+           |    {
+           |        return this.weight;
+           |    }
+           |
+         """.stripMargin).classBodyDeclarations()
+    }
 
+    val semanticType: Type = neighborLogic(neighborLogic.base,neighborLogic.extensions )
+
+  }
+
+  class VertexChained1(t1:Type) {
+    def apply(bd1:Seq[BodyDeclaration[_]]): Seq[BodyDeclaration[_]] =
+      bd1
+
+    val semanticType:Type = vertexLogic(vertexLogic.base, t1) =>:
+      vertexLogic(vertexLogic.base, vertexLogic.extensions)
+  }
 
   class VertexChained2(t1:Type, t2:Type) {
-    def apply(bd1:Seq[BodyDeclaration[_]], bd2:Seq[BodyDeclaration[_]])  : Seq[BodyDeclaration[_]] =
+    def apply(bd1:Seq[BodyDeclaration[_]], bd2:Seq[BodyDeclaration[_]]): Seq[BodyDeclaration[_]] =
       bd1 ++ bd2
 
     val semanticType:Type = vertexLogic(vertexLogic.base, t1) =>:

@@ -44,7 +44,11 @@ trait extensions extends GraphDomain with VertexDomain with EdgeDomain with Base
 
     // AT THIS POINT I have all Vertex extensions KNOWN then can CHAIN TOGETHER
     // the different Seq[BodyDeclaration[_]] from the vertexExtensions
-    updated = updated.addCombinator (new VertexChained2(vertexExtensions(0), vertexExtensions(1)))
+    if (vertexExtensions.size == 2) {
+      updated = updated.addCombinator(new VertexChained2(vertexExtensions(0), vertexExtensions(1)))
+    } else if (vertexExtensions.size == 1) {
+      updated = updated.addCombinator(new VertexChained1(vertexExtensions(0)))
+    }
 
     // might not be useful in long run..
     //val cons = new VertexExtension("DirectedGRSemantics").implements
@@ -58,7 +62,8 @@ trait extensions extends GraphDomain with VertexDomain with EdgeDomain with Base
      // updated= updated.addCombinator(new WeightedGR())
       // updated = updated.addCombinator(new EdgeWeighted())
       // HACK top get to work
-      updated = updated.addCombinator (new NoEdgeExtensions())
+      updated = updated.addCombinator (new EdgeWeighted())
+      updated=updated.addCombinator (new neighborWeighted())
     } else {
       updated = updated.addCombinator (new NoEdgeExtensions())
     }
@@ -81,10 +86,22 @@ trait extensions extends GraphDomain with VertexDomain with EdgeDomain with Base
 //        )
 
 
-        updated = updated.addCombinator (new TwoGraph(
-          'primImplementation,
-          graphLogic(graphLogic.base, 'Extension3)
-        ))
+        // if graph calls for PRIM then use primImplementation
+        if (g.capabilities.contains("MST")) {
+          if (g.name.contains("Prim")) {
+            updated = updated.addCombinator(new TwoGraph(
+              'primImplementation,
+              graphLogic(graphLogic.base, 'Extension3)
+            ))
+          }
+          if (g.name.contains("Kruskal")) {
+            updated = updated.addCombinator(new TwoGraph(
+              'kruskalImplementation,
+              graphLogic(graphLogic.base, 'Extension3)
+            ))
+          }
+        }
+
 //        updated = updated.addCombinator(new ChainedGraph(
 //          graphLogic(graphLogic.base, 'Extension1),
 //          graphLogic(graphLogic.base, 'Extension3)

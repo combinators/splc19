@@ -23,7 +23,32 @@ trait GraphStructureDomain extends SemanticTypes {
       // NOT WORKINGalgorithms.java.render().compilationUnit()
       Java(
         s"""
-           |Graph Prim( Vertex r ) {
+           |public void Prim( ) {
+           |  Vertex start;
+           |        start =(Vertex) vertices.get(0);
+           |        newVertex.add(start);
+           |        for (int n = 0; n < vertices.size() - 1; n++) {
+           |            Vertex temp = new Vertex();
+           |            temp.assignName(start.name);
+           |            Edge tempedge = new Edge(start, start, 1000);
+           |            for (Vertex v : newVertex) {
+           |                for (Edge e : edges) {
+           |                    if (e.getStart() == v && !containVertex(e.getEnd())) {
+           |                        if (e.getWeight() < tempedge.getWeight()) {
+           |                            temp = e.getEnd();
+           |                            tempedge = e;
+           |                        }
+           |                    }
+           |                }
+           |            }
+           |            newVertex.add(temp);
+           |        }
+           |        Iterator it = newVertex.iterator();
+           |        while (it.hasNext()) {
+           |            Vertex v = (Vertex) it.next();
+           |            System.out.println(v.name);
+           |        }
+           |/*
            |        Vertex root;
            |
            |        root = r;
@@ -194,6 +219,7 @@ trait GraphStructureDomain extends SemanticTypes {
            |        theNewEdge.adjustAdorns( e );
            |        }
            |        return newGraph;
+           |        */
            |}""".stripMargin).classBodyDeclarations()
     }
 
@@ -205,61 +231,9 @@ trait GraphStructureDomain extends SemanticTypes {
     def apply(bd:Seq[BodyDeclaration[_]]): Seq[BodyDeclaration[_]] = bd
 
     val semanticType: Type = 'primImplementation =>:
-                              graphLogic(graphLogic.base, graphLogic.extensions)
+      graphLogic(graphLogic.base, graphLogic.extensions)
   }
 
-  @combinator object GraphUND {
-    def apply() : Seq[BodyDeclaration[_]] = {
-      // NOT WORKINGalgorithms.java.render().compilationUnit()
-      Java(
-        s"""
-           |public void addAnEdge( Vertex start,  Vertex end, int weight )
-           |    {
-           |        addEdge( start,end );
-           |    }
-           |
-           |    // Adds and edge by setting start as adjacent to end and
-           |    // viceversa
-           |    public EdgeIfc addEdge( Vertex start,  Vertex end )
-           |    {
-           |        start.addAdjacent( end );
-           |        end.addAdjacent( start );
-           |        return ( EdgeIfc ) start;
-           |    }
-           |
-           |    public void display() {
-           |        int s = vertices.size();
-           |        int i;
-           |
-           |        System.out.println( "******************************************" );
-           |        System.out.println( "Vertices " );
-           |        for ( i=0; i<s; i++ )
-           |            ( ( Vertex ) vertices.get( i ) ).display();
-           |        System.out.println( "******************************************" );
-           |
-           |    }
-           |   public  EdgeIfc findsEdge( Vertex theSource,
-           |                    Vertex theTarget )
-           |       {
-           |        Vertex v1 = theSource;
-           |        for( EdgeIter edgeiter = v1.getEdges(); edgeiter.hasNext(); )
-           |            {
-           |                EdgeIfc theEdge = edgeiter.next();
-           |            Vertex v2 = theEdge.getOtherVertex( v1 );
-           |              if ( ( v1.getName().equals( theSource.getName() ) &&
-           |                       v2.getName().equals( theTarget.getName() ) ) ||
-           |                         ( v1.getName().equals( theTarget.getName() ) &&
-           |                     v2.getName().equals( theSource.getName() ) ) )
-           |                    return theEdge;
-           |            }
-           |        return null;
-           |    }
-           |
-           |}""".stripMargin).classBodyDeclarations()
-    }
-
-    val semanticType: Type = 'undirectedGR
-  }
 
 
 
@@ -267,7 +241,7 @@ trait GraphStructureDomain extends SemanticTypes {
     def apply() : Seq[BodyDeclaration[_]] = {
       Java(
         s"""
-           |    LinkedList edges = new LinkedList();
+           |    LinkedList<Edge> edges = new LinkedList();
            |
            |    public void sortEdges(Comparator c) {
            |        Collections.sort(edges, c);
@@ -360,25 +334,36 @@ trait GraphStructureDomain extends SemanticTypes {
            |import java.util.*;
            |
            |public class Graph  {
+           |public static List<Vertex> newVertex = new ArrayList<Vertex>();//vertex visited
            |LinkedList vertices;
            |   public Graph(){
            |     vertices = new LinkedList();
            |   }
            |
            |   public VertexIter getVertices( ) {
-           |      return new VertexIter(this);
+           |return new VertexIter(this);
            |   }
            |
            |   public void sortVertices(Comparator c) {
            |      Collections.sort(vertices, c);
            |   }
            |
-           |   EdgeIfc addEdge( Vertex v1, Vertex v2 ) { return null; }
-           |   Vertex findsVertex( String name ) { return null; }
-           |   void display() { }
-           |   void addVertex( Vertex v ) { }
+           |   public EdgeIfc addEdge( Vertex v1, Vertex v2 ) { return null; }
+           |   public Vertex findsVertex( String name ) { return null; }
+           |   public void display() {  System.out.println( "******************************************" );
+           |        System.out.println( "Vertices " );
+           |        for ( VertexIter vxiter = getVertices(); vxiter.hasNext() ; )
+           |            vxiter.next().display();
            |
-           |    LinkedList edges = new LinkedList();
+           |        System.out.println( "******************************************" );
+           |        System.out.println( "Edges " );
+           |        for ( EdgeIter edgeiter = getEdges(); edgeiter.hasNext(); )
+           |            edgeiter.next().display();
+           |
+           |        System.out.println( "******************************************" );}
+           |   public void addVertex( Vertex v ) {vertices.add(v); }
+           |
+           |    LinkedList<Edge> edges = new LinkedList();
            |
            |    public void sortEdges(Comparator c) {
            |        Collections.sort(edges, c);
@@ -387,7 +372,7 @@ trait GraphStructureDomain extends SemanticTypes {
            |    public EdgeIter getEdges() {
            |        return new EdgeIter() {
            |                private Iterator iter = edges.iterator();
-           |                public EdgeIfc next() { return (EdgeIfc)iter.next(); }
+           |             //   public EdgeIfc next() { return (EdgeIfc)iter.next(); }
            |                public boolean hasNext() { return iter.hasNext(); }
            |            };
            |    }
@@ -400,7 +385,7 @@ trait GraphStructureDomain extends SemanticTypes {
            |
            |        for( EdgeIter edgeiter = theSource.getEdges(); edgeiter.hasNext(); )
            |         {
-           |            theEdge = edgeiter.next();
+           |            theEdge =(EdgeIfc) edgeiter.next();
            |            if ( ( theEdge.getStart().getName().equals( theSource.getName() ) &&
            |                  theEdge.getEnd().getName().equals( theTarget.getName() ) ) ||
            |                 ( theEdge.getStart().getName().equals( theTarget.getName() ) &&
@@ -408,6 +393,27 @@ trait GraphStructureDomain extends SemanticTypes {
            |                return theEdge;
            |        }
            |        return null;
+           |    }
+           |
+           |            public void addAnEdge( Vertex start,  Vertex end, int weight )
+           |   {
+           |        Edge e= new Edge(start,end, weight);
+           |        edges.add(e);
+           |    }
+           |
+           |    public void addEdge( Vertex start,  Vertex end, int weight )
+           |   {
+           |         Edge e = new Edge(start, end, weight);
+           |         edges.add(e);
+           |        //addEdge( start,end ); // adds the start and end as adjacent
+           |    }
+           |
+           |     public static boolean containVertex (Vertex vte) {
+           |        for (Vertex v : newVertex) {
+           |            if (v.name.equals(vte.name))
+           |                return true;
+           |        }
+           |        return false;
            |    }
            |
            | ${body.mkString("\n")}

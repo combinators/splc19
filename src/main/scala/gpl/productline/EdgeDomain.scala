@@ -18,11 +18,30 @@ trait EdgeDomain extends SemanticTypes {
       Java(
         s"""
            |package gpl;
+           |
+           |import java.util.*;
            |public class EdgeIter
            |{
            |    // methods whose bodies will be overridden by subsequent layers
-           |    public boolean hasNext( ) { return false; }
-           |    public EdgeIfc next( ) { return null; }
+           |   // public boolean hasNext( ) { return false; }
+           |   // public EdgeIfc next( ) { return null; }
+           |       private Iterator iter;
+           |
+           |    // used for anonymous class
+           |    EdgeIter() {
+           |    }
+           |
+           |    EdgeIter(Graph g) {
+           |        iter = g.edges.iterator();
+           |    }
+           |
+           |    public Edge next() {
+           |        return (Edge) iter.next();
+           |    }
+           |
+           |    public boolean hasNext() {
+           |        return iter.hasNext();
+           |    }
            |
            |}
          """.stripMargin).compilationUnit
@@ -42,16 +61,13 @@ trait EdgeDomain extends SemanticTypes {
            |
            |// *************************************************************************
            |
-           |public class Edge extends Neighbor implements EdgeIfc {
+           |public class Edge extends Neighbor {
            |    private  Vertex start;
-           |
-           |    public void EdgeConstructor( Vertex the_start,
-           |                      Vertex the_end ) {
-           |        start = the_start;
-           |        end = the_end;
+           |    private  Vertex end;
+           |    Edge( Vertex the_start,Vertex the_end ) {
+           |        this.start = the_start;
+           |        this.end = the_end;
            |    }
-           |
-           |    public void adjustAdorns( EdgeIfc the_edge ) {}
            |
            |
            |    public Vertex getOtherVertex(Vertex vertex)
@@ -73,16 +89,15 @@ trait EdgeDomain extends SemanticTypes {
            |    {
            |        return end;
            |    }
-           |
-           |    public void display() {
-           |        System.out.println( " start=" + start.getName() + " end=" + end.getName() );
+           |    public void display()
+           |    {
+           |        System.out.println( " start=" + start.name + " end=" + end.name+"weight"+weight );
            |    }
-           |
            |   ${extensions.mkString("\n")}
            |}""".stripMargin).compilationUnit
     }
 
-    val semanticType: Type = edgeLogic(edgeLogic.base, edgeLogic.extensions) =>:
+    val semanticType: Type = edgeLogic(edgeLogic.base, edgeLogic.var_weighted) =>:
       edgeLogic(edgeLogic.base, edgeLogic.complete)
   }
 
@@ -93,14 +108,37 @@ trait EdgeDomain extends SemanticTypes {
     val semanticType:Type = edgeLogic(edgeLogic.base, edgeLogic.extensions)
   }
 
+ // private int weight;
+  //public void setWeight(int weight)
+  //{
+    //int x = 10;  // ignore. Just checking
+    //this.weight = weight;
+  //}
+
+  //public int getWeight()
+  //{
+    //return this.weight;
+  //}
+
   class EdgeWeighted() {
     def apply(): Seq[BodyDeclaration[_]] = {
       Java(
         s"""
            |    private int weight;
+           |    Edge( Vertex the_start,  Vertex the_end,
+           |                int the_weight ) {
+           |        this.start = the_start;
+           |        this.end  = the_end;
+           |        this.weight = the_weight;
+           |    }
+           |
+           |    public void adjustAdorns( Edge the_edge ) {
+           |        setWeight(the_edge.getWeight());
+           |        adjustAdorns( the_edge );
+           |    }
+           |
            |    public void setWeight(int weight)
            |    {
-           |        int x = 10;  // ignore. Just checking
            |        this.weight = weight;
            |    }
            |
@@ -108,7 +146,6 @@ trait EdgeDomain extends SemanticTypes {
            |    {
            |        return this.weight;
            |    }
-           |
          """.stripMargin).classBodyDeclarations()
     }
 
