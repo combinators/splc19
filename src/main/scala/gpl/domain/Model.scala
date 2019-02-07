@@ -101,9 +101,9 @@ class FinalConcept(val algos:Seq[Algo], val wt:Boolean, val dir:Boolean, val sto
 // Choose to store an undirected graph by having each vertex store its
 // neighbor nodes; when asking for edges, they are instantiated on the fly
 // on demand.
-class undirectedNeighborNodes extends Graph  {
-  override val name:String = "undirectedNeighborNodes"
-
+class undirectedPrimNeighborNodes extends Graph  {
+  override val name:String = "undirected Kruskal NeighborNodes"
+  override val capabilities= "MST"
   override def weighted: Boolean = true
   override def directed: Boolean = false
   override def colored: Boolean = true
@@ -123,7 +123,7 @@ class undirectedNeighborNodes extends Graph  {
 trait Algo {
   def name : String = ""
 
-  def capabilities : Seq[String] = Seq.empty
+  def capabilities : String=""//Seq[String] = Seq.empty
 
   // by default always checks
   def modelCheck(g:Graph):Boolean = true
@@ -143,7 +143,7 @@ trait Num extends Algo {
 }
 
 trait MST extends Algo {
-  override def capabilities: Seq[String] = super.capabilities :+ "MST"
+  override def capabilities: String = ""//super.capabilities :+ "MST"
 }
 
 trait Prim extends MST {

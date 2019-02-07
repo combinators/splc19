@@ -30,7 +30,8 @@ trait VertexDomain extends SemanticTypes {
            |
            |public class Vertex  {
            |  public String name = null;
-           |
+           |  public  Vertex representative;
+           |  public LinkedList members;
            |  public  Vertex assignName( String name ) {
            |      this.name = name;
            |      return ( Vertex ) this;

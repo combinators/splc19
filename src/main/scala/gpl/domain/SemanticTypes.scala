@@ -32,6 +32,8 @@ trait SemanticTypes {
     val extensions:Type = 'Extensions
     val implements:Type = 'Implements
     val base:Type = 'Base
+    val prim:Type='Prim
+    val kruskal:Type='Kruskal
     val complete:Type = 'Complete
 
     // features

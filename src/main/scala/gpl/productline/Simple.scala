@@ -17,10 +17,11 @@ import org.combinators.cls.types.syntax._
 class Simple @Inject()(webJars: WebJarsUtil, lifeCycle: ApplicationLifecycle) extends InhabitationController(webJars, lifeCycle) with SemanticTypes with RoutingEntries {
 
   // specify desired target by (a) declaring algorithm traits; (b) graph structure
-  val graph:Graph = new Target
-    with UndirectedEdges with WeightedEdges
-    with NeighborStorage with LabeledVertex with UncoloredVertex
-    with Prim
+  val graph:Graph = new undirectedPrimNeighborNodes
+ // val graph:Graph = new Target
+ //   with UndirectedEdges with WeightedEdges
+ //   with NeighborStorage with LabeledVertex with UncoloredVertex
+ //   with Prim with Kruskal
 
     //new undirectedNeighborNodes
 
@@ -56,14 +57,13 @@ class Simple @Inject()(webJars: WebJarsUtil, lifeCycle: ApplicationLifecycle) ex
   // ALL intersection types must be *.complete because those are the CompilationUnits
   lazy val targets:Seq[Constructor]= Seq(
     vertexLogic(vertexLogic.base, vertexLogic.complete),
-    //edgeLogic(edgeLogic.base,edgeLogic.empty),
     edgeLogic(edgeLogic.base,edgeLogic.complete),
     vertexIterLogic(vertexIterLogic.base,vertexIterLogic.complete ),
     edgeIfcLogic(edgeIfcLogic.base,edgeIfcLogic.complete ),
     edgeIterLogic(edgeIterLogic.base,edgeIterLogic.complete ),
     neighborIfcLogic(neighborIfcLogic.base,neighborIfcLogic.complete ),
     neighborLogic(neighborLogic.base,neighborLogic.complete),
-    graphLogic(graphLogic.base,graphLogic.complete )//graphLogic.complete)
+    graphLogic(graphLogic.base,graphLogic.complete )
   )
 
   lazy val results: Results = EmptyInhabitationBatchJobResults(Gamma)

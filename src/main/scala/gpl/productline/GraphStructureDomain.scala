@@ -18,9 +18,8 @@ trait GraphStructureDomain extends SemanticTypes {
 
   val graph:Graph
 
-  @combinator object primAlgorithm {
+  class primAlgorithm {
     def apply() : Seq[BodyDeclaration[_]] = {
-      // NOT WORKINGalgorithms.java.render().compilationUnit()
       Java(
         s"""
            |public void Prim( ) {
@@ -48,192 +47,127 @@ trait GraphStructureDomain extends SemanticTypes {
            |            Vertex v = (Vertex) it.next();
            |            System.out.println(v.name);
            |        }
-           |/*
-           |        Vertex root;
-           |
-           |        root = r;
-           |        Vertex x;
-           |
-           |        // 2. and 3. Initializes the vertices
-           |        for ( VertexIter vxiter = getVertices(); vxiter.hasNext(); )
-           |        {
-           |        x = vxiter.next();
-           |        x.pred = null;
-           |        x.key = Integer.MAX_VALUE;
-           |        }
-           |
-           |        // 4. and 5.
-           |        root.key = 0;
-           |        root.pred = null;
-           |
-           |        // 2. S <- empty set
-           |
-           |        // 1. Queue <- V[G], copy the vertex in the graph in the priority queue
-           |        LinkedList Queue = new LinkedList();
-           |        Set indx = new HashSet( );
-           |
-           |        // Inserts the root at the head of the queue
-           |        Queue.add( root );
-           |        indx.add( root.getName( ) );
-           |        for ( VertexIter vxiter = getVertices(); vxiter.hasNext(); )
-           |        {
-           |        x = vxiter.next();
-           |        if ( x.key != 0 ) // this means, if this is not the root
-           |        {
-           |        Queue.add( x );
-           |        indx.add( x.getName( ) );
-           |        }
-           |        }
-           |
-           |        // Inserts the root at the head of the queue
-           |        // Queue.addFirst( root );
-           |
-           |        // 6. while Q!=0
-           |        Vertex ucurrent;
-           |        int j,k,l;
-           |        int pos;
-           |        LinkedList Uneighbors;
-           |        Vertex u,v;
-           |        EdgeIfc en;
-           |        NeighborIfc vn;
-           |
-           |        int wuv;
-           |        boolean isNeighborInQueue = false;
-           |
-           |        // Queue is a list ordered by key values.
-           |        // At the beginning all key values are INFINITUM except
-           |        // for the root whose value is 0.
-           |        while ( Queue.size()!=0 )
-           |        {
-           |        // 7. u <- Extract-Min(Q);
-           |        // Since this is an ordered queue the first element is the min
-           |        u = ( Vertex )Queue.removeFirst();
-           |        indx.remove( u.getName( ) );
-           |
-           |        // 8. for each vertex v adjacent to u
-           |        Uneighbors = u.getNeighborsObj( );
-           |
-           |        k = 0;
-           |        for( EdgeIter edgeiter = u.getEdges(); edgeiter.hasNext(); k++ )
-           |        {
-           |        vn = ( NeighborIfc )Uneighbors.get( k );
-           |        en = edgeiter.next();
-           |
-           |        v = en.getOtherVertex(u);
-           |
-           |        // Check to see if the neighbor is in the queue
-           |        isNeighborInQueue = false;
-           |
-           |        // if the Neighor is in the queue
-           |        if ( indx.contains( v.getName( ) ) )
-           |        isNeighborInQueue = true;
-           |        wuv = en.getWeight();
-           |
-           |        // 9. Relax (u,v w)
-           |        if ( isNeighborInQueue && ( wuv < v.key ) )
-           |        {
-           |        v.key = wuv;
-           |        v.pred = u.getName();
-           |        Uneighbors.set( k,vn ); // adjust values in the neighbors
-           |
-           |        // update the values of v in the queue
-           |        // Remove v from the Queue so that we can reinsert it
-           |        // in a new place according to its new value to keep
-           |        // the Linked List ordered
-           |        Object residue = ( Object ) v;
-           |        Queue.remove( residue );
-           |        // Object residue = Queue.remove( indexNeighbor );
-           |
-           |        indx.remove( v.getName( ) );
-           |
-           |        // Get the new position for v
-           |        int position = Collections.binarySearch( Queue,v,
-           |        new Comparator() {
-           |public int compare( Object o1, Object o2 )
-           |        {
-           |        Vertex v1 = ( Vertex )o1;
-           |        Vertex v2 = ( Vertex )o2;
-           |
-           |        if ( v1.key < v2.key )
-           |        return -1;
-           |        if ( v1.key == v2.key )
-           |        return 0;
-           |        return 1;
-           |        }
-           |        } );
-           |
-           |        // Adds v in its new position in Queue
-           |        if ( position < 0 )  // means it is not there
-           |        {
-           |        Queue.add( - ( position+1 ),v );
-           |        }
-           |        else      // means it is there
-           |        {
-           |        Queue.add( position,v );
-           |        }
-           |        indx.add( v.getName( ) );
-           |
-           |        } // if 8-9.
-           |        } // for all neighbors
-           |        } // of while
-           |
-           |        // Creates the new Graph that contains the SSSP
-           |        String theName;
-           |        Graph newGraph = new  Graph();
-           |
-           |        // Creates and adds the vertices with the same name
-           |        for ( VertexIter vxiter = getVertices( ); vxiter.hasNext( ); )
-           |        {
-           |        Vertex vtx = vxiter.next( );
-           |        theName = vtx.name;
-           |
-           |        newGraph.addVertex( new  Vertex().assignName( theName ) );
-           |        }
-           |
-           |        // Creates the edges from the NewGraph
-           |        Vertex theVertex, thePred;
-           |        Vertex theNewVertex, theNewPred;
-           |        EdgeIfc   e;
-           |
-           |        // Creates and adds the vertices with the same name
-           |        for ( VertexIter vxiter = getVertices( ); vxiter.hasNext( ); )
-           |        {
-           |        // theVertex and its Predecessor
-           |        theVertex = vxiter.next( );
-           |
-           |        thePred = findsVertex( theVertex.pred );
-           |
-           |        // if theVertex is the source then continue we dont need
-           |        // to create a new edge at all
-           |        if ( thePred==null )
-           |        continue;
-           |
-           |        // Find the references in the new Graph
-           |        theNewVertex = newGraph.findsVertex( theVertex.name );
-           |        theNewPred = newGraph.findsVertex( thePred.name );
-           |
-           |        // Creates the new edge from predecessor -> vertex in the newGraph
-           |        // and ajusts the adorns based on the old edge
-           |        EdgeIfc theNewEdge = newGraph.addEdge( theNewPred, theNewVertex );
-           |        e = findsEdge( thePred,theVertex );
-           |        theNewEdge.adjustAdorns( e );
-           |        }
-           |        return newGraph;
-           |        */
            |}""".stripMargin).classBodyDeclarations()
     }
 
-    val semanticType: Type = 'primImplementation
+    val semanticType: Type ='primImplementation //graphLogic(graphLogic.base, graphLogic.prim)//
+  }
+
+  class kruskalAlgorithm {
+    def apply() : Seq[BodyDeclaration[_]] = {
+      Java(
+        s"""
+           | int ver;
+           |
+           |    public Graph(int ver) {
+           |        this.ver = ver;
+           |    }
+           |        public void addEgde(int source, int destination, int weight) {
+           |        Edge edge = new Edge(source, destination, weight);
+           |        // add to total edges
+           |        edges.add(edge);
+           |    }
+           |
+           |     public void kruskal(){
+           |        PriorityQueue<Edge> pq = new PriorityQueue<>(edges.size(), Comparator.comparingInt(o -> o.getWeight()));
+           |
+           |        //add all the edges to priority queue, //sort the edges on weights
+           |        for (int i = 0; i <edges.size() ; i++) {
+           |            pq.add(edges.get(i));
+           |        }
+           |
+           |        //create a parent []
+           |        int [] parent = new int[ver];
+           |
+           |        //makeset
+           |        makeSet(parent);
+           |
+           |        ArrayList<Edge> mst = new ArrayList<>();
+           |
+           |        //process vertices - 1 edges
+           |        int index = 0;
+           |        while(index<ver-1){
+           |            Edge edge = pq.remove();
+           |            //check if adding this edge creates a cycle
+           |            int x_set = find(parent, edge.source);
+           |            int y_set = find(parent, edge.destination);
+           |
+           |            if(x_set==y_set){
+           |                //ignore, will create cycle
+           |            }else {
+           |                //add it to our final result
+           |                mst.add(edge);
+           |                index++;
+           |                union(parent,x_set,y_set);
+           |            }
+           |        }
+           |        //print MST
+           |        System.out.println("Minimum Spanning Tree: ");
+           |        printGraph(mst);
+           |    }
+           |
+           |    public void makeSet(int [] parent){
+           |        //Make set- creating a new element with a parent pointer to itself.
+           |        for (int i = 0; i < ver ; i++) {
+           |            parent[i] = i;
+           |        }
+           |    }
+           |
+           |    public int find(int [] parent, int vertex){
+           |        //chain of parent pointers from x upwards through the tree
+           |        // until an element is reached whose parent is itself
+           |        if(parent[vertex]!=vertex)
+           |            return find(parent, parent[vertex]);;
+           |        return vertex;
+           |    }
+           |
+           |    public void union(int [] parent, int x, int y){
+           |        int x_set_parent = find(parent, x);
+           |        int y_set_parent = find(parent, y);
+           |        //make x as parent of y
+           |        parent[y_set_parent] = x_set_parent;
+           |    }
+           |
+           |    public void printGraph(ArrayList<Edge> edgeList){
+           |        for (int i = 0; i <edgeList.size() ; i++) {
+           |            Edge edge = edgeList.get(i);
+           |            System.out.println("Edge-" + i + " source: " + edge.source +
+           |                    " destination: " + edge.destination +
+           |                    " weight: " + edge.getWeight());
+           |        }
+           |    }
+           |""".stripMargin).classBodyDeclarations()
+    }
+
+    val semanticType: Type ='kruskalImplementation
   }
 
   // this SHOULD be replaced with dynamic combinator that glues together multiple extensions into one
+/*
   @combinator object HACK_GLUEPrim {
     def apply(bd:Seq[BodyDeclaration[_]]): Seq[BodyDeclaration[_]] = bd
 
     val semanticType: Type = 'primImplementation =>:
       graphLogic(graphLogic.base, graphLogic.extensions)
   }
+  */
 
+/*
+  @combinator object HACK_GLUEKruskal {
+    def apply(bd:Seq[BodyDeclaration[_]]): Seq[BodyDeclaration[_]] = bd
+
+    val semanticType: Type = 'kruskalImplementation =>:
+      graphLogic(graphLogic.base, graphLogic.extensions)
+  }
+*/
+
+  class graphChained1(t1:Type) {
+    def apply(bd1:Seq[BodyDeclaration[_]]): Seq[BodyDeclaration[_]] =
+      bd1
+
+    val semanticType:Type = t1 =>:
+      graphLogic(graphLogic.base, graphLogic.extensions)
+  }
 
 
 
@@ -339,7 +273,6 @@ trait GraphStructureDomain extends SemanticTypes {
            |   public Graph(){
            |     vertices = new LinkedList();
            |   }
-           |
            |   public VertexIter getVertices( ) {
            |return new VertexIter(this);
            |   }
@@ -347,7 +280,6 @@ trait GraphStructureDomain extends SemanticTypes {
            |   public void sortVertices(Comparator c) {
            |      Collections.sort(vertices, c);
            |   }
-           |
            |   public EdgeIfc addEdge( Vertex v1, Vertex v2 ) { return null; }
            |   public Vertex findsVertex( String name ) { return null; }
            |   public void display() {  System.out.println( "******************************************" );

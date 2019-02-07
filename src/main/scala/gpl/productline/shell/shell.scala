@@ -25,7 +25,7 @@ class Simple @Inject()(webJars: WebJarsUtil, lifeCycle: ApplicationLifecycle) ex
 
   // how to construct main in Prog
 
-  val graph:Graph = new undirectedNeighborNodes
+  val graph:Graph = new undirectedPrimNeighborNodes
 
   lazy val repository = new GPLDomain(graph) with extensions {}
 

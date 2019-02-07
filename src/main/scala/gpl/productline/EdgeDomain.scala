@@ -64,11 +64,17 @@ trait EdgeDomain extends SemanticTypes {
            |public class Edge extends Neighbor {
            |    private  Vertex start;
            |    private  Vertex end;
+           |        int source;
+           |    int destination;
            |    Edge( Vertex the_start,Vertex the_end ) {
            |        this.start = the_start;
            |        this.end = the_end;
            |    }
-           |
+           |    public Edge(int source, int destination, int weight) {
+           |        this.source = source;
+           |        this.destination = destination;
+           |        this.weight = weight;
+           |    }
            |
            |    public Vertex getOtherVertex(Vertex vertex)
            |    {

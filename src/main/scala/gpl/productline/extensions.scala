@@ -70,7 +70,16 @@ trait extensions extends GraphDomain with VertexDomain with EdgeDomain with Base
 
     // eventually need to choose based upon chosen algorithms
     updated= updated.addCombinator(new MSTPrim)
+    //updated = updated.addCombinator(new primAlgorithm())
+    if (g.name.contains("Prim")) {
+      updated = updated.addCombinator(new primAlgorithm())
+      updated = updated.addCombinator(new graphChained1('primImplementation))
+    }
 
+    if (g.name.contains("Kruskal")) {
+      updated = updated.addCombinator(new kruskalAlgorithm())
+      updated = updated.addCombinator(new graphChained1('kruskalImplementation))
+    }
     g.edgeStorage match {
       case gpl.domain.EdgeInstances () =>
         // add combinators
@@ -85,22 +94,27 @@ trait extensions extends GraphDomain with VertexDomain with EdgeDomain with Base
 //          new Chained (graphLogic(graphLogic.base, graphLogic.extensions), options : _ *)
 //        )
 
-
+        //TwoGraph(
+        //              //'primImplementation,
+        //              //graphLogic(graphLogic.base, 'Extension3)
+        //TwoGraph(
+        //  'kruskalImplementation,
+        //  graphLogic(graphLogic.base, 'Extension3)
         // if graph calls for PRIM then use primImplementation
-        if (g.capabilities.contains("MST")) {
-          if (g.name.contains("Prim")) {
-            updated = updated.addCombinator(new TwoGraph(
-              'primImplementation,
-              graphLogic(graphLogic.base, 'Extension3)
-            ))
-          }
-          if (g.name.contains("Kruskal")) {
-            updated = updated.addCombinator(new TwoGraph(
-              'kruskalImplementation,
-              graphLogic(graphLogic.base, 'Extension3)
-            ))
-          }
-        }
+     //   if (g.capabilities.contains("MST")) {
+
+      //  updated = updated.addCombinator(new graphChained1('PrimImplementation))
+       //   if (g.name.contains("Prim")) {
+       //     updated = updated.addCombinator(new primAlgorithm())
+       //     updated = updated.addCombinator(new graphChained1('PrimImplementation))
+       //   }
+
+       //   if (g.name.contains("Kruskal")) {
+       //     updated = updated.addCombinator(new kruskalAlgorithm())
+       //     updated = updated.addCombinator(new graphChained1(graphLogic.kruskal))
+       //   }
+   //     }
+
 
 //        updated = updated.addCombinator(new ChainedGraph(
 //          graphLogic(graphLogic.base, 'Extension1),
