@@ -25,11 +25,13 @@ trait extensions extends GraphDomain with VertexDomain with EdgeDomain with Base
     // from a specification, this goes and adds into the repository the combinators
     // that are necessary. It builds up dynamic combinator fragments as needed.
     // VERTEX extensions
-    var vertexExtensions:Seq[Symbol] = Seq.empty
+    //    vertexLogic(vertexLogic.base, TYPE-1)
+    var vertexExtensions:Seq[Constructor] = Seq.empty
+
     g.edgeStorage match {
       case gpl.domain.NeighboringNodes() =>
         updated = updated.addCombinator (new VertexNeighborList())
-        vertexExtensions = vertexExtensions :+ vertexLogic.var_neighborList
+        vertexExtensions = vertexExtensions :+ vertexLogic(vertexLogic.base, vertexLogic.var_neighborList)
       case gpl.domain.EdgeInstances() =>
 
       case _ =>
@@ -39,16 +41,13 @@ trait extensions extends GraphDomain with VertexDomain with EdgeDomain with Base
     // VERTEX extensions
     if (g.colored) {
       updated = updated.addCombinator (new ColoredVertex())
-      vertexExtensions = vertexExtensions :+ vertexLogic.var_colored
+      vertexExtensions = vertexExtensions :+ vertexLogic(vertexLogic.base, vertexLogic.var_colored)
     }
 
     // AT THIS POINT I have all Vertex extensions KNOWN then can CHAIN TOGETHER
     // the different Seq[BodyDeclaration[_]] from the vertexExtensions
-    if (vertexExtensions.size == 2) {
-      updated = updated.addCombinator(new VertexChained2(vertexExtensions(0), vertexExtensions(1)))
-    } else if (vertexExtensions.size == 1) {
-      updated = updated.addCombinator(new VertexChained1(vertexExtensions(0)))
-    }
+    // ALL Vertex extensions are no known, and are found in the vertexExtensions sequence
+    updated = updated.addCombinator(new VertexChained2(vertexExtensions(0), vertexExtensions(1)))
 
     // might not be useful in long run..
     //val cons = new VertexExtension("DirectedGRSemantics").implements

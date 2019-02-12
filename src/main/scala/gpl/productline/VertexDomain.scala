@@ -4,7 +4,7 @@ import com.github.javaparser.ast.CompilationUnit
 import com.github.javaparser.ast.body.{BodyDeclaration, FieldDeclaration, MethodDeclaration}
 import gpl.domain.{Graph, GraphDomain, SemanticTypes}
 import org.combinators.cls.interpreter.combinator
-import org.combinators.cls.types.{Arrow, Type}
+import org.combinators.cls.types.{Arrow, Type, Constructor}
 import org.combinators.cls.types.Type
 import org.combinators.cls.types.syntax._
 import org.combinators.templating.twirl.Java
@@ -338,24 +338,33 @@ trait VertexDomain extends SemanticTypes {
     }
 
     val semanticType: Type = neighborLogic(neighborLogic.base,neighborLogic.extensions )
-
   }
 
-  class VertexChained1(t1:Type) {
-    def apply(bd1:Seq[BodyDeclaration[_]]): Seq[BodyDeclaration[_]] =
-      bd1
+//  class VertexChaining(cons: Type*) {
+//    val empty:Seq[BodyDeclaration[_]] = Seq.empty
+//    def apply(bd:Seq[BodyDeclaration[_]]*) : Seq[BodyDeclaration[_]] = bd.foldRight(empty)(_ ++ _)
+//
+//    val semanticType:Type = cons.foldRight(vertexLogic(vertexLogic.base, vertexLogic.extensions))((current,last) => Arrow(current,last)).asInstanceOf[Constructor]
+//  }
 
-    val semanticType:Type = vertexLogic(vertexLogic.base, t1) =>:
-      vertexLogic(vertexLogic.base, vertexLogic.extensions)
-  }
+//
+//  class VertexChained1(t1:Type) {
+//    def apply(bd1:Seq[BodyDeclaration[_]]): Seq[BodyDeclaration[_]] =
+//      bd1
+//
+//    val semanticType:Type = vertexLogic(vertexLogic.base, t1) =>:
+//      vertexLogic(vertexLogic.base, vertexLogic.extensions)
+//  }
 
   class VertexChained2(t1:Type, t2:Type) {
     def apply(bd1:Seq[BodyDeclaration[_]], bd2:Seq[BodyDeclaration[_]]): Seq[BodyDeclaration[_]] =
       bd1 ++ bd2
 
-    val semanticType:Type = vertexLogic(vertexLogic.base, t1) =>:
-                            vertexLogic(vertexLogic.base, t2) =>:
-                            vertexLogic(vertexLogic.base, vertexLogic.extensions)
+    val semanticType:Type = t1 =>: t2 =>: vertexLogic(vertexLogic.base, vertexLogic.extensions)
+
+    //    val semanticType:Type = vertexLogic(vertexLogic.base, t1) =>:
+//                            vertexLogic(vertexLogic.base, t2) =>:
+//                            vertexLogic(vertexLogic.base, vertexLogic.extensions)
   }
 
   // vertexLogic(vertexLogic.base, vertexLogic.var_neighborList)
