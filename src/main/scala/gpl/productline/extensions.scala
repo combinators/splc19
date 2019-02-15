@@ -85,7 +85,6 @@ trait extensions extends GraphDomain with VertexDomain with EdgeDomain with Base
       updated= updated.addCombinator(new connectedVertex())
       vertexExtensions = vertexExtensions :+ vertexLogic(vertexLogic.base, vertexLogic.var_search)
       vertexExtensions = vertexExtensions :+ vertexLogic(vertexLogic.base, vertexLogic.var_conn)
-      //Hacking,MST and connected can't be generated together so far
       updated = updated.addCombinator(new graphChained2('searchCommon,'connected))
     }
     //directed done, DFS done, transpose done
