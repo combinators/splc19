@@ -1,17 +1,12 @@
 package gpl.productline
 
-import com.fasterxml.jackson.databind.util.NameTransformer.Chained
 import com.github.javaparser.ast.CompilationUnit
 import com.github.javaparser.ast.body.BodyDeclaration
-import com.github.javaparser.ast.stmt.Statement
 import gpl.domain.{Graph, SemanticTypes}
 import org.combinators.cls.interpreter.combinator
-import org.combinators.cls.types.{Arrow, Type}
 import org.combinators.cls.types.syntax._
+import org.combinators.cls.types.{Arrow, Type}
 import org.combinators.templating.twirl.Java
-import java.util
-import java.util.Collections
-import java.util.Comparator
 
 
 trait GraphStructureDomain extends SemanticTypes {
@@ -52,6 +47,7 @@ trait GraphStructureDomain extends SemanticTypes {
 
     val semanticType: Type ='primImplementation //graphLogic(graphLogic.base, graphLogic.prim)//
   }
+
 
   class kruskalAlgorithm {
     def apply() : Seq[BodyDeclaration[_]] = {
@@ -142,6 +138,209 @@ trait GraphStructureDomain extends SemanticTypes {
     val semanticType: Type ='kruskalImplementation
   }
 
+  class searchGraph {
+    def apply() : Seq[BodyDeclaration[_]] = {
+      Java(
+        s"""
+           |    public void GraphSearch( WorkSpace w )
+           |    {
+           |        // Step 1: initialize visited member of all nodes
+           |        VertexIter vxiter = getVertices( );
+           |        if ( vxiter.hasNext( ) == false )
+           |        {
+           |            return;
+           |        }
+           |
+           |        // Showing the initialization process
+           |        while(vxiter.hasNext( ) )
+           |        {
+           |            Vertex v = vxiter.next( );
+           |            v.init_vertex( w );
+           |        }
+           |
+           |        // Step 2: traverse neighbors of each node
+           |        for (vxiter = getVertices( ); vxiter.hasNext( ); )
+           |        {
+           |            Vertex v = vxiter.next( );
+           |            if ( !v.visited )
+           |            {
+           |                w.nextRegionAction( v );
+           |                v.nodeSearch( w );
+           |            }
+           |        } //end for
+           |
+           |}""".stripMargin).classBodyDeclarations()
+    }
+
+    val semanticType: Type ='searchCommon //graphLogic(graphLogic.base, graphLogic.prim)//
+  }
+
+  class connectedGraph {
+    def apply() : Seq[BodyDeclaration[_]] = {
+      Java(
+        s"""
+           |    public void ConnectedComponents( )
+           |    {
+           |        GraphSearch( new RegionWorkSpace( ) );
+           |    }""".stripMargin).classBodyDeclarations()
+    }
+
+    val semanticType: Type ='connected //graphLogic(graphLogic.base, graphLogic.prim)//
+  }
+
+  class stronglyCGraph {
+    def apply() : Seq[BodyDeclaration[_]] = {
+      Java(
+        s"""
+           |public  Graph StrongComponents() {
+           |
+           |        FinishTimeWorkSpace FTWS = new FinishTimeWorkSpace();
+           |
+           |        // 1. Computes the finishing times for each vertex
+           |        GraphSearch( FTWS );
+           |
+           |        // 2. Order in decreasing  & call DFS Transposal
+           |        sortVertices(
+           |         new Comparator() {
+           |            public int compare( Object o1, Object o2 )
+           |                {
+           |                Vertex v1 = ( Vertex )o1;
+           |                Vertex v2 = ( Vertex )o2;
+           |
+           |                if ( v1.finishTime > v2.finishTime )
+           |                    return -1;
+           |
+           |                if ( v1.finishTime == v2.finishTime )
+           |                    return 0;
+           |                return 1;
+           |            }
+           |        } );
+           |
+           |        // 3. Compute the transpose of G
+           |        // Done at layer transpose
+           |        Graph gaux = ComputeTranspose( ( Graph )this );
+           |
+           |        // 4. Traverse the transpose G
+           |        WorkSpaceTranspose WST = new WorkSpaceTranspose();
+           |        gaux.GraphSearch( WST );
+           |
+           |        return gaux;
+           |
+           |    } // of Strong Components
+           |
+           |""".stripMargin).classBodyDeclarations()
+    }
+
+    val semanticType: Type ='stronglyC //graphLogic(graphLogic.base, graphLogic.prim)//
+  }
+
+
+
+  class Transpose {
+    def apply() : Seq[BodyDeclaration[_]] = {
+      Java(
+        s"""
+           |    public  Graph ComputeTranspose( Graph the_graph )
+           |   {
+           |        int i;
+           |        String theName;
+           |        Map newVertices = new HashMap( );
+           |
+           |        // Creating the new Graph
+           |        Graph newGraph = new  Graph();
+           |
+           |        // Creates and adds the vertices with the same name
+           |        for ( VertexIter vxiter = getVertices(); vxiter.hasNext(); )
+           |        {
+           |            theName = vxiter.next().getName();
+           |            Vertex v = new  Vertex( ).assignName( theName );
+           |            newGraph.addVertex( v );
+           |            newVertices.put( theName, v );
+           |        }
+           |
+           |        Vertex theVertex, newVertex;
+           |        Vertex theNeighbor;
+           |        Vertex newAdjacent;
+           |        EdgeIfc newEdge;
+           |
+           |        // adds the transposed edges
+           |        VertexIter newvxiter = newGraph.getVertices( );
+           |        for ( VertexIter vxiter = getVertices(); vxiter.hasNext(); )
+           |        {
+           |            // theVertex is the original source vertex
+           |            // the newAdjacent is the reference in the newGraph to theVertex
+           |            theVertex = vxiter.next();
+           |
+           |            newAdjacent = newvxiter.next( );
+           |
+           |            for( VertexIter neighbors = theVertex.getNeighbors(); neighbors.hasNext(); )
+           |            {
+           |                // Gets the neighbor object
+           |                theNeighbor = neighbors.next();
+           |
+           |                // the new Vertex is the vertex that was adjacent to theVertex
+           |                // but now in the new graph
+           |                newVertex = ( Vertex ) newVertices.get( theNeighbor.getName( ) );
+           |
+           |                // Creates a new Edge object and adjusts the adornments
+           |                newEdge = newGraph.addEdge( newVertex, newAdjacent );
+           |            } // all adjacentNeighbors
+           |        } // all the vertices
+           |
+           |        return newGraph;
+           |
+           |    } // of ComputeTranspose
+           |""".stripMargin).classBodyDeclarations()
+    }
+
+    val semanticType: Type ='transpose //graphLogic(graphLogic.base, graphLogic.prim)//
+  }
+
+  class directedCommon {
+    def apply() : Seq[BodyDeclaration[_]] = {
+      Java(
+        s"""
+           |    public static final boolean isDirected = true;
+           |
+           |    public void addVertex( Vertex v ) {
+           |        vertices.add( v );
+           |    }
+           |
+           |    // Adds an edge without weights if Weighted layer is not present
+           |    public void addAnEdge( Vertex start,  Vertex end, int weight ){
+           |        addEdge( start,end );
+           |    }
+           |        public EdgeIfc addEdge( Vertex start,  Vertex end ) {
+           |        start.addAdjacent( end );
+           |        return( EdgeIfc ) start;
+           |    }
+           |
+           |    // Finds a vertex given its name in the vertices list
+           |    public  Vertex findsVertex( String theName )
+           |      {
+           |        int i=0;
+           |        Vertex theVertex;
+           |
+           |        // if we are dealing with the root
+           |        if ( theName==null )
+           |            return null;
+           |
+           |        for( i=0; i<vertices.size(); i++ )
+           |            {
+           |            theVertex = ( Vertex )vertices.get( i );
+           |            if ( theName.equals( theVertex.name ) )
+           |                return theVertex;
+           |        }
+           |        return null;
+           |    }
+           |
+           |""".stripMargin).classBodyDeclarations()
+    }
+
+    val semanticType: Type ='directed //graphLogic(graphLogic.base, graphLogic.prim)//
+  }
+
+
   // this SHOULD be replaced with dynamic combinator that glues together multiple extensions into one
 /*
   @combinator object HACK_GLUEPrim {
@@ -166,6 +365,22 @@ trait GraphStructureDomain extends SemanticTypes {
       bd1
 
     val semanticType:Type = t1 =>:
+      graphLogic(graphLogic.base, graphLogic.extensions)
+  }
+
+  class graphChained2(t1:Type,t2:Type) {
+    def apply(bd1:Seq[BodyDeclaration[_]],bd2:Seq[BodyDeclaration[_]]): Seq[BodyDeclaration[_]] =
+      bd1 ++ bd2
+
+    val semanticType:Type = t1 =>: t2 =>:
+      graphLogic(graphLogic.base, graphLogic.extensions)
+  }
+
+  class graphChained3(t1:Type,t2:Type,t3:Type) {
+    def apply(bd1:Seq[BodyDeclaration[_]],bd2:Seq[BodyDeclaration[_]],bd3:Seq[BodyDeclaration[_]]): Seq[BodyDeclaration[_]] =
+      bd1 ++ bd2 ++ bd3
+
+    val semanticType:Type = t1 =>: t2 =>:t3 =>:
       graphLogic(graphLogic.base, graphLogic.extensions)
   }
 

@@ -102,7 +102,7 @@ class FinalConcept(val algos:Seq[Algo], val wt:Boolean, val dir:Boolean, val sto
 // neighbor nodes; when asking for edges, they are instantiated on the fly
 // on demand.
 class undirectedPrimNeighborNodes extends Graph  {
-  override val name:String = "undirected Kruskal NeighborNodes"
+  override val name:String = "undirected StronglyC NeighborNodes"
   override val capabilities= "MST"
   override def weighted: Boolean = true
   override def directed: Boolean = false

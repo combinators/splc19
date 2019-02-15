@@ -27,7 +27,7 @@ trait extensions extends GraphDomain with VertexDomain with EdgeDomain with Base
     // VERTEX extensions
     //    vertexLogic(vertexLogic.base, TYPE-1)
     var vertexExtensions:Seq[Constructor] = Seq.empty
-
+    var graphExtensions:Seq[Constructor] = Seq.empty
     g.edgeStorage match {
       case gpl.domain.NeighboringNodes() =>
         updated = updated.addCombinator (new VertexNeighborList())
@@ -47,7 +47,10 @@ trait extensions extends GraphDomain with VertexDomain with EdgeDomain with Base
     // AT THIS POINT I have all Vertex extensions KNOWN then can CHAIN TOGETHER
     // the different Seq[BodyDeclaration[_]] from the vertexExtensions
     // ALL Vertex extensions are no known, and are found in the vertexExtensions sequence
-    updated = updated.addCombinator(new VertexChained2(vertexExtensions(0), vertexExtensions(1)))
+ //   if(vertexExtensions.size==1)
+ //      updated=updated.addCombinator(new VertexChained1(vertexExtensions(0)))
+ //   else if(vertexExtensions.size==2)
+ //      updated = updated.addCombinator(new VertexChained2(vertexExtensions(0), vertexExtensions(1)))
 
     // might not be useful in long run..
     //val cons = new VertexExtension("DirectedGRSemantics").implements
@@ -74,6 +77,45 @@ trait extensions extends GraphDomain with VertexDomain with EdgeDomain with Base
       updated = updated.addCombinator(new primAlgorithm())
       updated = updated.addCombinator(new graphChained1('primImplementation))
     }
+    // need to work on workSpace
+    if (g.name.contains("Conn")) {
+      updated = updated.addCombinator(new SearchVertex())
+      updated=updated.addCombinator(new searchGraph())
+      updated= updated.addCombinator(new connectedGraph())
+      updated= updated.addCombinator(new connectedVertex())
+      vertexExtensions = vertexExtensions :+ vertexLogic(vertexLogic.base, vertexLogic.var_search)
+      vertexExtensions = vertexExtensions :+ vertexLogic(vertexLogic.base, vertexLogic.var_conn)
+      //Hacking,MST and connected can't be generated together so far
+      updated = updated.addCombinator(new graphChained2('searchCommon,'connected))
+    }
+    //directed done, DFS done, transpose done
+    // need to work on workSpace
+    if (g.name.contains("StronglyC")) {
+      updated = updated.addCombinator(new DFSVertex())
+      updated = updated.addCombinator(new Transpose())
+      updated = updated.addCombinator(new directedCommon())
+      updated = updated.addCombinator(new stronglyCGraph())
+      updated = updated.addCombinator(new stronglyCVertex())
+      updated = updated.addCombinator(new graphChained3('transpose,'directed,'stronglyC))
+      vertexExtensions = vertexExtensions :+ vertexLogic(vertexLogic.base, vertexLogic.var_dfs)
+      vertexExtensions = vertexExtensions :+ vertexLogic(vertexLogic.base, vertexLogic.var_stronglyC)
+
+    }
+
+    //looks awkward when the size goes up
+    if(vertexExtensions.size==1)
+      updated=updated.addCombinator(new VertexChained1(vertexExtensions(0)))
+    else if(vertexExtensions.size==2)
+      updated = updated.addCombinator(new VertexChained2(vertexExtensions(0), vertexExtensions(1)))
+    else if (vertexExtensions.size==3)
+      updated = updated.addCombinator(new VertexChained3(vertexExtensions(0), vertexExtensions(1),vertexExtensions(2)))
+    else if (vertexExtensions.size==4)
+      updated = updated.addCombinator(new VertexChained4(vertexExtensions(0), vertexExtensions(1),vertexExtensions(2),vertexExtensions(3)))
+    else if (vertexExtensions.size==5)
+      updated = updated.addCombinator(new VertexChained5(vertexExtensions(0), vertexExtensions(1),vertexExtensions(2),vertexExtensions(3),vertexExtensions(4)))
+
+
+
 
     if (g.name.contains("Kruskal")) {
       updated = updated.addCombinator(new kruskalAlgorithm())

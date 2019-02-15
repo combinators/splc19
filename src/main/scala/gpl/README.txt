@@ -25,6 +25,7 @@ class AddStuff(sym:Symbm, newMethods:Seq[BodyDeclaration[_]]) {
 
 
 
+
 Then we would have a target that would call for ...
 
   'GraphSubType :&: 'AnotherType :&: 'ThirdType

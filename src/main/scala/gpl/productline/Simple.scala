@@ -63,6 +63,10 @@ class Simple @Inject()(webJars: WebJarsUtil, lifeCycle: ApplicationLifecycle) ex
     edgeIterLogic(edgeIterLogic.base,edgeIterLogic.complete ),
     neighborIfcLogic(neighborIfcLogic.base,neighborIfcLogic.complete ),
     neighborLogic(neighborLogic.base,neighborLogic.complete),
+    workSpaceLogic(workSpaceLogic.base,workSpaceLogic.complete),
+    regionWorkSpaceLogic(regionWorkSpaceLogic.base,regionWorkSpaceLogic.complete),
+    ftWorkSpaceLogic(ftWorkSpaceLogic.base,ftWorkSpaceLogic.complete),
+    WorkSpaceTpLogic(WorkSpaceTpLogic.base,WorkSpaceTpLogic.complete),
     graphLogic(graphLogic.base,graphLogic.complete )
   )
 

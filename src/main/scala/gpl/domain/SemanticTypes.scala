@@ -34,8 +34,56 @@ trait SemanticTypes {
     val base:Type = 'Base
     val prim:Type='Prim
     val kruskal:Type='Kruskal
+    val connected:Type='Connected
+    val stronglyC:Type='StronglyC
+    val directed:Type='Directed
+    val searchCommon:Type='SearchCommon
     val complete:Type = 'Complete
 
+
+    // features
+    val empty : Type = 'Empty
+  }
+
+  object workSpaceLogic {
+    def apply (part:Type, features:Type): Constructor = 'WorkSpaceLogic (part, features)
+
+    val extensions:Type = 'Extensions
+    val implements:Type = 'Implements
+    val base:Type = 'Base
+    val complete:Type = 'Complete
+    // features
+    val empty : Type = 'Empty
+  }
+  object regionWorkSpaceLogic {
+    def apply (part:Type, features:Type): Constructor = 'RegionWorkSpaceLogic (part, features)
+
+    val extensions:Type = 'Extensions
+    val implements:Type = 'Implements
+    val base:Type = 'Base
+    val complete:Type = 'Complete
+    // features
+    val empty : Type = 'Empty
+  }
+
+  object ftWorkSpaceLogic {
+    def apply (part:Type, features:Type): Constructor = 'FtWorkSpaceLogic (part, features)
+
+    val extensions:Type = 'Extensions
+    val implements:Type = 'Implements
+    val base:Type = 'Base
+    val complete:Type = 'Complete
+    // features
+    val empty : Type = 'Empty
+  }
+
+  object WorkSpaceTpLogic {
+    def apply (part:Type, features:Type): Constructor = 'WorkSpaceTpLogic (part, features)
+
+    val extensions:Type = 'Extensions
+    val implements:Type = 'Implements
+    val base:Type = 'Base
+    val complete:Type = 'Complete
     // features
     val empty : Type = 'Empty
   }
@@ -49,13 +97,17 @@ trait SemanticTypes {
     // known variations for storage of neighbor information
     val var_neighborList = 'NeighborList
     val var_edgeList = 'EdgeList
-
+    val var_search='Search
+    val var_dfs='DFS
+    val var_stronglyC='StronglyC
+    val var_conn='Conn
     val var_colored = 'Colored
     val var_weighted = 'Weighted
     val implements:Type = 'Implements
     val base:Type = 'Base
     val empty : Type = 'Empty
     val complete : Type = 'Complete
+
   }
 
   // parts of the widgets during move : Dynamic Behavior
