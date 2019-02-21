@@ -226,6 +226,21 @@ trait VertexDomain extends SemanticTypes {
 
   }
 
+  class NumVertex {
+    def apply() : Seq[BodyDeclaration[_]] = {
+      Java(s"""
+              |    public int VertexNumber;
+              |
+              |    public void display( )
+              |    {
+              |        System.out.print( " # "+ VertexNumber + " " );
+              |        Super( ).display( );
+              |    }
+              |""".stripMargin).classBodyDeclarations()
+    }
+    val semanticType: Type = vertexLogic(vertexLogic.base, vertexLogic.var_num)
+  }
+
 
   /**
     * Extensions to the Vertex concept
@@ -496,6 +511,18 @@ trait VertexDomain extends SemanticTypes {
     //                            vertexLogic(vertexLogic.base, vertexLogic.extensions)
   }
 
+
+  class VertexChained6(t1:Type, t2:Type,t3:Type,t4:Type,t5:Type,t6:Type) {
+    def apply(bd1:Seq[BodyDeclaration[_]], bd2:Seq[BodyDeclaration[_]],bd3:Seq[BodyDeclaration[_]],bd4:Seq[BodyDeclaration[_]],bd5:Seq[BodyDeclaration[_]],bd6:Seq[BodyDeclaration[_]]): Seq[BodyDeclaration[_]] =
+      bd1 ++ bd2 ++bd3++bd4++bd5++bd6
+
+    val semanticType:Type = t1 =>: t2 =>: t3 =>:t4 =>:t5 =>:t6 =>: vertexLogic(vertexLogic.base, vertexLogic.extensions)
+
+    //    val semanticType:Type = vertexLogic(vertexLogic.base, t1) =>:
+    //                            vertexLogic(vertexLogic.base, t2) =>:
+    //                            vertexLogic(vertexLogic.base, vertexLogic.extensions)
+  }
+
   @combinator object workSpaceBase{
     def apply(): CompilationUnit = {
       Java(
@@ -552,6 +579,37 @@ trait VertexDomain extends SemanticTypes {
     }
 
     val semanticType: Type = regionWorkSpaceLogic(regionWorkSpaceLogic.base, regionWorkSpaceLogic.complete)
+  }
+
+
+  @combinator object NumberWorkSpace{
+    def apply(): CompilationUnit = {
+      Java(
+        s"""
+           |package gpl;
+           |
+           |import java.util.*;
+           |public class NumberWorkSpace extends  WorkSpace
+           |{
+           |    int vertexCounter;
+           |
+           |    public NumberWorkSpace( )
+           |    {
+           |        vertexCounter = 0;
+           |    }
+           |
+           |    public void preVisitAction( Vertex v )
+           |    {
+           |        // This assigns the values on the way in
+           |        if ( v.visited != true )
+           |        {
+           |            v.VertexNumber = vertexCounter++;
+           |        }
+           |    }
+           |}""".stripMargin).compilationUnit
+    }
+
+    val semanticType: Type = numWorkSpaceLogic(numWorkSpaceLogic.base, numWorkSpaceLogic.complete)
   }
 
   @combinator object FinishTimeWorkSpace{

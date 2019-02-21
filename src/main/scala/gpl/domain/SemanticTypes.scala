@@ -66,6 +66,17 @@ trait SemanticTypes {
     val empty : Type = 'Empty
   }
 
+  object numWorkSpaceLogic {
+    def apply (part:Type, features:Type): Constructor = 'NumWorkSpaceLogic (part, features)
+
+    val extensions:Type = 'Extensions
+    val implements:Type = 'Implements
+    val base:Type = 'Base
+    val complete:Type = 'Complete
+    // features
+    val empty : Type = 'Empty
+  }
+
   object ftWorkSpaceLogic {
     def apply (part:Type, features:Type): Constructor = 'FtWorkSpaceLogic (part, features)
 
@@ -98,6 +109,7 @@ trait SemanticTypes {
     val var_neighborList = 'NeighborList
     val var_edgeList = 'EdgeList
     val var_search='Search
+    val var_num='Num
     val var_dfs='DFS
     val var_stronglyC='StronglyC
     val var_conn='Conn

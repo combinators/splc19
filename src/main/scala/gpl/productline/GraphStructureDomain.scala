@@ -188,6 +188,19 @@ trait GraphStructureDomain extends SemanticTypes {
     val semanticType: Type ='connected //graphLogic(graphLogic.base, graphLogic.prim)//
   }
 
+  class NumGraph {
+    def apply() : Seq[BodyDeclaration[_]] = {
+      Java(
+        s"""
+           |    public void NumberVertices( )
+           |    {
+           |        GraphSearch( new NumberWorkSpace( ) );
+           |    }""".stripMargin).classBodyDeclarations()
+    }
+
+    val semanticType: Type ='number //graphLogic(graphLogic.base, graphLogic.prim)//
+  }
+
   class stronglyCGraph {
     def apply() : Seq[BodyDeclaration[_]] = {
       Java(

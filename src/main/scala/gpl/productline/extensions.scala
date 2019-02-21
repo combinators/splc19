@@ -87,6 +87,7 @@ trait extensions extends GraphDomain with VertexDomain with EdgeDomain with Base
       vertexExtensions = vertexExtensions :+ vertexLogic(vertexLogic.base, vertexLogic.var_conn)
       updated = updated.addCombinator(new graphChained2('searchCommon,'connected))
     }
+
     //directed done, DFS done, transpose done
     // need to work on workSpace
     if (g.name.contains("StronglyC")) {
@@ -98,7 +99,17 @@ trait extensions extends GraphDomain with VertexDomain with EdgeDomain with Base
       updated = updated.addCombinator(new graphChained3('transpose,'directed,'stronglyC))
       vertexExtensions = vertexExtensions :+ vertexLogic(vertexLogic.base, vertexLogic.var_dfs)
       vertexExtensions = vertexExtensions :+ vertexLogic(vertexLogic.base, vertexLogic.var_stronglyC)
+    }
 
+    //search and graphType???
+    if(g.name.contains("Num")){
+      updated = updated.addCombinator(new SearchVertex())
+      updated=updated.addCombinator(new searchGraph())
+      updated=updated.addCombinator(new NumVertex())
+      updated=updated.addCombinator(new NumGraph())
+      updated = updated.addCombinator(new graphChained2('number,'searchCommon))
+      vertexExtensions = vertexExtensions :+ vertexLogic(vertexLogic.base, vertexLogic.var_search)
+      vertexExtensions = vertexExtensions :+ vertexLogic(vertexLogic.base, vertexLogic.var_num)
     }
 
     //looks awkward when the size goes up
@@ -112,6 +123,11 @@ trait extensions extends GraphDomain with VertexDomain with EdgeDomain with Base
       updated = updated.addCombinator(new VertexChained4(vertexExtensions(0), vertexExtensions(1),vertexExtensions(2),vertexExtensions(3)))
     else if (vertexExtensions.size==5)
       updated = updated.addCombinator(new VertexChained5(vertexExtensions(0), vertexExtensions(1),vertexExtensions(2),vertexExtensions(3),vertexExtensions(4)))
+    else if (vertexExtensions.size==6)
+      updated = updated.addCombinator(new VertexChained6(vertexExtensions(0), vertexExtensions(1),
+        vertexExtensions(2),vertexExtensions(3),vertexExtensions(4),vertexExtensions(5)
+      ))
+
 
 
 
