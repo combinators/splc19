@@ -155,21 +155,185 @@ Be sure to place where it is discussed~\cite{CIDE:Eclipse}.
 
 \subsection{Approaches to Product Line Development}
 
+Software product lines create unique engineering challenges for a number of reasons. First, it should be
+possible to generate any number of  instances of the product line, and by this we mean the code artifacts
+for the instance application. These are then compiled (or interpreted) to realize the execution of the
+application. Second, there are multiple development efforts; one can work on code that will effectively be
+used by all product line instances, but at other times, one is focused on writing code for just a single
+instance from the PL.
+
+A major goal of featured-oriented PL is to derive a product automatically based on user’s selection. There are
+two approach widely used in practice,  annotation-based approach or a composition-based approach, which differ in
+the way they represent variability in the code base and the way they generate products.
+
+
 \subsubsection{Annotation-based Approach}
+
+There is a single body of code artifacts which fully contains all code resources used by all members of the product line.
+Using different tools or language-specific capabilities, a compiler (or processor) will extract subsets of the code to be used
+ for a PL instance. One of the most common approaches is to use compiler directives embedded within the code as a means
+ for isolating code unique to a subset of product line instances. Then each product line instance can be generated
+ by compiling the same code base with different compiler flags, resulting in different executable instances.
+ Due to the nature of this approach, often one cannot review the source code for individual instances.
+
+In annotation-based approaches, the code of all features is merged in a single code base, and annotation mark which code
+ belongs to which feature. In some sense, an annotation is a function that maps a program element to the feature or
+ feature combination it belongs to.
+
+Annotation-based approaches are widely used in practice because they are easy to use and already natively supported
+by many programming environments. It keeps good readability and low complexity, however, relatively simple tool support
+can address scattered code or error.
+
+
+
+
 \subsubsection{Composition-based Approach}
+
+Another approach is to design a feature tree which is used to capture all the externally visible features that
+can be used to differentiated one product line instance from another. Then code assets are internally associated
+ with each of these visible features. Finally product line instances are configured by selecting for inclusion
+  features from the feature tree, potentially restricted by constraints. A composition engine processes the
+  code assets associated with the selected features to create the final source code for the product line instance.
+
+Composition-based approaches locate code belonging to a feature or feature combination in a dedicated file,
+container, or module. A classic example is a framework that can be extended with plug-ins, ideally one plug-in
+per feature. The key challenge of composition-based approaches is to keep the mapping between features and
+composition units simple and tractable.
+
+Another way to view the difference between annotation and composition is that annotation separate concerns
+virtually and composition separate concerns physically,and code is removed on demand with annotation while
+composition units are added on demand.
+
+
 \subsubsection{Product Line Techniques In Industry}
 
-\section{Related Work}
+Annotation-based approach are not so widely used as composition-based approach because drawbacks mentioned above.
+Here are some existing annotation-based approaches:
 
-\subsection{Annotation-based Approaches}
-\subsection{Composition-based Approaches}
-\subsection{Other}
+code coloring (FeatureCIDE): CIDE is an Eclipse plug-in that replaces the Java editor in SPL projects. Developers
+start with a standard Java legacy application, then they select code fragment and associate them with features
+ from the context menu. The marked code is then permanently highlighted in the editor using a background color
+ associated with the feature
 
-\subsection{Evaluation of Related Work}
+Type checking approach,  a product-line-aware type system that statically and efficiently detects type errors in
+annotation-based product-line implementations.
+
+
+To work with FeatureIDE, the primary challenge is to design a feature tree model to represent the desired product
+line application domain. Because features are cross-cutting with regards to the artifacts in the programming
+language, the various composer engines supported by FeatureIDE accomplish the same goal in a variety of ways.
+
+AHEAD has feature modules for each concrete feature, and the corresponding composition tool places generated
+source code directly into the Eclipse source folder. AHEAD brings separate tools together and selects different
+tools for different kinds of files during feature composition,establishing a clear interface to the build
+system. Composing Jak files will invoke a Jak-composition, whereas composing XML files invokes an
+XML-composition tool.
+
+FeatureHouse tool suite has been developed that allows programmers to enhance given languages rapidly with
+support for feature-oriented programming. It is a framework for software composition supported by a
+corresponding tool chain. It provides facilities for feature  composition based on a language-independent
+model and tool chain for software artifact, and a plug-in mechanism for the integration of new artifact
+languages.
+
+Deltaj is a Java-like language which allows to organize classes in modules. A program consists of a base
+ module and a set of delta module in a stepwise manner. Much like a feature module, a delta module can add
+ new classes and members as well as extend existing methods by overriding. In contrast to feature modules,
+ delta modules can also delete existing classes and individual members.
+
+In LaunchPad, each feature can contain any number of combinators, designed using a DSL we had developed to
+simplify the writing of combinators for an earlier CLS tool. A configuration is a subset of features from
+which a repository is constructed. Each feature can optionally store target definitions, which are aggregated
+ together and then used as the basis for the inhabitation requests, i.e.As each request is satisfied, the
+ synthesized code from the resulting type expression M is stored in the designated source folder.
+
+
+\subsubsection{Evaluation of related work}
+
+The key challenge of composition-based approaches is to keep the mapping between features and composition units
+simple and tractable. Preprocessor-based and parameter-based implementations are often criticized for their
+potential complexity, lack of modularity, and reduced readability. And they all have some problems which is the
+hard to refactoring.
+
+In practice most PLs appear “from the ground up” where developers take advantage of language-specific capabilities
+ to annotate different code regions as being enabled (or disabled) based on compiler directives. Starting from an
+ annotation-based code repository many composition-based approaches simply “snipped” or refactored code fragments
+ to recreate countless tiny “features” that could be selected.
+
+Manual composition is a configuration process. A designer selects individual features from a feature model and
+relies on constraints to ensure the resulting product line member is valid. Manual Composition is limited to a
+potential total of 2N configurations where N represents the number of available features in the model. There is no
+ domain modeling, What commonly occurs is the designer must make sure that changes to any of the units will not invalidate those product
+ line members that incorporate that feature.
+
+ Another problem is that the features are fixed and unchanging. If we need to make some modifications to current
+ instances, we may need to trace all the way back and change the code in many classes because it’s inheritance
+ structure. If we want to add features which is slightly different from existing ones, we may need to start from
+ very beginning.
 
 \section{A New Approach is Needed}
 
+There are features to represent the structure of a variations, and there is a feature for each variation.
+Our goal was to support the easy construction of new variations by reusing existing features where possible
+and adding new features as needed to support the functionality expected of new variations.
+
+
 \subsection{Essential Characteristics}
+
+\subsubsection{CLS generic composition}
+
+With dominated approach for using feature in PL, n features in the feature tree may generate 2n configurations
+ which will become product line instances. But if we use CLS as the algorithm for composition, the fundamental
+ units will be combinators instead of features. The CLS starts with a repository of combinators to which a user
+ issues a query which attempts to find a type in the repository using inferencing.
+
+Combinators can be dynamic and added at composition time, something which is simply not possible in traditional
+feature trees used by feature-oriented product lines.
+
+To better explain these dynamic combinators, consider having a feature model with a feature that provides
+variability and there are a number of fixed sub-features that are tailored for each valid variation.
+For example, “Number of external hard disks” might have sub-features “One-Hard-Disk”, “Two-hard-disks” and
+so on. Individual members of the PL are configured, accordingly, to select the desired number of external hard
+disks. In contrast, using CLS a single combinator class NumberOfExternalDisks is parameterized with an integer,
+and one can instantiate a combinator (NumberOfExternalDisks(3)) and add to the repository as needed based on
+the modeling needs of the member.
+
+Without making 2n configurations, using CLS will significantly simplify code system in PL, optimize code structure
+make it more readable and reasonable.
+
+\subsubsection{Application domain modeling}
+
+This appears missing in nearly every approach we see. This happens because Feature Trees do not require any
+other modeling besides the tree itself, and annotation-based approaches rely solely on the codebase itself.
+
+Because there is no domain modeling, the various Feature-IDE approaches all appear to have configurations
+which become ineffective domain modeling. For example, in some FeatureIDE models,
+there is a feature with sub-features that appear to be nothing more than instantiations of different
+configurations, which makes the width of feature tree in AHEAD huge.
+
+\subsubsection{Compositional manipulation}
+
+Feature-IDE relies on externally provided composition engines to process code fragments. The challenge
+is that FeatureIDE can make no semantic guarantees about the resulting code. Also there is no theoretical
+foundation for the composition, which rather simply is assembly. During assembly, units are wired together
+without making any changes to the units themselves.
+
+\subsubsection{Language agustic}
+
+
+Without being language limited as normal ways, our approach is more laguage agustic. Choice of language have
+been more diversified, which could benefit more engineers with different backgrounds. We don't have to take
+advantage of single language to build our code base. For example,we have to use .jak files in AHEAD. If
+you are not familiar with the language, you can't use the approach.
+
+\subsubsection{Code sharing between assets}
+
+
+Like we mentioned above, dynamic combinators can be constructed to add methods into classes. Assets can share
+some basic code, with different methods included.
+
+\subsection{Well-known graph product line}
+
+
 
 
 \section{Template Overview}
