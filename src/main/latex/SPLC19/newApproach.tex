@@ -1,0 +1,59 @@
+
+There are features to represent the structure of a variations, and there is a feature for each variation.
+Our goal was to support the easy construction of new variations by reusing existing features where possible
+and adding new features as needed to support the functionality expected of new variations.
+
+
+\subsection{Essential Characteristics}
+
+\subsubsection{CLS generic composition}
+
+With dominated approach for using feature in PL, n features in the feature tree may generate 2n configurations
+ which will become product line instances. But if we use CLS as the algorithm for composition, the fundamental
+ units will be combinators instead of features. The CLS starts with a repository of combinators to which a user
+ issues a query which attempts to find a type in the repository using inferencing.
+
+Combinators can be dynamic and added at composition time, something which is simply not possible in traditional
+feature trees used by feature-oriented product lines.
+
+To better explain these dynamic combinators, consider having a feature model with a feature that provides
+variability and there are a number of fixed sub-features that are tailored for each valid variation.
+For example, “Number of external hard disks” might have sub-features “One-Hard-Disk”, “Two-hard-disks” and
+so on. Individual members of the PL are configured, accordingly, to select the desired number of external hard
+disks. In contrast, using CLS a single combinator class NumberOfExternalDisks is parameterized with an integer,
+and one can instantiate a combinator (NumberOfExternalDisks(3)) and add to the repository as needed based on
+the modeling needs of the member.
+
+Without making 2n configurations, using CLS will significantly simplify code system in PL, optimize code structure
+make it more readable and reasonable.
+
+\subsubsection{Application domain modeling}
+
+This appears missing in nearly every approach we see. This happens because Feature Trees do not require any
+other modeling besides the tree itself, and annotation-based approaches rely solely on the codebase itself.
+
+Because there is no domain modeling, the various Feature-IDE approaches all appear to have configurations
+which become ineffective domain modeling. For example, in some FeatureIDE models,
+there is a feature with sub-features that appear to be nothing more than instantiations of different
+configurations, which makes the width of feature tree in AHEAD huge.
+
+\subsubsection{Compositional manipulation}
+
+Feature-IDE relies on externally provided composition engines to process code fragments. The challenge
+is that FeatureIDE can make no semantic guarantees about the resulting code. Also there is no theoretical
+foundation for the composition, which rather simply is assembly. During assembly, units are wired together
+without making any changes to the units themselves.
+
+\subsubsection{Language agnostic}
+
+
+Without being language limited as normal ways, our approach is more laguage agnostic. Choice of language have
+been more diversified, which could benefit more engineers with different backgrounds. We don't have to take
+advantage of single language to build our code base. For example,we have to use .jak files in AHEAD. If
+you are not familiar with the language, you can't use the approach.
+
+\subsubsection{Code sharing between assets}
+
+
+Like we mentioned above, dynamic combinators can be constructed to add methods into classes. Assets can share
+some basic code, with different methods included.
