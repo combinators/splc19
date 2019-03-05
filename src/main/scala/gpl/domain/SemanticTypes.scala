@@ -29,20 +29,20 @@ trait SemanticTypes {
   object graphLogic {
     def apply (part:Type, features:Type): Constructor = 'GraphLogic (part, features)
 
-    val extensions:Type   = 'Extensions
-    val implements:Type   = 'Implements
-    val prim:Type         = 'Prim
-    val number            = 'Number
-    val kruskal:Type      = 'Kruskal
-    val connected:Type    = 'Connected
-    val stronglyC:Type    = 'StronglyC
-    val directed:Type     = 'Directed
-    val searchCommon:Type = 'SearchCommon
+    val extensions:Type = 'Extensions
+    val implements:Type = 'Implements
+    val base:Type = 'Base
+    val prim:Type='Prim
+    val kruskal:Type='Kruskal
+    val connected:Type='Connected
+    val stronglyC:Type='StronglyC
+    val directed:Type='Directed
+    val searchCommon:Type='SearchCommon
+    val complete:Type = 'Complete
+
 
     // features
-    val base:Type = 'Base
     val empty : Type = 'Empty
-    val complete:Type = 'Complete
   }
 
   object workSpaceLogic {
@@ -50,21 +50,24 @@ trait SemanticTypes {
 
     val extensions:Type = 'Extensions
     val implements:Type = 'Implements
-
     val base:Type = 'Base
-    val empty : Type = 'Empty
     val complete:Type = 'Complete
+    val var_region='Region
+    val var_num='Number
+    val var_ft='FinishTime
+    val var_trans='Transpose
+    // features
+    val empty : Type = 'Empty
   }
-
   object regionWorkSpaceLogic {
     def apply (part:Type, features:Type): Constructor = 'RegionWorkSpaceLogic (part, features)
 
     val extensions:Type = 'Extensions
     val implements:Type = 'Implements
-
     val base:Type = 'Base
-    val empty : Type = 'Empty
     val complete:Type = 'Complete
+    // features
+    val empty : Type = 'Empty
   }
 
   object numWorkSpaceLogic {
@@ -108,16 +111,15 @@ trait SemanticTypes {
 
     // known variations for storage of neighbor information
     val var_neighborList = 'NeighborList
-    val var_edgeList     = 'EdgeList
-    val var_search       = 'Search
-    val number           = 'Number
-    val var_dfs          = 'DFS
-    val var_stronglyC    = 'StronglyC
-    val var_conn         = 'Conn
-    val var_colored      = 'Colored
-    val var_weighted     = 'Weighted
+    val var_edgeList = 'EdgeList
+    val var_search='Search
+    val var_num='Num
+    val var_dfs='DFS
+    val var_stronglyC='StronglyC
+    val var_conn='Conn
+    val var_colored = 'Colored
+    val var_weighted = 'Weighted
     val implements:Type = 'Implements
-
     val base:Type = 'Base
     val empty : Type = 'Empty
     val complete : Type = 'Complete
