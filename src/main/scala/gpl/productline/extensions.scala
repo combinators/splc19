@@ -3,8 +3,8 @@ package gpl.productline
 import com.github.javaparser.ast.CompilationUnit
 import com.github.javaparser.ast.body.BodyDeclaration
 import com.github.javaparser.ast.expr.{Name, SimpleName}
-import gpl.domain.{Base, Graph, GraphDomain, SemanticTypes}
-import org.combinators.cls.interpreter.{ReflectedRepository, combinator}
+import gpl.domain._
+import org.combinators.cls.interpreter.{ReflectedRepository}
 import org.combinators.cls.types.{Arrow, Constructor, Type}
 import org.combinators.templating.twirl.Java
 import org.combinators.cls.types.syntax._
@@ -14,7 +14,7 @@ import org.combinators.cls.types.syntax._
   * combinators into the repository, customzied based on the attributes in the
   * Scala model.
   */
-trait extensions extends GraphDomain with VertexDomain with EdgeDomain with Base with SemanticTypes with GraphStructureDomain {
+trait extensions extends GraphDomain with VertexDomain with EdgeDomain with NeighborDomain with WorkspaceDomain with Base with SemanticTypes with GraphStructureDomain {
 
   // dynamic combinators added as needed in this trait
   override def init[G <: GraphDomain](gamma: ReflectedRepository[G], g: Graph):
@@ -65,7 +65,7 @@ trait extensions extends GraphDomain with VertexDomain with EdgeDomain with Base
       // updated = updated.addCombinator(new EdgeWeighted())
       // HACK top get to work
       updated = updated.addCombinator (new EdgeWeighted())
-      updated=updated.addCombinator (new neighborWeighted())
+      updated=updated.addCombinator (new NeighborWeighted())
     } else {
       updated = updated.addCombinator (new NoEdgeExtensions())
     }
@@ -73,12 +73,12 @@ trait extensions extends GraphDomain with VertexDomain with EdgeDomain with Base
     // eventually need to choose based upon chosen algorithms
     updated= updated.addCombinator(new MSTPrim)
     //updated = updated.addCombinator(new primAlgorithm())
-    if (g.name.contains("Prim")) {
+    if (g.capabilities.contains(Prim())) {
       updated = updated.addCombinator(new primAlgorithm())
       updated = updated.addCombinator(new graphChained1('primImplementation))
     }
     // need to work on workSpace
-    if (g.name.contains("Conn")) {
+    if (g.capabilities.contains(Connected())) {
       updated = updated.addCombinator(new SearchVertex())
       updated=updated.addCombinator(new searchGraph())
       updated= updated.addCombinator(new connectedGraph())
@@ -90,7 +90,7 @@ trait extensions extends GraphDomain with VertexDomain with EdgeDomain with Base
 
     //directed done, DFS done, transpose done
     // need to work on workSpace
-    if (g.name.contains("StronglyC")) {
+    if (g.capabilities.contains(StronglyConnected())) {
       updated = updated.addCombinator(new DFSVertex())
       updated = updated.addCombinator(new Transpose())
       updated = updated.addCombinator(new directedCommon())
@@ -102,14 +102,14 @@ trait extensions extends GraphDomain with VertexDomain with EdgeDomain with Base
     }
 
     //search and graphType???
-    if(g.name.contains("Num")){
+    if (g.capabilities.contains(Number())) {
       updated = updated.addCombinator(new SearchVertex())
       updated=updated.addCombinator(new searchGraph())
       updated=updated.addCombinator(new NumVertex())
       updated=updated.addCombinator(new NumGraph())
       updated = updated.addCombinator(new graphChained2('number,'searchCommon))
       vertexExtensions = vertexExtensions :+ vertexLogic(vertexLogic.base, vertexLogic.var_search)
-      vertexExtensions = vertexExtensions :+ vertexLogic(vertexLogic.base, vertexLogic.var_num)
+      vertexExtensions = vertexExtensions :+ vertexLogic(vertexLogic.base, vertexLogic.number)
     }
 
     //looks awkward when the size goes up
@@ -129,10 +129,7 @@ trait extensions extends GraphDomain with VertexDomain with EdgeDomain with Base
       ))
 
 
-
-
-
-    if (g.name.contains("Kruskal")) {
+    if (g.capabilities.contains(Kruskal())) {
       updated = updated.addCombinator(new kruskalAlgorithm())
       updated = updated.addCombinator(new graphChained1('kruskalImplementation))
     }

@@ -34,40 +34,26 @@ class Simple @Inject()(webJars: WebJarsUtil, lifeCycle: ApplicationLifecycle) ex
     graph)
 
   lazy val combinatorComponents = Gamma.combinatorComponents
-//
-//  lazy val targets1: Seq[Constructor] =Seq(graphSemantics(graphSemantics.base))  //Synthesizer.allTargets   in shared
-//
-//  lazy val targets2: Seq[Constructor] = Seq(vertexSemantics(vertexSemantics.base))
-//
-//  lazy val targets3: Seq[Constructor] = Seq(vertexIterSemantics(vertexIterSemantics.base))
-//
-//  lazy val targets4: Seq[Constructor] = Seq(edgeIfcSemantics(edgeIfcSemantics.base))
-//
-//  lazy val targets5: Seq[Constructor] = Seq(edgeIterSemantics(edgeIterSemantics.base))
-//
-//  lazy val targets6: Seq[Constructor] = Seq(neighborIfcSemantics(neighborIfcSemantics.base))
-//
-//  lazy val targets7: Seq[Constructor] = Seq(workSpaceSemantics(workSpaceSemantics.base))
-//
-//  lazy val targetFinal:Seq[Constructor] = Seq(vertexSemantics(vertexSemantics.base))
-////targets1++targets2++targets3++targets4++targets5++targets6++targets7
-//
-//  lazy val onlyTarget = Seq(tinySemantics(tinySemantics.base))
 
   // ALL intersection types must be *.complete because those are the CompilationUnits
   lazy val targets:Seq[Constructor]= Seq(
-    vertexLogic(vertexLogic.base, vertexLogic.complete),
-    edgeLogic(edgeLogic.base,edgeLogic.complete),
-    vertexIterLogic(vertexIterLogic.base,vertexIterLogic.complete ),
-    edgeIfcLogic(edgeIfcLogic.base,edgeIfcLogic.complete ),
-    edgeIterLogic(edgeIterLogic.base,edgeIterLogic.complete ),
-    neighborIfcLogic(neighborIfcLogic.base,neighborIfcLogic.complete ),
-    neighborLogic(neighborLogic.base,neighborLogic.complete),
-    workSpaceLogic(workSpaceLogic.base,workSpaceLogic.complete),
-    regionWorkSpaceLogic(regionWorkSpaceLogic.base,regionWorkSpaceLogic.complete),
-    ftWorkSpaceLogic(ftWorkSpaceLogic.base,ftWorkSpaceLogic.complete),
-    numWorkSpaceLogic(numWorkSpaceLogic.base,numWorkSpaceLogic.complete),
-    WorkSpaceTpLogic(WorkSpaceTpLogic.base,WorkSpaceTpLogic.complete),
+    // vertex
+      vertexLogic(vertexLogic.base, vertexLogic.complete),
+      vertexIterLogic(vertexIterLogic.base,vertexIterLogic.complete ),
+    // edge
+      edgeLogic(edgeLogic.base,edgeLogic.complete),
+      edgeIfcLogic(edgeIfcLogic.base,edgeIfcLogic.complete ),
+      edgeIterLogic(edgeIterLogic.base,edgeIterLogic.complete ),
+    // neighbor
+      neighborIfcLogic(neighborIfcLogic.base,neighborIfcLogic.complete ),
+      neighborLogic(neighborLogic.base,neighborLogic.complete),
+    // workspace: These should only be generated based on the target
+      workSpaceLogic(workSpaceLogic.base,workSpaceLogic.complete),
+      regionWorkSpaceLogic(regionWorkSpaceLogic.base,regionWorkSpaceLogic.complete),
+      ftWorkSpaceLogic(ftWorkSpaceLogic.base,ftWorkSpaceLogic.complete),
+      numWorkSpaceLogic(numWorkSpaceLogic.base,numWorkSpaceLogic.complete),
+      WorkSpaceTpLogic(WorkSpaceTpLogic.base,WorkSpaceTpLogic.complete),
+    // GRAPH as final
     graphLogic(graphLogic.base,graphLogic.complete )
   )
 

@@ -1,7 +1,7 @@
 package gpl.productline
 
 import com.github.javaparser.ast.CompilationUnit
-import com.github.javaparser.ast.body.{BodyDeclaration, FieldDeclaration, MethodDeclaration}
+import com.github.javaparser.ast.body.BodyDeclaration
 import gpl.domain.{Graph, SemanticTypes}
 import org.combinators.cls.interpreter.combinator
 import org.combinators.cls.types.Type
@@ -12,6 +12,28 @@ trait EdgeDomain extends SemanticTypes {
 
   val graph:Graph
 
+  @combinator object FixedWeightedEdgeIfc {
+    def apply(): CompilationUnit  =  {
+      Java(
+        s"""
+           |package gpl;
+           |
+           |public interface EdgeIfc {
+           |    public Vertex getStart( );
+           |    public Vertex getEnd( );
+           |    public void display( );
+           |
+           |    public Vertex getOtherVertex( Vertex vertex );
+           |    public void adjustAdorns( EdgeIfc the_edge );
+           |    public int getWeight();
+           |
+           |}
+         """.stripMargin).compilationUnit
+    }
+
+    val semanticType: Type = edgeIfcLogic(edgeIfcLogic.base,edgeIfcLogic.complete )
+
+  }
 
   @combinator object EdgeIter{
     def apply(): CompilationUnit = {

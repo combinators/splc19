@@ -172,7 +172,7 @@ trait GraphStructureDomain extends SemanticTypes {
            |}""".stripMargin).classBodyDeclarations()
     }
 
-    val semanticType: Type ='searchCommon //graphLogic(graphLogic.base, graphLogic.prim)//
+    val semanticType: Type = graphLogic.searchCommon //graphLogic(graphLogic.base, graphLogic.prim)//
   }
 
   class connectedGraph {
@@ -185,9 +185,10 @@ trait GraphStructureDomain extends SemanticTypes {
            |    }""".stripMargin).classBodyDeclarations()
     }
 
-    val semanticType: Type ='connected //graphLogic(graphLogic.base, graphLogic.prim)//
+    val semanticType: Type = graphLogic.connected //graphLogic(graphLogic.base, graphLogic.prim)//
   }
 
+  // ability to assign integers to each vertex in the graph (based on NumberWorkspace capability)
   class NumGraph {
     def apply() : Seq[BodyDeclaration[_]] = {
       Java(
@@ -198,7 +199,7 @@ trait GraphStructureDomain extends SemanticTypes {
            |    }""".stripMargin).classBodyDeclarations()
     }
 
-    val semanticType: Type ='number //graphLogic(graphLogic.base, graphLogic.prim)//
+    val semanticType: Type = graphLogic.number //graphLogic(graphLogic.base, graphLogic.prim)//
   }
 
   class stronglyCGraph {

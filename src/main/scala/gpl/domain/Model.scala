@@ -4,9 +4,16 @@ import org.combinators.cls.interpreter.ReflectedRepository
 
 /**
   * Every graph must specify information about vertices and edges
+  *
+  * Each Graph has specific set of capabilities
   */
-abstract class Graph extends Vertex with Edge with Algo {
+abstract class Graph(val capabilities:Seq[Algo]) extends Vertex with Edge  {
   def name:String
+
+  // Dispatch to all algorithms the graph to check for validity
+  def modelCheck(g:Graph):Boolean = {
+    capabilities.forall(alg => alg.valid(g))
+  }
 }
 
 /**
@@ -67,17 +74,17 @@ trait UnWeightedEdges {
   def weighted:Boolean = false
 }
 
-abstract class Target extends Graph with Algo {
-
-  // Ensure constructor validates algorithm models by checking
-  if (!modelCheck(this)) {
-    throw new scala.RuntimeException("Model not appropriate for algorithm")
-  }
-
-}
+//abstract class Target extends Graph with Algo {
+//
+//  // Ensure constructor validates algorithm models by checking
+//  if (!modelCheck(this)) {
+//    throw new scala.RuntimeException("Model not appropriate for algorithm")
+//  }
+//
+//}
 
 // these are the desired instances in the product line for structure
-class FinalConcept(val algos:Seq[Algo], val wt:Boolean, val dir:Boolean, val stor:EdgeStorage) extends Graph  {
+class FinalConcept(val algos:Seq[Algo], val wt:Boolean, val dir:Boolean, val stor:EdgeStorage) extends Graph(algos)  {
   override val name:String = "DirectedGraph"
 
   override def weighted: Boolean = wt
@@ -88,22 +95,8 @@ class FinalConcept(val algos:Seq[Algo], val wt:Boolean, val dir:Boolean, val sto
 }
 
 
-
-//// these are the desired instances in the product line for structure
-//class DirectedWeightedGraphAdjacencyMatrix extends Graph  {
-//  val name:String = "DirectedGraph"
-//
-//  override def weighted: Boolean = true
-//  override def directed: Boolean = false
-//  override def edgeStorage: EdgeStorage = NeighboringNodes()
-//}
-
-// Choose to store an undirected graph by having each vertex store its
-// neighbor nodes; when asking for edges, they are instantiated on the fly
-// on demand.
-class undirectedPrimNeighborNodes extends Graph  {
+class undirectedPrimNeighborNodes extends Graph(Seq(Prim()))  {
   override val name:String = "undirected StronglyC NeighborNodes"
-  override val capabilities= "MST"
   override def weighted: Boolean = true
   override def directed: Boolean = false
   override def colored: Boolean = true
@@ -111,63 +104,65 @@ class undirectedPrimNeighborNodes extends Graph  {
   override def edgeStorage: EdgeStorage = NeighboringNodes()
 }
 
-// correct so far?
-//
-//class UndirectedGraph extends Graph {
-//  val name:String = "UndirectedGraph"
-//}
-
-
 // all GPL algorithms must extend this trait
+abstract class Algo() {
 
-trait Algo {
-  def name : String = ""
+  // every algorithm has a name
+  def name:String
 
-  def capabilities : String=""//Seq[String] = Seq.empty
-
-  // by default always checks
-  def modelCheck(g:Graph):Boolean = true
+  // every algorithm knows whether it is compatible with graph structure
+  def valid(g: Graph): Boolean
 }
 
-trait Search extends Algo {
-  override def name : String = "Search" + super.name
+case class Search() extends Algo {
+   def name : String = "Search"
 
+  // Search can be done on any graph
+  def valid(g: Graph): Boolean = true
 }
 
-// these are the desired algorithms over the graphs
+case class Number() extends Algo {
+  def name : String = "Number"
 
-
-trait Num extends Algo {
-  override def name : String = "Number" + super.name
-
+  // Valid can be done on any graph
+  def valid(g: Graph): Boolean = true
 }
 
-trait MST extends Algo {
-  override def capabilities: String = ""//super.capabilities :+ "MST"
+abstract class MST() extends Algo {
+  def name:String = "MST"
+
+  // MST requires undirected graph and weighted
+  def valid(g: Graph): Boolean = !g.directed && g.weighted
 }
 
-trait Prim extends MST {
-  override def name : String = "Prim" + super.name
-
-  override def modelCheck(g:Graph):Boolean = {
-    g.weighted && !g.directed && super.modelCheck(g)
-  }
+case class Prim() extends MST {
+  override def name:String = super.name + "PRIM"
 }
 
-trait Kruskal extends MST {
-  override def name : String = "Kruskal" + super.name
-
+case class Kruskal() extends MST {
+  override def name:String = super.name + "Kruskal"
 }
 
+class BFS extends Search {
+  override def name:String = super.name + "BFS"
+}
+class DFS extends Search {
+  override def name:String = super.name + "DFS"
+}
 
-class BFS extends Search
-class DFS extends Search
+case class Connected() extends Algo {
+  def name:String = "Connected"
 
+  // Can always perform connectivity
+  def valid(g: Graph): Boolean = true
+}
 
-// this is the final specification: NOTE: ONLY ONE ALGO ALLOWED
-//class FinalDirectedGraph extends DirectedWeightedGraphAdjacencyMatrix with Prim {
+case class StronglyConnected() extends Algo {
+  override def name:String = "StronglyConnected"
 
-//}
+  // Must be strongly connected
+  override def valid(g: Graph): Boolean = g.directed
+}
 
 /**
 
@@ -187,8 +182,6 @@ class GraphDomain(val graph:Graph) {
 //    val semanticType: Type = graph(.generator)
 //  }
 }
-
-
 
 trait Base {
 
