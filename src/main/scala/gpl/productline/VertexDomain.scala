@@ -458,6 +458,46 @@ trait VertexDomain extends SemanticTypes {
 //    val semanticType:Type = cons.foldRight(vertexLogic(vertexLogic.base, vertexLogic.extensions))((current,last) => Arrow(current,last)).asInstanceOf[Constructor]
 //  }
 
+  class workSpaceChained1(t1:Type) {
+    def apply(bd1:Seq[BodyDeclaration[_]]): Seq[BodyDeclaration[_]] =
+      bd1
+
+    val semanticType:Type = workSpaceLogic(workSpaceLogic.base, t1) =>:
+      workSpaceLogic(workSpaceLogic.base, workSpaceLogic.extensions)
+  }
+
+  class workSpaceChained2(t1:Type, t2:Type) {
+    def apply(bd1:Seq[BodyDeclaration[_]], bd2:Seq[BodyDeclaration[_]]): Seq[BodyDeclaration[_]] =
+      bd1 ++ bd2
+
+    val semanticType:Type = t1 =>: t2 =>: workSpaceLogic(workSpaceLogic.base, workSpaceLogic.extensions)
+
+    //    val semanticType:Type = vertexLogic(vertexLogic.base, t1) =>:
+    //                            vertexLogic(vertexLogic.base, t2) =>:
+    //                            vertexLogic(vertexLogic.base, vertexLogic.extensions)
+  }
+
+  class workSpaceChained3(t1:Type, t2:Type,t3:Type) {
+    def apply(bd1:Seq[BodyDeclaration[_]], bd2:Seq[BodyDeclaration[_]],bd3:Seq[BodyDeclaration[_]]): Seq[BodyDeclaration[_]] =
+      bd1 ++ bd2 ++bd3
+
+    val semanticType:Type = t1 =>: t2 =>: t3 =>: workSpaceLogic(workSpaceLogic.base, workSpaceLogic.extensions)
+
+    //    val semanticType:Type = vertexLogic(vertexLogic.base, t1) =>:
+    //                            vertexLogic(vertexLogic.base, t2) =>:
+    //                            vertexLogic(vertexLogic.base, vertexLogic.extensions)
+  }
+
+  class workSpaceChained4(t1:Type, t2:Type,t3:Type,t4:Type) {
+    def apply(bd1:Seq[BodyDeclaration[_]], bd2:Seq[BodyDeclaration[_]],bd3:Seq[BodyDeclaration[_]],bd4:Seq[BodyDeclaration[_]]): Seq[BodyDeclaration[_]] =
+      bd1 ++ bd2 ++bd3++bd4
+
+    val semanticType:Type = t1 =>: t2 =>: t3 =>:t4 =>: workSpaceLogic(workSpaceLogic.base, workSpaceLogic.extensions)
+
+    //    val semanticType:Type = vertexLogic(vertexLogic.base, t1) =>:
+    //                            vertexLogic(vertexLogic.base, t2) =>:
+    //                            vertexLogic(vertexLogic.base, vertexLogic.extensions)
+  }
 
  class VertexChained1(t1:Type) {
     def apply(bd1:Seq[BodyDeclaration[_]]): Seq[BodyDeclaration[_]] =
@@ -524,7 +564,7 @@ trait VertexDomain extends SemanticTypes {
   }
 
   @combinator object workSpaceBase{
-    def apply(): CompilationUnit = {
+    def apply(extensions:Seq[BodyDeclaration[_]]): CompilationUnit  = {
       Java(
         s"""
            |package gpl;
@@ -538,22 +578,19 @@ trait VertexDomain extends SemanticTypes {
            |    public void nextRegionAction( Vertex v ) {}
            |    public void checkNeighborAction( Vertex vsource, Vertex vtarget ) {}
            |
-           |
+           |${extensions.mkString("\n")}
            |}""".stripMargin).compilationUnit
     }
 
-    val semanticType: Type = workSpaceLogic(workSpaceLogic.base, workSpaceLogic.complete)
+    val semanticType: Type = workSpaceLogic(workSpaceLogic.base, workSpaceLogic.extensions)=>:
+                             workSpaceLogic(workSpaceLogic.base, workSpaceLogic.complete)
   }
 
-  @combinator object RegionWorkSpace{
-    def apply(): CompilationUnit = {
+  class RegionWorkSpace{
+    def apply() : Seq[BodyDeclaration[_]] = {
       Java(
         s"""
-           |package gpl;
            |
-           |import java.util.*;
-           |public class RegionWorkSpace extends  WorkSpace
-           |{
            |    int counter;
            |
            |    public RegionWorkSpace( )
@@ -574,23 +611,19 @@ trait VertexDomain extends SemanticTypes {
            |    public void nextRegionAction( Vertex v )
            |    {
            |        counter ++;
-           |    }
-           |}""".stripMargin).compilationUnit
+           |
+           |}""".stripMargin).classBodyDeclarations()
     }
 
-    val semanticType: Type = regionWorkSpaceLogic(regionWorkSpaceLogic.base, regionWorkSpaceLogic.complete)
+    val semanticType: Type = workSpaceLogic(workSpaceLogic.base, workSpaceLogic.var_region)
   }
 
 
-  @combinator object NumberWorkSpace{
-    def apply(): CompilationUnit = {
+ class NumberWorkSpace{
+   def apply() : Seq[BodyDeclaration[_]] = {
       Java(
         s"""
-           |package gpl;
            |
-           |import java.util.*;
-           |public class NumberWorkSpace extends  WorkSpace
-           |{
            |    int vertexCounter;
            |
            |    public NumberWorkSpace( )
@@ -606,20 +639,17 @@ trait VertexDomain extends SemanticTypes {
            |            v.VertexNumber = vertexCounter++;
            |        }
            |    }
-           |}""".stripMargin).compilationUnit
+           |""".stripMargin).classBodyDeclarations()
     }
 
-    val semanticType: Type = numWorkSpaceLogic(numWorkSpaceLogic.base, numWorkSpaceLogic.complete)
+    val semanticType: Type = workSpaceLogic(workSpaceLogic.base, workSpaceLogic.var_num)
   }
 
-  @combinator object FinishTimeWorkSpace{
-    def apply(): CompilationUnit = {
+  class FinishTimeWorkSpace{
+    def apply() : Seq[BodyDeclaration[_]] = {
       Java(
         s"""
-           |package gpl;
            |
-           |import java.util.*;
-           |public class FinishTimeWorkSpace extends  WorkSpace {
            |    int FinishCounter;
            |
            |    public FinishTimeWorkSpace() {
@@ -636,20 +666,17 @@ trait VertexDomain extends SemanticTypes {
            |        v.finishTime = FinishCounter++;
            |    } // of postVisit
            |
-           |}""".stripMargin).compilationUnit
+           |""".stripMargin).classBodyDeclarations()
     }
 
-    val semanticType: Type = ftWorkSpaceLogic(ftWorkSpaceLogic.base, ftWorkSpaceLogic.complete)
+    val semanticType: Type = workSpaceLogic(workSpaceLogic.base, workSpaceLogic.var_ft)
   }
 
-  @combinator object WorkSpaceTranspose{
-    def apply(): CompilationUnit = {
+  class WorkSpaceTranspose{
+    def apply() : Seq[BodyDeclaration[_]] = {
       Java(
         s"""
-           |package gpl;
            |
-           |import java.util.*;
-           |public class WorkSpaceTranspose extends  WorkSpace {
            |    // Strongly Connected Component Counter
            |    int SCCCounter;
            |
@@ -672,10 +699,10 @@ trait VertexDomain extends SemanticTypes {
            |        SCCCounter++;
            |    }
            |
-           |}""".stripMargin).compilationUnit
+           |""".stripMargin).classBodyDeclarations()
     }
 
-    val semanticType: Type = WorkSpaceTpLogic(WorkSpaceTpLogic.base, WorkSpaceTpLogic.complete)
+    val semanticType: Type = workSpaceLogic(workSpaceLogic.base, workSpaceLogic.var_trans)
   }
 
   // vertexLogic(vertexLogic.base, vertexLogic.var_neighborList)

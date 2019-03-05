@@ -64,11 +64,12 @@ class Simple @Inject()(webJars: WebJarsUtil, lifeCycle: ApplicationLifecycle) ex
     neighborIfcLogic(neighborIfcLogic.base,neighborIfcLogic.complete ),
     neighborLogic(neighborLogic.base,neighborLogic.complete),
     workSpaceLogic(workSpaceLogic.base,workSpaceLogic.complete),
-    regionWorkSpaceLogic(regionWorkSpaceLogic.base,regionWorkSpaceLogic.complete),
-    ftWorkSpaceLogic(ftWorkSpaceLogic.base,ftWorkSpaceLogic.complete),
-    numWorkSpaceLogic(numWorkSpaceLogic.base,numWorkSpaceLogic.complete),
-    WorkSpaceTpLogic(WorkSpaceTpLogic.base,WorkSpaceTpLogic.complete),
     graphLogic(graphLogic.base,graphLogic.complete )
+    //regionWorkSpaceLogic(regionWorkSpaceLogic.base,regionWorkSpaceLogic.complete),
+    //ftWorkSpaceLogic(ftWorkSpaceLogic.base,ftWorkSpaceLogic.complete),
+    //numWorkSpaceLogic(numWorkSpaceLogic.base,numWorkSpaceLogic.complete),
+    //WorkSpaceTpLogic(WorkSpaceTpLogic.base,WorkSpaceTpLogic.complete),
+
   )
 
   lazy val results: Results = EmptyInhabitationBatchJobResults(Gamma)

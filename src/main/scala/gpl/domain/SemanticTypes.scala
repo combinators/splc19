@@ -52,6 +52,10 @@ trait SemanticTypes {
     val implements:Type = 'Implements
     val base:Type = 'Base
     val complete:Type = 'Complete
+    val var_region='Region
+    val var_num='Number
+    val var_ft='FinishTime
+    val var_trans='Transpose
     // features
     val empty : Type = 'Empty
   }

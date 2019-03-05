@@ -1,3 +1,13 @@
 %% Here is where to describe GPL
 
-The Graph Product Line (GPL) is a well-known case study within the software product line community.
+
+The Graph Product Line (GPL) is a well-known case study within the software product line community. This product line
+ supports variations in a library of graph data strutures and algorithms. A possible feature diagram of the graph
+ library is shown in Figure?. The root is labeled with Gpl to represent a graph product. It has a mandatory child feature
+ GraphType, because each graph library has to implement an type, which is either Directed or Undirected. Furthermore,
+ three other child features of the root are optional: Search, Weighted and Algorithm. Search strategies may be either
+  breadth-first search (BFS) or depth-first search (DFS). Algorithm offers a selection of graph algorithms as child
+  features. Since it's optional, either zero, one, ore more algorithms may be presented in a graph product. In our
+  example, the algorithm for minimal spanning trees MST has two alternative implementations, Prim and Kruskal. Some
+  non-local conditions are modeled as explicit Boolean constraints-- for example, minimal spanning tree make only
+  sense for weighted graphs, and shortest paths can be computed directed graphs only.

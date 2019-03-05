@@ -27,6 +27,7 @@ trait extensions extends GraphDomain with VertexDomain with EdgeDomain with Base
     // VERTEX extensions
     //    vertexLogic(vertexLogic.base, TYPE-1)
     var vertexExtensions:Seq[Constructor] = Seq.empty
+    var workSpaceExtensions:Seq[Constructor]=Seq.empty
     var graphExtensions:Seq[Constructor] = Seq.empty
     g.edgeStorage match {
       case gpl.domain.NeighboringNodes() =>
@@ -83,8 +84,10 @@ trait extensions extends GraphDomain with VertexDomain with EdgeDomain with Base
       updated=updated.addCombinator(new searchGraph())
       updated= updated.addCombinator(new connectedGraph())
       updated= updated.addCombinator(new connectedVertex())
+      updated= updated.addCombinator(new RegionWorkSpace())
       vertexExtensions = vertexExtensions :+ vertexLogic(vertexLogic.base, vertexLogic.var_search)
       vertexExtensions = vertexExtensions :+ vertexLogic(vertexLogic.base, vertexLogic.var_conn)
+      workSpaceExtensions= workSpaceExtensions:+ workSpaceLogic(workSpaceLogic.base,workSpaceLogic.var_region)
       updated = updated.addCombinator(new graphChained2('searchCommon,'connected))
     }
 
@@ -96,9 +99,14 @@ trait extensions extends GraphDomain with VertexDomain with EdgeDomain with Base
       updated = updated.addCombinator(new directedCommon())
       updated = updated.addCombinator(new stronglyCGraph())
       updated = updated.addCombinator(new stronglyCVertex())
+      updated = updated.addCombinator(new FinishTimeWorkSpace())
+      updated = updated.addCombinator(new WorkSpaceTranspose())
       updated = updated.addCombinator(new graphChained3('transpose,'directed,'stronglyC))
       vertexExtensions = vertexExtensions :+ vertexLogic(vertexLogic.base, vertexLogic.var_dfs)
       vertexExtensions = vertexExtensions :+ vertexLogic(vertexLogic.base, vertexLogic.var_stronglyC)
+      workSpaceExtensions= workSpaceExtensions:+ workSpaceLogic(workSpaceLogic.base,workSpaceLogic.var_ft)
+      workSpaceExtensions= workSpaceExtensions:+ workSpaceLogic(workSpaceLogic.base,workSpaceLogic.var_trans)
+
     }
 
     //search and graphType???
@@ -107,9 +115,12 @@ trait extensions extends GraphDomain with VertexDomain with EdgeDomain with Base
       updated=updated.addCombinator(new searchGraph())
       updated=updated.addCombinator(new NumVertex())
       updated=updated.addCombinator(new NumGraph())
+      updated=updated.addCombinator(new NumberWorkSpace())
       updated = updated.addCombinator(new graphChained2('number,'searchCommon))
       vertexExtensions = vertexExtensions :+ vertexLogic(vertexLogic.base, vertexLogic.var_search)
       vertexExtensions = vertexExtensions :+ vertexLogic(vertexLogic.base, vertexLogic.var_num)
+      workSpaceExtensions= workSpaceExtensions:+ workSpaceLogic(workSpaceLogic.base,workSpaceLogic.var_num)
+
     }
 
     //looks awkward when the size goes up
@@ -127,6 +138,16 @@ trait extensions extends GraphDomain with VertexDomain with EdgeDomain with Base
       updated = updated.addCombinator(new VertexChained6(vertexExtensions(0), vertexExtensions(1),
         vertexExtensions(2),vertexExtensions(3),vertexExtensions(4),vertexExtensions(5)
       ))
+
+    if(workSpaceExtensions.size==1)
+      updated=updated.addCombinator(new workSpaceChained1((workSpaceExtensions(0))))
+    else if(workSpaceExtensions.size==2)
+      updated = updated.addCombinator(new workSpaceChained2(workSpaceExtensions(0), workSpaceExtensions(1)))
+    else if (workSpaceExtensions.size==3)
+      updated = updated.addCombinator(new workSpaceChained3(workSpaceExtensions(0), workSpaceExtensions(1),workSpaceExtensions(2)))
+    else if (workSpaceExtensions.size==4)
+      updated = updated.addCombinator(new workSpaceChained4(workSpaceExtensions(0), workSpaceExtensions(1),workSpaceExtensions(2),workSpaceExtensions(3)))
+
 
 
 
