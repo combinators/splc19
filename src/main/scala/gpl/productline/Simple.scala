@@ -37,14 +37,6 @@ class Simple @Inject()(webJars: WebJarsUtil, lifeCycle: ApplicationLifecycle) ex
 
   // ALL intersection types must be *.complete because those are the CompilationUnits
   lazy val targets:Seq[Constructor]= Seq(
-    vertexLogic(vertexLogic.base, vertexLogic.complete),
-    edgeLogic(edgeLogic.base,edgeLogic.complete),
-    vertexIterLogic(vertexIterLogic.base,vertexIterLogic.complete ),
-    edgeIfcLogic(edgeIfcLogic.base,edgeIfcLogic.complete ),
-    edgeIterLogic(edgeIterLogic.base,edgeIterLogic.complete ),
-    neighborIfcLogic(neighborIfcLogic.base,neighborIfcLogic.complete ),
-    neighborLogic(neighborLogic.base,neighborLogic.complete),
-    workSpaceLogic(workSpaceLogic.base,workSpaceLogic.complete),
     // vertex
       vertexLogic(vertexLogic.base, vertexLogic.complete),
       vertexIterLogic(vertexIterLogic.base,vertexIterLogic.complete ),
@@ -57,17 +49,8 @@ class Simple @Inject()(webJars: WebJarsUtil, lifeCycle: ApplicationLifecycle) ex
       neighborLogic(neighborLogic.base,neighborLogic.complete),
     // workspace: These should only be generated based on the target
       workSpaceLogic(workSpaceLogic.base,workSpaceLogic.complete),
-      regionWorkSpaceLogic(regionWorkSpaceLogic.base,regionWorkSpaceLogic.complete),
-      ftWorkSpaceLogic(ftWorkSpaceLogic.base,ftWorkSpaceLogic.complete),
-      numWorkSpaceLogic(numWorkSpaceLogic.base,numWorkSpaceLogic.complete),
-      WorkSpaceTpLogic(WorkSpaceTpLogic.base,WorkSpaceTpLogic.complete),
     // GRAPH as final
     graphLogic(graphLogic.base,graphLogic.complete )
-    //regionWorkSpaceLogic(regionWorkSpaceLogic.base,regionWorkSpaceLogic.complete),
-    //ftWorkSpaceLogic(ftWorkSpaceLogic.base,ftWorkSpaceLogic.complete),
-    //numWorkSpaceLogic(numWorkSpaceLogic.base,numWorkSpaceLogic.complete),
-    //WorkSpaceTpLogic(WorkSpaceTpLogic.base,WorkSpaceTpLogic.complete),
-
   )
 
   lazy val results: Results = EmptyInhabitationBatchJobResults(Gamma)

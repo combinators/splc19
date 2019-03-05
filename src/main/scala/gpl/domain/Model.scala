@@ -12,8 +12,40 @@ abstract class Graph(val capabilities:Seq[Algo]) extends Vertex with Edge  {
 
   // Dispatch to all algorithms the graph to check for validity
   def modelCheck(g:Graph):Boolean = {
+    // First ensure structure of graph is compatible for each chosen algorithm
     capabilities.forall(alg => alg.valid(g))
+
+    // first check algorithms as a set
+    if (constraintChecker.validate(this)) {
+      return false
+    }
+
+    // TODO: Make sure no duplicates
+    return true
   }
+}
+
+/**
+  * These constraints are global and taken from the GPL feature treaa
+  */
+object constraintChecker {
+
+  def validate(g:Graph) : Boolean = {
+    val algos = g.capabilities
+
+    // MSTKruskal v MSTPrim => NOT(MSTKruskal ^ MSTPrim)
+    if (algos.contains(Prim()) && algos.contains(Kruskal())) {
+      return false
+    }
+
+    // Number => GraphType ^ Search
+    if (algos.contains(Number()) && (!algos.contains(Search()))) {
+      return false
+    }
+
+    true
+  }
+
 }
 
 /**
@@ -95,8 +127,8 @@ class FinalConcept(val algos:Seq[Algo], val wt:Boolean, val dir:Boolean, val sto
 }
 
 
-class undirectedPrimNeighborNodes extends Graph(Seq(Prim()))  {
-  override val name:String = "undirected StronglyC NeighborNodes"
+class undirectedPrimNeighborNodes extends Graph(Seq(Prim(), Connected()))  {
+  override val name:String = "Prim with connected components"
   override def weighted: Boolean = true
   override def directed: Boolean = false
   override def colored: Boolean = true
@@ -115,7 +147,7 @@ abstract class Algo() {
 }
 
 case class Search() extends Algo {
-   def name : String = "Search"
+  def name : String = "Search"
 
   // Search can be done on any graph
   def valid(g: Graph): Boolean = true
@@ -153,8 +185,8 @@ class DFS extends Search {
 case class Connected() extends Algo {
   def name:String = "Connected"
 
-  // Can always perform connectivity
-  def valid(g: Graph): Boolean = true
+  // Must be undirected
+  def valid(g: Graph): Boolean = !g.directed
 }
 
 case class StronglyConnected() extends Algo {
@@ -173,14 +205,14 @@ object sample {
 
   val myGraph: Model = DirectedGraph(, DirectedEdge.type, "directedEdge")
 }
-*/
+  */
 
 class GraphDomain(val graph:Graph) {
-//  // exists so def init methods can be included in any trait
-//  @combinator object DefaultGraph{
-//
-//    val semanticType: Type = graph(.generator)
-//  }
+  //  // exists so def init methods can be included in any trait
+  //  @combinator object DefaultGraph{
+  //
+  //    val semanticType: Type = graph(.generator)
+  //  }
 }
 
 trait Base {

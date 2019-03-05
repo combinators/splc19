@@ -35,6 +35,7 @@ trait SemanticTypes {
     val prim:Type='Prim
     val kruskal:Type='Kruskal
     val connected:Type='Connected
+    val number:Type = 'Number
     val stronglyC:Type='StronglyC
     val directed:Type='Directed
     val searchCommon:Type='SearchCommon
@@ -113,7 +114,7 @@ trait SemanticTypes {
     val var_neighborList = 'NeighborList
     val var_edgeList = 'EdgeList
     val var_search='Search
-    val var_num='Num
+    val number ='Number
     val var_dfs='DFS
     val var_stronglyC='StronglyC
     val var_conn='Conn

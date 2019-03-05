@@ -29,6 +29,9 @@ trait extensions extends GraphDomain with VertexDomain with EdgeDomain with Neig
     var vertexExtensions:Seq[Constructor] = Seq.empty
     var workSpaceExtensions:Seq[Constructor]=Seq.empty
     var graphExtensions:Seq[Constructor] = Seq.empty
+
+    // GRAPH features are processed here.
+    // -----------------------------------
     g.edgeStorage match {
       case gpl.domain.NeighboringNodes() =>
         updated = updated.addCombinator (new VertexNeighborList())
@@ -39,28 +42,51 @@ trait extensions extends GraphDomain with VertexDomain with EdgeDomain with Neig
         // any defaults would go here.
     }
 
+
+    g.edgeStorage match {
+      case gpl.domain.EdgeInstances () =>
+        // add combinators
+        updated = updated.addCombinator(new GraphExtension1)
+        updated = updated.addCombinator(new GraphExtension3)
+
+
+      case gpl.domain.NeighboringNodes() => {
+        updated = updated.addCombinator(new GraphExtension3)
+        updated = updated.addCombinator(new GraphExtension5)
+
+        updated = updated.addCombinator (new Chained (graphLogic(graphLogic.base, graphLogic.extensions),
+          graphLogic(graphLogic.base, 'Extension3),
+          graphLogic(graphLogic.base, 'Extension5)))
+        //        updated = updated.addCombinator (new TwoGraph(
+        //          graphLogic(graphLogic.base, 'Extension3),
+        //          graphLogic(graphLogic.base, 'Extension5)
+        //        ))
+        //        updated = updated.addCombinator(new ChainedGraph(
+        //          graphLogic(graphLogic.base, 'Extension3),
+        //          graphLogic(graphLogic.base, 'Extension5)
+        //        ))
+      }
+      //      case gpl.domain.EdgeInstances() => {
+      //        updated = updated.addCombinator(new GraphExtension3)
+      //        updated = updated.addCombinator(new GraphExtension5)
+      //
+      //        updated = updated.addCombinator (new TwoGraph(
+      //          graphLogic(graphLogic.base, 'Extension3),
+      //          graphLogic(graphLogic.base, 'Extension7)
+      //        ))
+      //      }
+    }
+
     // VERTEX extensions
     if (g.colored) {
       updated = updated.addCombinator (new ColoredVertex())
       vertexExtensions = vertexExtensions :+ vertexLogic(vertexLogic.base, vertexLogic.var_colored)
     }
 
-    // AT THIS POINT I have all Vertex extensions KNOWN then can CHAIN TOGETHER
-    // the different Seq[BodyDeclaration[_]] from the vertexExtensions
-    // ALL Vertex extensions are no known, and are found in the vertexExtensions sequence
- //   if(vertexExtensions.size==1)
- //      updated=updated.addCombinator(new VertexChained1(vertexExtensions(0)))
- //   else if(vertexExtensions.size==2)
- //      updated = updated.addCombinator(new VertexChained2(vertexExtensions(0), vertexExtensions(1)))
-
-    // might not be useful in long run..
-    //val cons = new VertexExtension("DirectedGRSemantics").implements
-    // EDGE EXTENSIONS
     if (g.directed) {
       updated = updated.addCombinator(new DirectedGR())
     }
 
-    // EDGE extensions
     if (g.weighted){
      // updated= updated.addCombinator(new WeightedGR())
       // updated = updated.addCombinator(new EdgeWeighted())
@@ -72,12 +98,17 @@ trait extensions extends GraphDomain with VertexDomain with EdgeDomain with Neig
     }
 
     // eventually need to choose based upon chosen algorithms
-    updated= updated.addCombinator(new MSTPrim)
+    //updated= updated.addCombinator(new MSTPrim)
+
     //updated = updated.addCombinator(new primAlgorithm())
     if (g.capabilities.contains(Prim())) {
       updated = updated.addCombinator(new primAlgorithm())
       updated = updated.addCombinator(new graphChained1('primImplementation))
+      workSpaceExtensions= workSpaceExtensions:+ workSpaceLogic(workSpaceLogic.base,workSpaceLogic.var_region)
     }
+
+    // EITHER-OR for Connected or StronlgyConnected -- surely can't have both
+
     // need to work on workSpace
     if (g.capabilities.contains(Connected())) {
       updated = updated.addCombinator(new SearchVertex())
@@ -118,9 +149,7 @@ trait extensions extends GraphDomain with VertexDomain with EdgeDomain with Neig
       updated=updated.addCombinator(new NumberWorkSpace())
       updated = updated.addCombinator(new graphChained2('number,'searchCommon))
       vertexExtensions = vertexExtensions :+ vertexLogic(vertexLogic.base, vertexLogic.var_search)
-      vertexExtensions = vertexExtensions :+ vertexLogic(vertexLogic.base, vertexLogic.var_num)
       workSpaceExtensions= workSpaceExtensions:+ workSpaceLogic(workSpaceLogic.base,workSpaceLogic.var_num)
-
       vertexExtensions = vertexExtensions :+ vertexLogic(vertexLogic.base, vertexLogic.number)
     }
 
@@ -142,9 +171,10 @@ trait extensions extends GraphDomain with VertexDomain with EdgeDomain with Neig
 
     if(workSpaceExtensions.size==1)
       updated=updated.addCombinator(new workSpaceChained1((workSpaceExtensions(0))))
-    else if(workSpaceExtensions.size==2)
+    else if(workSpaceExtensions.size==2) {
+      println ("In wse 2")
       updated = updated.addCombinator(new workSpaceChained2(workSpaceExtensions(0), workSpaceExtensions(1)))
-    else if (workSpaceExtensions.size==3)
+    } else if (workSpaceExtensions.size==3)
       updated = updated.addCombinator(new workSpaceChained3(workSpaceExtensions(0), workSpaceExtensions(1),workSpaceExtensions(2)))
     else if (workSpaceExtensions.size==4)
       updated = updated.addCombinator(new workSpaceChained4(workSpaceExtensions(0), workSpaceExtensions(1),workSpaceExtensions(2),workSpaceExtensions(3)))
@@ -155,73 +185,7 @@ trait extensions extends GraphDomain with VertexDomain with EdgeDomain with Neig
       updated = updated.addCombinator(new kruskalAlgorithm())
       updated = updated.addCombinator(new graphChained1('kruskalImplementation))
     }
-    g.edgeStorage match {
-      case gpl.domain.EdgeInstances () =>
-        // add combinators
-        updated = updated.addCombinator(new GraphExtension1)
-        updated = updated.addCombinator(new GraphExtension3)
 
-//        val options = Seq(graphLogic(graphLogic.base, 'primImplementation),
-//          graphLogic(graphLogic.base, 'Extension3))
-//
-//        // note: SEQ : _ * turns a sequence into a variable arguments list IN A FUNCTION CALL
-//        updated = updated.addCombinator (
-//          new Chained (graphLogic(graphLogic.base, graphLogic.extensions), options : _ *)
-//        )
-
-        //TwoGraph(
-        //              //'primImplementation,
-        //              //graphLogic(graphLogic.base, 'Extension3)
-        //TwoGraph(
-        //  'kruskalImplementation,
-        //  graphLogic(graphLogic.base, 'Extension3)
-        // if graph calls for PRIM then use primImplementation
-     //   if (g.capabilities.contains("MST")) {
-
-      //  updated = updated.addCombinator(new graphChained1('PrimImplementation))
-       //   if (g.name.contains("Prim")) {
-       //     updated = updated.addCombinator(new primAlgorithm())
-       //     updated = updated.addCombinator(new graphChained1('PrimImplementation))
-       //   }
-
-       //   if (g.name.contains("Kruskal")) {
-       //     updated = updated.addCombinator(new kruskalAlgorithm())
-       //     updated = updated.addCombinator(new graphChained1(graphLogic.kruskal))
-       //   }
-   //     }
-
-
-//        updated = updated.addCombinator(new ChainedGraph(
-//          graphLogic(graphLogic.base, 'Extension1),
-//          graphLogic(graphLogic.base, 'Extension3)
-//        ))
-
-      case gpl.domain.NeighboringNodes() => {
-        updated = updated.addCombinator(new GraphExtension3)
-        updated = updated.addCombinator(new GraphExtension5)
-
-        updated = updated.addCombinator (new Chained (graphLogic(graphLogic.base, graphLogic.extensions),
-          graphLogic(graphLogic.base, 'Extension3),
-          graphLogic(graphLogic.base, 'Extension5)))
-//        updated = updated.addCombinator (new TwoGraph(
-//          graphLogic(graphLogic.base, 'Extension3),
-//          graphLogic(graphLogic.base, 'Extension5)
-//        ))
-//        updated = updated.addCombinator(new ChainedGraph(
-//          graphLogic(graphLogic.base, 'Extension3),
-//          graphLogic(graphLogic.base, 'Extension5)
-//        ))
-      }
-//      case gpl.domain.EdgeInstances() => {
-//        updated = updated.addCombinator(new GraphExtension3)
-//        updated = updated.addCombinator(new GraphExtension5)
-//
-//        updated = updated.addCombinator (new TwoGraph(
-//          graphLogic(graphLogic.base, 'Extension3),
-//          graphLogic(graphLogic.base, 'Extension7)
-//        ))
-//      }
-    }
 
     var body: Seq[BodyDeclaration[_]] = Seq.empty
 
@@ -527,18 +491,18 @@ class VertexMethods(bd:Seq[BodyDeclaration[_]]) {
 
     val semanticType: Type = graphLogic(graphLogic.base, 'Extension7)
   }
-  class MSTPrim {
-    def apply(): Seq[BodyDeclaration[_]] = {
-      Java(
-        s"""
-           |public void prim() {
-           |  System.out.println ("prim");
-           |}
-         """.stripMargin).classBodyDeclarations()
-    }
-
-    val semanticType: Type = graphLogic(graphLogic.base, 'Extension7)
-  }
+//  class MSTPrim {
+//    def apply(): Seq[BodyDeclaration[_]] = {
+//      Java(
+//        s"""
+//           |public void prim() {
+//           |  System.out.println ("prim");
+//           |}
+//         """.stripMargin).classBodyDeclarations()
+//    }
+//
+//    val semanticType: Type = graphLogic(graphLogic.base, 'Extension7)
+//  }
 
   class MSTKruskal {
     def apply(): Seq[BodyDeclaration[_]] = {

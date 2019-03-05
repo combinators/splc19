@@ -90,23 +90,6 @@ class GPLDomain(override val graph:Graph) extends GraphDomain(graph) with Semant
 
   }
 
-  @combinator object neighborIfc {
-    def apply(extensions: Seq[BodyDeclaration[_]]): CompilationUnit = {
-      Java(
-        s"""
-           |package gpl;
-           |
-           |public interface NeighborIfc {
-           |   ${extensions.mkString("\n")}
-           |}
-         """.stripMargin).compilationUnit
-    }
-
-    val semanticType: Type = neighborIfcSemantics(neighborIfcSemantics.extensions) =>:
-      neighborIfcSemantics(neighborIfcSemantics.base)
-
-  }
-
   @combinator object edgeIter{
     def apply(extensions: Seq[BodyDeclaration[_]]): CompilationUnit = {
       Java(
