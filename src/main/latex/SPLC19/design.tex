@@ -1,1 +1,134 @@
-The design of the CLS-based GPL goes here...
+
+Our improved solution successfully integrates application domain modeling with CLS to dramatically improve our
+ability to automatically compose members of a product line structure. We start by designing a domain model.
+This domain model simply models aspects of these variations, and define constraints between assets. For example,
+MST algorithm can only be applied on undirected and weighted graph.
+
+We have achieved the following vision: to introduce a new member of the product line or to modify an
+existing one –just create (or modify) the application domain model and synthesize the member using
+automatic composition. When a variation includes unique logic that has not been seen before, then appropriate
+ localized Scala code changes are introduced; if multiple variations could benefit from the variation-specific concepts,
+  then the Scala code is refac- tored to bring this logic into the shared area.
+
+ \subsection{More powerful Scala Implementation}
+
+ By implementing CLS in a general purpose language, we move away from an interpreted DSL towards an embedded DSL
+ that increases expressivity. However, by choosing Scala we gained a number of significant benefits as well:
+
+ • Scala program immediately interoperate with numerous Java libraries in the wider software ecosystem. Notably,
+ we integrate JavaParser to manipulate ASTs and manage the synthesized software using jGit [1] to
+ provide API-level access to the Git version control system.
+ • Scala offers expressive string interpolation to embed variable references and entire source code fragments within strings.
+ We use this extensively to make it easy for programmers to write readable combinators.
+ • IntelliJ offers a powerful Scala environment that seamlessly integrates the CLS tool, so programming with
+ combinators is treated the same as programming in a native language. As code is synthesized, it is placed
+ into local Git repositories and then checked out into IntelliJ.
+
+ In our approach, we consturct two kinds of combinators with CLS technology. We have extensible static @combinator for all base classes,
+  like Vertex and Graph, which is necessary for the whole product line. Once you add them into repository,
+   they will always be there. Listing below shows few line of vertexBase which synthesize the base class for a vertex:
+
+\begin{lstlisting}{language=scala}
+@combinator object vertexBase{
+def apply(extensions:Seq[BodyDeclaration[\_]]):
+   CompilationUnit = { Java(s"""
+      |public class Vertex  {
+      |${extensions.mkString("\n")}
+      |}""".stripMargin).compilationUnit
+}
+val semanticType: Type =
+  vertexLogic(base, extensions)
+  =>: vertexLogic(base, complete)
+}
+\end{lstlisting}
+
+The apply method has a parameter which will ultimately be resolved by CLS. It takes a class gives
+Seq[BodyDeclaration[\_]] with vertexLogic(vertexLogic.base,vertexLogic.extensions) as semanticType. A combinator is instantiated
+from this class–based on a specific application domain object that models the desired variation and added to gamma
+ repository. \verb+${extensions.mkString("\n")}+ is where the extra imports, fields, and methods required for
+ the specific variation determined by domain object will be added later by dynamic combinator. The types of the parameters designed by semanticType ensure
+ that the arguments are all appropriate, and so the resulting synthesized class will have no syntax errors.
+
+Instead of relying solely on annotated fixed combinators (as shown in Listing above), we can programmatically
+add customized dynamic combinators(as shown in Listing below). This ability was a major step forward in our ability to populate with modular
+units suitable to compose any number of instances from a product line structure. For example ,we want to add color
+attribute to vertex:
+
+\begin{lstlisting}{language=Scala}
+class ColoredVertex {
+  def apply() : Seq[BodyDeclaration[\_]] = {
+    Java(s"""
+     |    private int color;
+     |
+     |    public void setColor(int c) {
+     |        this.color = c;
+     |    }
+     |    public int getColor() {
+     |        return this.color;
+     |    }
+     |""".stripMargin).classBodyDeclarations()
+ }
+ val semanticType: Type = vertexLogic(base, var_extensions)
+}
+\end{lstlisting}
+
+By using Scala rather than a DSL we can immediately take advantage of writing reusable and extensible combinators.
+
+
+ \subsection{Perform Computations During Synthesis}
+
+Once the combinators (both static and programmable) are added to repository, the inhabitation targets are requested
+and a forest of type expressions is computed that satisfy these requests. To complete the code generation, the apply
+methods of the respective combinators in the types are computed.
+
+
+ \subsection{Map from Application to Solution Domain}
+
+ Our most successful contribution is the ability to create customizable and extensible code generators that produce
+ solution domain code fragments directly from application domain elements.
+ This capability truly shows how to transform a lightweight application domain model into executable solution domain
+ code, without relying on proprietary or complicated tool support. The resulting product line members are constructed
+ more directly than existing configuration mechanisms.
+
+ The automated composition technology reveals the direct links between the application domain and the solution
+ domain while allowing each to be independently evolved and modified. Evolution can occur in the application domain
+ (i.e., constraints can be added or existing ones refactored) or the solution domain (i.e., an API for a framework
+ changes and the corresponding invocations must adapt). Because there is no design tool separating the programmer
+ from seeing and modifying the combinators, our approach provides maximum power and flexibility in designing and
+ integrating variation speific combinators. Note that the code generator registries are an independent contribution
+ of this paper, and their behavior is orthogonal to the CLS algorithm.
+
+ \subsection{Engineering Product lines}
+
+ The CLS algorithm is invoked as a locally hosted web service executed from within IntelliJ as a background task.
+ As combinators are designed and constructed, IntelliJ helps programmers with all of the modern conveniences
+ provided by an IDE, such as code completion, syntax hilighting, and searching (both definitions and usage of).
+ Each graph variation is configured using a top-level Scala class, such as shown above.
+ To request construction, visit localhost:9000/simple in a web browser and the designated code executes.
+
+ As customized by the application domain model, a repository of static combinators is constructed
+ based on the Scala traits that contain variation-specific combinator definitions.And all programmable combinators
+ are added to the repository and, using reflection, the CLS engine gathers all type information.
+ There are two steps to synthesize a specific graph variation. First, upon activation, the CLS web-service
+ performs type inhabitation on the requests which are derived from the application domain model instance or variation.
+  These targets are programmatically supplied, rather than hard-coded.
+  The result of inhabitation is a forest of type expressions returned to
+ the client invoking the web-service. Second, instead of simply pretty printing the synthesized code
+ , the web-service packages the synthesized code corresponding to the type
+ expressions in a locally-hosted Git repository.
+
+ Since all artifacts are programmed natively, we can immediately increase programmer
+ productivity in at least four ways; (1) use breakpoints in IntelliJ within the combinator Scala code to debug
+ step-by-step through the static or programmatic combinators; (2) use standardized logging capabilities
+ (with different warn, debug, and error levels) to generate log files to record the detailed context when debugging
+ complicated combina- tors; (3) incorporate unit tests for individual combinators as well as the POJOs used to
+ model the application domain, so programmers can increase their confidence in the modular units; (4) use code
+ coverage analysis over the test cases to identify non-executing code and potential weak areas;
+
+ Using CLS is a major improvement over burying build details within Makefile/Ant scripts which encode the detailed
+ knowledge for constructing individual product line members. Since the entire composition process is transparent,
+ programmers have full control over the process; for example, we have scripts to automatically synthesize and
+ compile all registered solitaire variations.
+ A limitation of FeatureIDE is that the user must manually choose the current configuration, and only one composed
+ product line member can exist at a time. Finally, the CLS composed code is readable, and at first glance is
+ indistinguishable from manually written software.

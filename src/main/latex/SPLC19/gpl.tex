@@ -1,9 +1,13 @@
 %% Here is where to describe GPL
 
 
-The Graph Product Line (GPL) is a well-known case study within the software product line community. This product line
+The Graph Product Line (GPL) is a well-known case study within the software product line community.Graph is a
+fundamental topic in computer science and choosing it minimises the requirement
+of becoming a domain-expert which is a prerequisite in the product line development process. Still it is complex
+enough to expose the underlying concepts of product lines and their implementation. This product line
  supports variations in a library of graph data strutures and algorithms. A possible feature diagram of the graph
- library is shown in Figure?. The root is labeled with Gpl to represent a graph product. It has a mandatory child feature
+ library is shown in Figure?.Like any other product line, members of the GPL share some common features and differ in
+ certain variant features. The root is labeled with Gpl to represent a graph product. It has a mandatory child feature
  GraphType, because each graph library has to implement an type, which is either Directed or Undirected. Furthermore,
  three other child features of the root are optional: Search, Weighted and Algorithm. Search strategies may be either
   breadth-first search (BFS) or depth-first search (DFS). Algorithm offers a selection of graph algorithms as child
@@ -11,3 +15,21 @@ The Graph Product Line (GPL) is a well-known case study within the software prod
   example, the algorithm for minimal spanning trees MST has two alternative implementations, Prim and Kruskal. Some
   non-local conditions are modeled as explicit Boolean constraints-- for example, minimal spanning tree make only
   sense for weighted graphs, and shortest paths can be computed directed graphs only.
+
+  Some of the common and variant features that the GPL members share are identified as
+  follows:
+
+  • Common Features: The common features that the GPL applications share are Vertex and Edge.
+  Which means a GPL application must have these features.
+
+  • Variant Features: Members across the GPL share some variant features:
+
+  – Graph Type: A graph is either directed or undirected.
+  – Weight: Edges in a graph can be weighted with non-negative numbers or unweighted.
+  – Search: A graph application can implement at most one searching algorithm, Breadth First
+  search (BFS), Depth First Search (DFS) or none.
+  – Algorithms: A graph application implements one or more of the following algorithms: Number
+  (Vertex Numbering), Connected (Connected Components), Strongly (Strongly Connected
+  Components), Cycle (Cycle Checking), Shortest (Single-Source Shortest Path) and MST(Minimum
+  Spanning Tree).Details of these algorithms can be found in any algorithm book and more information
+  on GPL can be found at: http://www.cs.utexas.edu/users/dsb/GPL/graph.htm.
