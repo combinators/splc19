@@ -4,7 +4,7 @@ import com.github.javaparser.ast.CompilationUnit
 import com.github.javaparser.ast.body.BodyDeclaration
 import com.github.javaparser.ast.expr.{Name, SimpleName}
 import gpl.domain._
-import org.combinators.cls.interpreter.{ReflectedRepository}
+import org.combinators.cls.interpreter.ReflectedRepository
 import org.combinators.cls.types.{Arrow, Constructor, Type}
 import org.combinators.templating.twirl.Java
 import org.combinators.cls.types.syntax._
@@ -16,11 +16,62 @@ import org.combinators.cls.types.syntax._
   */
 trait extensions extends GraphDomain with VertexDomain with EdgeDomain with NeighborDomain with WorkspaceDomain with Base with SemanticTypes with GraphStructureDomain {
 
+
+
+  // vertexLogic(vertexLogic.base, vertexLogic.extensions).asInstanceOf[Type]
+
   // dynamic combinators added as needed in this trait
   override def init[G <: GraphDomain](gamma: ReflectedRepository[G], g: Graph):
   ReflectedRepository[G] = {
     var updated = super.init(gamma, g)
     println(">>> GPL  dynamic combinators.")
+
+    // chain together and add dynamic combinator
+    def chaining(repo: ReflectedRepository[G], base: Type, elements: Seq[Constructor]): ReflectedRepository[G] = {
+
+      class Chain0 {
+        def apply(): Seq[BodyDeclaration[_]] = Seq.empty
+        val semanticType:Type = elements.head =>: base
+      }
+
+      class Chain1 {
+        def apply(unit:Seq[BodyDeclaration[_]]): Seq[BodyDeclaration[_]] = unit
+        val semanticType:Type = elements.head =>: base
+      }
+
+      class Chain2 {
+        def apply(unit1:Seq[BodyDeclaration[_]], unit2:Seq[BodyDeclaration[_]]): Seq[BodyDeclaration[_]] = unit1 ++ unit2
+        val semanticType:Type = elements.foldRight(base) {
+          (state, next) => Arrow(state, next)
+        }
+      }
+
+      class Chain3() {
+        def apply(unit1:Seq[BodyDeclaration[_]], unit2:Seq[BodyDeclaration[_]], unit3:Seq[BodyDeclaration[_]]): Seq[BodyDeclaration[_]] = unit1 ++ unit2 ++ unit3
+        val semanticType:Type = elements.foldRight(base) {
+          (state, next) => Arrow(state, next)
+        }
+      }
+
+      class Chain4() {
+        def apply(unit1:Seq[BodyDeclaration[_]], unit2:Seq[BodyDeclaration[_]], unit3:Seq[BodyDeclaration[_]], unit4:Seq[BodyDeclaration[_]]): Seq[BodyDeclaration[_]] = unit1 ++ unit2 ++ unit3 ++ unit4
+        val semanticType:Type = elements.foldRight(base) {
+          (state, next) => Arrow(state, next)
+        }
+      }
+
+      if (elements.isEmpty) {
+        repo.addCombinator(new Chain0())
+      } else {
+        elements.size match {
+          case 1 => repo.addCombinator(new Chain1())
+          case 2 => repo.addCombinator(new Chain2())
+          case 3 => repo.addCombinator(new Chain3())
+          case 4 => repo.addCombinator(new Chain4())
+          case _ => repo
+        }
+      }
+    }
 
     // from a specification, this goes and adds into the repository the combinators
     // that are necessary. It builds up dynamic combinator fragments as needed.
@@ -32,7 +83,7 @@ trait extensions extends GraphDomain with VertexDomain with EdgeDomain with Neig
 
     // GRAPH features are processed here.
     // -----------------------------------
-    g.edgeStorage match {
+    g.storage match {
       case gpl.domain.NeighboringNodes() =>
         updated = updated.addCombinator (new VertexNeighborList())
         vertexExtensions = vertexExtensions :+ vertexLogic(vertexLogic.base, vertexLogic.var_neighborList)
@@ -42,13 +93,11 @@ trait extensions extends GraphDomain with VertexDomain with EdgeDomain with Neig
         // any defaults would go here.
     }
 
-
-    g.edgeStorage match {
+    g.storage match {
       case gpl.domain.EdgeInstances () =>
         // add combinators
         updated = updated.addCombinator(new GraphExtension1)
         updated = updated.addCombinator(new GraphExtension3)
-
 
       case gpl.domain.NeighboringNodes() => {
         updated = updated.addCombinator(new GraphExtension3)
@@ -57,30 +106,7 @@ trait extensions extends GraphDomain with VertexDomain with EdgeDomain with Neig
         updated = updated.addCombinator (new Chained (graphLogic(graphLogic.base, graphLogic.extensions),
           graphLogic(graphLogic.base, 'Extension3),
           graphLogic(graphLogic.base, 'Extension5)))
-        //        updated = updated.addCombinator (new TwoGraph(
-        //          graphLogic(graphLogic.base, 'Extension3),
-        //          graphLogic(graphLogic.base, 'Extension5)
-        //        ))
-        //        updated = updated.addCombinator(new ChainedGraph(
-        //          graphLogic(graphLogic.base, 'Extension3),
-        //          graphLogic(graphLogic.base, 'Extension5)
-        //        ))
       }
-      //      case gpl.domain.EdgeInstances() => {
-      //        updated = updated.addCombinator(new GraphExtension3)
-      //        updated = updated.addCombinator(new GraphExtension5)
-      //
-      //        updated = updated.addCombinator (new TwoGraph(
-      //          graphLogic(graphLogic.base, 'Extension3),
-      //          graphLogic(graphLogic.base, 'Extension7)
-      //        ))
-      //      }
-    }
-
-    // VERTEX extensions
-    if (g.colored) {
-      updated = updated.addCombinator (new ColoredVertex())
-      vertexExtensions = vertexExtensions :+ vertexLogic(vertexLogic.base, vertexLogic.var_colored)
     }
 
     if (g.directed) {
@@ -92,7 +118,7 @@ trait extensions extends GraphDomain with VertexDomain with EdgeDomain with Neig
       // updated = updated.addCombinator(new EdgeWeighted())
       // HACK top get to work
       updated = updated.addCombinator (new EdgeWeighted())
-      updated=updated.addCombinator (new NeighborWeighted())
+      updated = updated.addCombinator (new NeighborWeighted())
     } else {
       updated = updated.addCombinator (new NoEdgeExtensions())
     }
@@ -103,18 +129,24 @@ trait extensions extends GraphDomain with VertexDomain with EdgeDomain with Neig
     //updated = updated.addCombinator(new primAlgorithm())
     if (g.capabilities.contains(Prim())) {
       updated = updated.addCombinator(new primAlgorithm())
-      updated = updated.addCombinator(new graphChained1('primImplementation))
-      workSpaceExtensions= workSpaceExtensions:+ workSpaceLogic(workSpaceLogic.base,workSpaceLogic.var_region)
+      updated = updated.addCombinator(new graphChained1(graphLogic(graphLogic.base, graphLogic.prim)))
+      workSpaceExtensions = workSpaceExtensions:+ workSpaceLogic(workSpaceLogic.base,workSpaceLogic.var_region)
+    }
+
+    if (g.capabilities.contains(Kruskal())) {
+      updated = updated.addCombinator(new kruskalAlgorithm())
+      updated = updated.addCombinator(new graphChained1(graphLogic(graphLogic.base, graphLogic.kruskal)))
+      workSpaceExtensions = workSpaceExtensions:+ workSpaceLogic(workSpaceLogic.base,workSpaceLogic.var_region)
     }
 
     // EITHER-OR for Connected or StronlgyConnected -- surely can't have both
 
     // need to work on workSpace
     if (g.capabilities.contains(Connected())) {
-      updated = updated.addCombinator(new SearchVertex())
+      updated = updated.addCombinator(new SearchVertex('PartOne, 'PartTwo))  // need to have these in place THEN get request
       updated=updated.addCombinator(new searchGraph())
       updated= updated.addCombinator(new connectedGraph())
-      updated= updated.addCombinator(new connectedVertex())
+      updated= updated.addCombinator(new ConnectedVertex('PartTwo, vertexLogic(vertexLogic.base, vertexLogic.complete)))
       updated= updated.addCombinator(new RegionWorkSpace())
       vertexExtensions = vertexExtensions :+ vertexLogic(vertexLogic.base, vertexLogic.var_search)
       vertexExtensions = vertexExtensions :+ vertexLogic(vertexLogic.base, vertexLogic.var_conn)
@@ -137,12 +169,11 @@ trait extensions extends GraphDomain with VertexDomain with EdgeDomain with Neig
       vertexExtensions = vertexExtensions :+ vertexLogic(vertexLogic.base, vertexLogic.var_stronglyC)
       workSpaceExtensions= workSpaceExtensions:+ workSpaceLogic(workSpaceLogic.base,workSpaceLogic.var_ft)
       workSpaceExtensions= workSpaceExtensions:+ workSpaceLogic(workSpaceLogic.base,workSpaceLogic.var_trans)
-
     }
 
     //search and graphType???
     if (g.capabilities.contains(Number())) {
-      updated = updated.addCombinator(new SearchVertex())
+      updated = updated.addCombinator(new SearchVertex('Part1, vertexLogic(vertexLogic.base, vertexLogic.complete)))
       updated=updated.addCombinator(new searchGraph())
       updated=updated.addCombinator(new NumVertex())
       updated=updated.addCombinator(new NumGraph())
@@ -160,9 +191,11 @@ trait extensions extends GraphDomain with VertexDomain with EdgeDomain with Neig
       updated = updated.addCombinator(new VertexChained2(vertexExtensions(0), vertexExtensions(1)))
     else if (vertexExtensions.size==3)
       updated = updated.addCombinator(new VertexChained3(vertexExtensions(0), vertexExtensions(1),vertexExtensions(2)))
-    else if (vertexExtensions.size==4)
-      updated = updated.addCombinator(new VertexChained4(vertexExtensions(0), vertexExtensions(1),vertexExtensions(2),vertexExtensions(3)))
-    else if (vertexExtensions.size==5)
+    else if (vertexExtensions.size==4) {
+      updated = updated.addCombinator(new VertexChained4(vertexExtensions(0), vertexExtensions(1), vertexExtensions(2), vertexExtensions(3)))
+     // updated = chaining(updated, vertexLogic(vertexLogic.base, vertexLogic.extensions), vertexExtensions)
+
+    } else if (vertexExtensions.size==5)
       updated = updated.addCombinator(new VertexChained5(vertexExtensions(0), vertexExtensions(1),vertexExtensions(2),vertexExtensions(3),vertexExtensions(4)))
     else if (vertexExtensions.size==6)
       updated = updated.addCombinator(new VertexChained6(vertexExtensions(0), vertexExtensions(1),
@@ -368,13 +401,13 @@ class VertexMethods(bd:Seq[BodyDeclaration[_]]) {
   /** Known that the directedGR feature changes vertex to add these implementations. */
   // intermediate structure. IDEALLY one would just compute this on the fly based on the model.
   class DirectedGR {
-    def apply() : Seq[Name] = Seq(Java("EdgeIfc").name, Java("NeighborIfc").name)
+    def apply() : Seq[Name] = Seq(Java("IEdge").name, Java("NeighborIfc").name)
     val semanticType:Type = vertexDirectedGRSemantics(vertexDirectedGRSemantics.implements)
 
   }
 
   class WeightedGR {
-    def apply() : Seq[Name] = Seq(Java("EdgeIfc").name, Java("NeighborIfc").name)
+    def apply() : Seq[Name] = Seq(Java("IEdge").name, Java("NeighborIfc").name)
     val semanticType:Type = vertexWGRSemantics(vertexWGRSemantics.implements)
 
   }

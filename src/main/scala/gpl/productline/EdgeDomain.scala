@@ -18,15 +18,13 @@ trait EdgeDomain extends SemanticTypes {
         s"""
            |package gpl;
            |
-           |public interface EdgeIfc {
+           |public interface IEdge {
            |    public Vertex getStart( );
            |    public Vertex getEnd( );
            |    public void display( );
            |
            |    public Vertex getOtherVertex( Vertex vertex );
-           |    public void adjustAdorns( EdgeIfc the_edge );
            |    public int getWeight();
-           |
            |}
          """.stripMargin).compilationUnit
     }
@@ -34,45 +32,6 @@ trait EdgeDomain extends SemanticTypes {
     val semanticType: Type = edgeIfcLogic(edgeIfcLogic.base,edgeIfcLogic.complete )
 
   }
-
-  @combinator object EdgeIter{
-    def apply(): CompilationUnit = {
-      Java(
-        s"""
-           |package gpl;
-           |
-           |import java.util.*;
-           |public class EdgeIter
-           |{
-           |    // methods whose bodies will be overridden by subsequent layers
-           |   // public boolean hasNext( ) { return false; }
-           |   // public EdgeIfc next( ) { return null; }
-           |       private Iterator iter;
-           |
-           |    // used for anonymous class
-           |    EdgeIter() {
-           |    }
-           |
-           |    EdgeIter(Graph g) {
-           |        iter = g.edges.iterator();
-           |    }
-           |
-           |    public Edge next() {
-           |        return (Edge) iter.next();
-           |    }
-           |
-           |    public boolean hasNext() {
-           |        return iter.hasNext();
-           |    }
-           |
-           |}
-         """.stripMargin).compilationUnit
-    }
-
-    val semanticType: Type = edgeIterLogic(edgeIterLogic.base,edgeIterLogic.complete )
-
-  }
-
 
   @combinator object edgeBase {
     def apply(extensions: Seq[BodyDeclaration[_]]): CompilationUnit = {
@@ -86,8 +45,9 @@ trait EdgeDomain extends SemanticTypes {
            |public class Edge extends Neighbor {
            |    private  Vertex start;
            |    private  Vertex end;
-           |        int source;
+           |    int source;
            |    int destination;
+           |
            |    Edge( Vertex the_start,Vertex the_end ) {
            |        this.start = the_start;
            |        this.end = the_end;
@@ -98,28 +58,25 @@ trait EdgeDomain extends SemanticTypes {
            |        this.weight = weight;
            |    }
            |
-           |    public Vertex getOtherVertex(Vertex vertex)
-           |    {
-           |        if(vertex == start)
+           |    public Vertex getOtherVertex(Vertex vertex) {
+           |        if (vertex == start)
            |            return end;
-           |        else if(vertex == end)
+           |        else if (vertex == end)
            |            return start;
            |        else
            |            return null;
            |    }
            |
-           |    public Vertex getStart()
-           |    {
-           |        return start;
+           |    public Vertex getStart() { return start;  }
+           |    public Vertex getEnd() { return end; }
+           |
+           |    // inappropriate to include weight here, since that may never be realized.
+           |    public String toString() {
+           |      return "(" + start.name + " -> " + end.name + "(w=" + weight + "))";
            |    }
            |
-           |    public Vertex getEnd()
-           |    {
-           |        return end;
-           |    }
-           |    public void display()
-           |    {
-           |        System.out.println( " start=" + start.name + " end=" + end.name+"weight"+weight );
+           |    public void display()  {
+           |      System.out.println( " start=" + start.name + " end=" + end.name+"weight"+weight );
            |    }
            |   ${extensions.mkString("\n")}
            |}""".stripMargin).compilationUnit
@@ -129,57 +86,32 @@ trait EdgeDomain extends SemanticTypes {
       edgeLogic(edgeLogic.base, edgeLogic.complete)
   }
 
-
   /** This is how you define a combinator that does NOTHING but it resolves a dependency. */
   class NoEdgeExtensions() {
     def apply(): Seq[BodyDeclaration[_]] = Seq.empty
     val semanticType:Type = edgeLogic(edgeLogic.base, edgeLogic.extensions)
   }
 
- // private int weight;
-  //public void setWeight(int weight)
-  //{
-    //int x = 10;  // ignore. Just checking
-    //this.weight = weight;
-  //}
-
-  //public int getWeight()
-  //{
-    //return this.weight;
-  //}
-
   class EdgeWeighted() {
     def apply(): Seq[BodyDeclaration[_]] = {
       Java(
         s"""
            |    private int weight;
-           |    Edge( Vertex the_start,  Vertex the_end,
-           |                int the_weight ) {
+           |
+           |    Edge (Vertex the_start, Vertex the_end, int the_weight ) {
            |        this.start = the_start;
            |        this.end  = the_end;
            |        this.weight = the_weight;
            |    }
            |
-           |    public void adjustAdorns( Edge the_edge ) {
-           |        setWeight(the_edge.getWeight());
-           |        adjustAdorns( the_edge );
-           |    }
-           |
-           |    public void setWeight(int weight)
-           |    {
+           |    public void setWeight(int weight) {
            |        this.weight = weight;
            |    }
            |
-           |    public int getWeight()
-           |    {
-           |        return this.weight;
-           |    }
+           |    public int getWeight() { return weight; }
          """.stripMargin).classBodyDeclarations()
     }
 
     val semanticType: Type = edgeLogic(edgeLogic.base, edgeLogic.var_weighted)
   }
-
-// val semanticType: Type = graphLogic(graphLogic.base, graphLogic.extensions) =>:
-  //      graphLogic(graphLogic.base, graphLogic.complete)
 }

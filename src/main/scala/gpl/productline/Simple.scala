@@ -17,7 +17,7 @@ import org.combinators.cls.types.syntax._
 class Simple @Inject()(webJars: WebJarsUtil, lifeCycle: ApplicationLifecycle) extends InhabitationController(webJars, lifeCycle) with SemanticTypes with RoutingEntries {
 
   // specify desired target by (a) declaring algorithm traits; (b) graph structure
-  val graph:Graph = new undirectedPrimNeighborNodes
+  val graph:Graph = new undirectedKruskalNeighborNodes
  // val graph:Graph = new Target
  //   with UndirectedEdges with WeightedEdges
  //   with NeighborStorage with LabeledVertex with UncoloredVertex
@@ -39,11 +39,11 @@ class Simple @Inject()(webJars: WebJarsUtil, lifeCycle: ApplicationLifecycle) ex
   lazy val targets:Seq[Constructor]= Seq(
     // vertex
       vertexLogic(vertexLogic.base, vertexLogic.complete),
-      vertexIterLogic(vertexIterLogic.base,vertexIterLogic.complete ),
+     // DEPRECATE vertexIterLogic(vertexIterLogic.base,vertexIterLogic.complete ),
     // edge
       edgeLogic(edgeLogic.base,edgeLogic.complete),
       edgeIfcLogic(edgeIfcLogic.base,edgeIfcLogic.complete ),
-      edgeIterLogic(edgeIterLogic.base,edgeIterLogic.complete ),
+     // edgeIterLogic(edgeIterLogic.base,edgeIterLogic.complete ),
     // neighbor
       neighborIfcLogic(neighborIfcLogic.base,neighborIfcLogic.complete ),
       neighborLogic(neighborLogic.base,neighborLogic.complete),

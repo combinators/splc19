@@ -60,6 +60,14 @@ trait SemanticTypes {
     // features
     val empty : Type = 'Empty
   }
+
+  // Simpler
+  object workSpaceExtension {
+    def apply (part:Type): Constructor = 'WorkSpaceExtension(part)
+
+    val region = 'Region
+  }
+
   object regionWorkSpaceLogic {
     def apply (part:Type, features:Type): Constructor = 'RegionWorkSpaceLogic (part, features)
 
@@ -102,6 +110,14 @@ trait SemanticTypes {
     val complete:Type = 'Complete
     // features
     val empty : Type = 'Empty
+  }
+
+  // Simpler
+  object vertexExtension {
+    def apply (part:Type): Constructor = 'VertexExtension(part)
+
+    val search = 'Search
+    val connected = 'Connected
   }
 
   // parts of the widgets during move : Dynamic Behavior

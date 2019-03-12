@@ -49,11 +49,9 @@ object constraintChecker {
 }
 
 /**
-  * Any information about vertices goes here. Right now only labeling is available.
+  * Any information about vertices goes here. Nothing for now
   */
 trait Vertex {
-  def labeled : Boolean
-  def colored : Boolean
 }
 
 // really the same thing as an Enum in Java
@@ -73,14 +71,11 @@ case class EdgeInstances() extends EdgeStorage
 trait Edge {
   def directed : Boolean
   def weighted : Boolean
-  //def edgeAlgo: EdgeAlgo
 
   // are these edges actually instantiated and stored with the graph, or are they
   // only generated on demand
-  def edgeStorage : EdgeStorage
+  def storage : EdgeStorage
 }
-
-
 
 trait UndirectedEdges {
   def directed:Boolean = false
@@ -116,26 +111,17 @@ trait UnWeightedEdges {
 //}
 
 // these are the desired instances in the product line for structure
-class FinalConcept(val algos:Seq[Algo], val wt:Boolean, val dir:Boolean, val stor:EdgeStorage) extends Graph(algos)  {
+class FinalConcept(val algos:Seq[Algo], val weighted:Boolean, val directed:Boolean, val storage:EdgeStorage) extends Graph(algos)  {
   override val name:String = "DirectedGraph"
-
-  override def weighted: Boolean = wt
-  override def directed: Boolean = dir
-  override def labeled: Boolean = true
-  override def colored: Boolean = false
-  override def edgeStorage: EdgeStorage = stor
 }
 
-
-class undirectedPrimNeighborNodes extends Graph(Seq(Prim(), Connected()))  {
+class undirectedKruskalNeighborNodes extends FinalConcept(Seq(Kruskal(), Connected()), weighted=true, directed=false, storage=NeighboringNodes())  {
   override val name:String = "Prim with connected components"
-  override def weighted: Boolean = true
-  override def directed: Boolean = false
-  override def colored: Boolean = true
-  override def labeled: Boolean = true
-  override def edgeStorage: EdgeStorage = NeighboringNodes()
 }
 
+class undirectedPrimNeighborNodes extends FinalConcept(Seq(Prim(), Connected()), weighted=true, directed=false, storage=NeighboringNodes())  {
+  override val name:String = "Prim with connected components"
+}
 // all GPL algorithms must extend this trait
 abstract class Algo() {
 
