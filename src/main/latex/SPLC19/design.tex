@@ -2,13 +2,17 @@
 Our improved solution successfully integrates application domain modeling with CLS to dramatically improve our
 ability to automatically compose members of a product line structure. We start by designing a domain model.
 This domain model simply models aspects of these variations, and define constraints between assets. For example,
-MST algorithm can only be applied on undirected and weighted graph.
+MST algorithm can only be applied on undirected and weighted graph. Then we construct concrete combinators and dynamic
+combinators to represent instances, which are added to gamma repository. After targets are identified, the next step
+is to inhabit. We instantiate our combinators, perform reflection on them to allow the CLS engine to gather their type
+information, and then ask CLS to produce all compositions (by invoking apply methods). Each valid configuration is
+an instance of the model.
 
 We have achieved the following vision: to introduce a new member of the product line or to modify an
 existing one –just create (or modify) the application domain model and synthesize the member using
 automatic composition. When a variation includes unique logic that has not been seen before, then appropriate
  localized Scala code changes are introduced; if multiple variations could benefit from the variation-specific concepts,
-  then the Scala code is refac- tored to bring this logic into the shared area.
+  then the Scala code is refactored to bring this logic into the shared area.
 
  \subsection{More powerful Scala Implementation}
 
@@ -73,6 +77,10 @@ class ColoredVertex {
 \end{lstlisting}
 
 By using Scala rather than a DSL we can immediately take advantage of writing reusable and extensible combinators.
+In AHEAD approach, there are many duplicated code, for example, the refinements to Edge are exactly same in MSTKruskalPrepGr
+ and MSTPRIMPREPGnr. Also some empty methods are there only for future override. If you are not clear for the whole
+ scope in the begining, which happens a lot in industries, it's hard to construct a structure like that. With our
+ approach, it's much easier to construct product lines from scratch, and the code will make more sense.
 
 
  \subsection{Perform Computations During Synthesis}
