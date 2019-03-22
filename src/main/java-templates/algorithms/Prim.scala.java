@@ -4,7 +4,7 @@
         Vertex x;
 
         // 2. and 3. Initializes the vertices
-        for ( VertexIter vxiter = getVertices(); vxiter.hasNext(); )
+        for ( Iterator<Vertex> vxiter = getVertices(); vxiter.hasNext(); )
         {
         x = vxiter.next();
         x.pred = null;
@@ -23,8 +23,8 @@
 
         // Inserts the root at the head of the queue
         Queue.add( root );
-        indx.add( root.getName( ) );
-        for ( VertexIter vxiter = getVertices(); vxiter.hasNext(); )
+        indx.add( root.name );
+        for ( Iterator<Vertex> vxiter = getVertices(); vxiter.hasNext(); )
         {
         x = vxiter.next();
         if ( x.key != 0 ) // this means, if this is not the root
@@ -43,7 +43,7 @@
         int pos;
         LinkedList Uneighbors;
         Vertex u,v;
-        EdgeIfc en;
+        IEdge en;
         NeighborIfc vn;
 
         int wuv;
@@ -57,7 +57,7 @@
         // 7. u <- Extract-Min(Q);
         // Since this is an ordered queue the first element is the min
         u = ( Vertex )Queue.removeFirst();
-        indx.remove( u.getName( ) );
+        indx.remove( u.name );
 
         // 8. for each vertex v adjacent to u
         Uneighbors = u.getNeighborsObj( );
@@ -82,7 +82,7 @@
         if ( isNeighborInQueue && ( wuv < v.key ) )
         {
         v.key = wuv;
-        v.pred = u.getName();
+        v.pred = u.name;
         Uneighbors.set( k,vn ); // adjust values in the neighbors
 
         // update the values of v in the queue
@@ -120,7 +120,7 @@ public int compare( Object o1, Object o2 )
         {
         Queue.add( position,v );
         }
-        indx.add( v.getName( ) );
+        indx.add( v.name );
 
         } // if 8-9.
         } // for all neighbors
@@ -131,21 +131,21 @@ public int compare( Object o1, Object o2 )
         Graph newGraph = new  Graph();
 
         // Creates and adds the vertices with the same name
-        for ( VertexIter vxiter = getVertices( ); vxiter.hasNext( ); )
+        for ( Iterator<Vertex> vxiter = getVertices( ); vxiter.hasNext( ); )
         {
         Vertex vtx = vxiter.next( );
         theName = vtx.name;
 
-        newGraph.addVertex( new  Vertex().assignName( theName ) );
+        newGraph.addVertex( new  Vertex(theName ) );
         }
 
         // Creates the edges from the NewGraph
         Vertex theVertex, thePred;
         Vertex theNewVertex, theNewPred;
-        EdgeIfc   e;
+        IEdge   e;
 
         // Creates and adds the vertices with the same name
-        for ( VertexIter vxiter = getVertices( ); vxiter.hasNext( ); )
+        for ( Iterator<Vertex> vxiter = getVertices( ); vxiter.hasNext( ); )
         {
         // theVertex and its Predecessor
         theVertex = vxiter.next( );
@@ -163,7 +163,7 @@ public int compare( Object o1, Object o2 )
 
         // Creates the new edge from predecessor -> vertex in the newGraph
         // and ajusts the adorns based on the old edge
-        EdgeIfc theNewEdge = newGraph.addEdge( theNewPred, theNewVertex );
+        IEdge theNewEdge = newGraph.addEdge( theNewPred, theNewVertex );
         e = findsEdge( thePred,theVertex );
         theNewEdge.adjustAdorns( e );
         }

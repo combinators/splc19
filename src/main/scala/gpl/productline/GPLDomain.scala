@@ -31,15 +31,13 @@ class GPLDomain(override val graph:Graph) extends GraphDomain(graph) with Semant
          |     vertices = new LinkedList();
          |   }
          |
-         |   public VertexIter getVertices( ) {
-         |      return new VertexIter(this);
-         |   }
+         |   public Iterator<Vertex> getVertices( ) { return vertices.iterator(); }
          |
          |   public void sortVertices(Comparator c) {
          |      Collections.sort(vertices, c);
          |   }
          |
-         |   EdgeIfc addEdge( Vertex v1, Vertex v2 ) { return null; }
+         |   IEdge addEdge( Vertex v1, Vertex v2 ) { return null; }
          |   Vertex findsVertex( String name ) { return null; }
          |   void display() { }
          |   void addVertex( Vertex v ) { }
@@ -66,20 +64,21 @@ class GPLDomain(override val graph:Graph) extends GraphDomain(graph) with Semant
   }
   */
 
-
-  @combinator object edgeIfc {
+  /**
+    * Edge Information as helper method for edge.
+    */
+  @combinator object edgeInterface {
     def apply(extensions: Seq[BodyDeclaration[_]]): CompilationUnit = {
       Java(
         s"""
            |package gpl;
            |
-           |public interface EdgeIfc {
+           |public interface IEdge {
            |    public Vertex getStart( );
            |    public Vertex getEnd( );
            |    public void display( );
            |
            |    public Vertex getOtherVertex( Vertex vertex );
-           |    public void adjustAdorns( EdgeIfc the_edge );
            |   ${extensions.mkString("\n")}
            |}
          """.stripMargin).compilationUnit
@@ -90,47 +89,47 @@ class GPLDomain(override val graph:Graph) extends GraphDomain(graph) with Semant
 
   }
 
-  @combinator object edgeIter{
-    def apply(extensions: Seq[BodyDeclaration[_]]): CompilationUnit = {
-      Java(
-        s"""
-           |package gpl;
-           |public class EdgeIter
-           |{
-           |    // methods whose bodies will be overridden by subsequent layers
-           |    public boolean hasNext( ) { return false; }
-           |    public EdgeIfc next( ) { return null; }
-           |   ${extensions.mkString("\n")}
-           |}
-         """.stripMargin).compilationUnit
-    }
-
-    val semanticType: Type = edgeIterSemantics(edgeIterSemantics.extensions) =>:
-      edgeIterSemantics(edgeIterSemantics.base)
-
-  }
-
-  @combinator object vertexIter{
-    def apply(extensions: Seq[BodyDeclaration[_]]): CompilationUnit = {
-      Java(
-        s"""
-           |package gpl;
-           |public class VertexIter{
-           |   private Iterator iter;
-           |
-           |   VertexIter() { } // used for anonymous class
-           |   VertexIter( Graph g ) { iter = g.vertices.iterator(); }
-           |   public Vertex next() { return (Vertex)iter.next(); }
-           |   public boolean hasNext() { return iter.hasNext(); }
-           |   ${extensions.mkString("\n")}
-           |}
-         """.stripMargin).compilationUnit
-    }
-
-    val semanticType: Type = vertexIterSemantics(vertexIterSemantics.extensions) =>:
-      vertexIterSemantics(vertexIterSemantics.base)
-
-  }
+//  @combinator object edgeIter{
+//    def apply(extensions: Seq[BodyDeclaration[_]]): CompilationUnit = {
+//      Java(
+//        s"""
+//           |package gpl;
+//           |public class EdgeIter
+//           |{
+//           |    // methods whose bodies will be overridden by subsequent layers
+//           |    public boolean hasNext( ) { return false; }
+//           |    public IEdge next( ) { return null; }
+//           |   ${extensions.mkString("\n")}
+//           |}
+//         """.stripMargin).compilationUnit
+//    }
+//
+//    val semanticType: Type = edgeIterSemantics(edgeIterSemantics.extensions) =>:
+//      edgeIterSemantics(edgeIterSemantics.base)
+//
+//  }
+//
+//  @combinator object vertexIter{
+//    def apply(extensions: Seq[BodyDeclaration[_]]): CompilationUnit = {
+//      Java(
+//        s"""
+//           |package gpl;
+//           |public class VertexIter {
+//           |   private Iterator iter;
+//           |
+//           |   VertexIter() { } // used for anonymous class
+//           |   VertexIter( Graph g ) { iter = g.vertices.iterator(); }
+//           |   public Vertex next() { return (Vertex)iter.next(); }
+//           |   public boolean hasNext() { return iter.hasNext(); }
+//           |   ${extensions.mkString("\n")}
+//           |}
+//         """.stripMargin).compilationUnit
+//    }
+//
+//    val semanticType: Type = vertexIterSemantics(vertexIterSemantics.extensions) =>:
+//      vertexIterSemantics(vertexIterSemantics.base)
+//
+//  }
   // base ended here
 
   //shell only contains prog and base
@@ -181,7 +180,7 @@ class GPLDomain(override val graph:Graph) extends GraphDomain(graph) with Semant
            |        w.postVisitAction( ( Vertex ) this );
            |
            |        // enqueues the vertices not visited
-           |        for ( VertexIter vxiter = getNeighbors( ); vxiter.hasNext( ); )
+           |        for ( Iterator<Vertex> vxiter = getNeighbors( ); vxiter.hasNext( ); )
            |        {
            |            v = vxiter.next( );
            |
@@ -228,7 +227,7 @@ class GPLDomain(override val graph:Graph) extends GraphDomain(graph) with Semant
            |        //         visit all neighbors
            |        visited = true;
            |
-           |        for ( VertexIter  vxiter = getNeighbors(); vxiter.hasNext(); )
+           |        for ( Iterator<Vertex>  vxiter = getNeighbors(); vxiter.hasNext(); )
            |        {
            |            v = vxiter.next( );
            |            w.checkNeighborAction( ( Vertex ) this, v );
@@ -334,33 +333,11 @@ class GPLDomain(override val graph:Graph) extends GraphDomain(graph) with Semant
         s"""
            | public LinkedList adjacentVertices = new LinkedList();
            |
-           |    public  Vertex assignName( String name ) {
-           |        this.name = name;
-           |        return ( Vertex ) this;
-           |    }
-           |
            |    public void addAdjacent( Vertex n ) {
            |        adjacentVertices.add( n );
            |    }
            |
-           |    public void adjustAdorns( Vertex the_vertex, int index ){}
-           |
-           |    public VertexIter getNeighbors( )
-           |    {
-           |        return new VertexIter( )
-           |        {
-           |            private Iterator iter = adjacentVertices.iterator( );
-           |            public Vertex next( )
-           |            {
-           |               return ( Vertex )iter.next( );
-           |            }
-           |
-           |            public boolean hasNext( )
-           |            {
-           |               return iter.hasNext( );
-           |            }
-           |        };
-           |    }
+           |    public Iterator<Vertex> getNeighbors( ) { return adjacentVertices.iterator( ); }
            |
            |    public void display() {
            |        int s = adjacentVertices.size();
@@ -374,7 +351,7 @@ class GPLDomain(override val graph:Graph) extends GraphDomain(graph) with Semant
            |    }
            |
            |//--------------------
-           |// from EdgeIfc
+           |// from IEdge
            |//--------------------
            |
            |    public Vertex getStart( ) { return null; }
@@ -389,10 +366,6 @@ class GPLDomain(override val graph:Graph) extends GraphDomain(graph) with Semant
            |    }
            |
            |
-           |
-           |    public void adjustAdorns( EdgeIfc the_edge )
-           |    {
-           |    }
          """.stripMargin).classBodyDeclarations
     }
 
@@ -405,9 +378,9 @@ class GPLDomain(override val graph:Graph) extends GraphDomain(graph) with Semant
       Java(
         s"""
            | // Adds and edge by setting end as adjacent to start vertices
-           |    public EdgeIfc addEdge( Vertex start,  Vertex end ) {
+           |    public IEdge addEdge( Vertex start,  Vertex end ) {
            |        start.addAdjacent( end );
-           |        return( EdgeIfc ) start;
+           |        return( IEdge ) start;
            |    }
            |
            |    // Finds a vertex given its name in the vertices list
@@ -445,24 +418,26 @@ class GPLDomain(override val graph:Graph) extends GraphDomain(graph) with Semant
 
     val semanticType: Type = graphDGRSemantics(graphDGRSemantics.extensions)
   }
-  @combinator object workSpace {
-    def apply(extensions:Seq[BodyDeclaration[_]]): CompilationUnit = Java(
-      s"""
-         |package gpl;
-         |
-         |public interface WorkSpace {
-         |    public void init_vertex( Vertex v ) {}
-         |    public void preVisitAction( Vertex v ) {}
-         |    public void postVisitAction( Vertex v ) {}
-         |    public void nextRegionAction( Vertex v ) {}
-         |    public void checkNeighborAction( Vertex vsource, Vertex vtarget ) {}
-         |   ${extensions.mkString("\n")}
-         |}
-       """.stripMargin).compilationUnit
 
-    val semanticType: Type = workSpaceSemantics(workSpaceSemantics.extensions) =>:
-      workSpaceSemantics(workSpaceSemantics.base)
-  }
+  // this defines INTERFACE but it must be a class
+//  @combinator object workSpace {
+//    def apply(extensions:Seq[BodyDeclaration[_]]): CompilationUnit = Java(
+//      s"""
+//         |package gpl;
+//         |
+//         |public interface WorkSpace {
+//         |    public void init_vertex( Vertex v ) {}
+//         |    public void preVisitAction( Vertex v ) {}
+//         |    public void postVisitAction( Vertex v ) {}
+//         |    public void nextRegionAction( Vertex v ) {}
+//         |    public void checkNeighborAction( Vertex vsource, Vertex vtarget ) {}
+//         |   ${extensions.mkString("\n")}
+//         |}
+//       """.stripMargin).compilationUnit
+//
+//    val semanticType: Type = workSpaceSemantics(workSpaceSemantics.extensions) =>:
+//      workSpaceSemantics(workSpaceSemantics.base)
+//  }
 
   /** connected -- graph, regionworkspace and vertex */
   @combinator object GraphCNExtensions {
@@ -668,45 +643,36 @@ class GPLDomain(override val graph:Graph) extends GraphDomain(graph) with Semant
            |    }
            |
            |    // Adds an edge without weights if Weighted layer is not present
-           |    public void addAnEdge( Vertex start,  Vertex end, int weight ){
-           |        addEdge( start,end );
-           |    }
+           |    //public void addAnEdge( Vertex start,  Vertex end, int weight ){
+           |    //    addEdge( start,end );
+           |    //}
          """.stripMargin).classBodyDeclarations
     }
 
     val semanticType: Type = graphDCSemantics(graphDCSemantics.extensions)
   }
 
-  @combinator object GraphWGRExtensions {
-    def apply(): Seq[BodyDeclaration[_]] = {
-      Java(
-        s"""
-           |    // Adds an edge with weights
-           |    public void addAnEdge( Vertex start,  Vertex end, int weight )
-           |   {
-           |        addEdge( start,end, weight );
-           |    }
-           |
-           |    public void addEdge( Vertex start,  Vertex end, int weight )
-           |   {
-           |        addEdge( start,end ); // adds the start and end as adjacent
-           |        start.addWeight( weight ); // the direction layer takes care of that
-           |
-           |        // if the graph is undirected you have to include
-           |        // the weight of the edge coming back
-           |        if ( isDirected==false )
-           |            end.addWeight( weight );
-           |    }
-           |
-           |    public void display()
-           |   {
-           |        Super().display();
-           |    }
-         """.stripMargin).classBodyDeclarations
-    }
 
-    val semanticType: Type = graphWGRSemantics(graphWGRSemantics.extensions)
-  }
+//  // likely not to remain
+//  @combinator object GraphWGRExtensions {
+//    def apply(): Seq[BodyDeclaration[_]] = {
+//      Java(
+//        s"""
+//           |    public void addEdge( Vertex start,  Vertex end, int weight ) {
+//           |        addEdge( start,end ); // adds the start and end as adjacent
+//           |        start.addWeight( weight ); // the direction layer takes care of that
+//           |
+//           |        // if the graph is undirected you have to include
+//           |        // the weight of the edge coming back
+//           |        if ( isDirected==false )
+//           |            end.addWeight( weight );
+//           |    }
+//           |
+//         """.stripMargin).classBodyDeclarations
+//    }
+//
+//    val semanticType: Type = graphWGRSemantics(graphWGRSemantics.extensions)
+//  }
 
   @combinator object VertexWGRExtensions {
     def apply(): Seq[BodyDeclaration[_]] = {
@@ -719,12 +685,6 @@ class GPLDomain(override val graph:Graph) extends GraphDomain(graph) with Semant
            |        weightsList.add( new Integer( weight ) );
            |    }
            |
-           |    public void adjustAdorns( Vertex the_vertex, int index )
-           |    {
-           |        int the_weight = ( ( Integer )the_vertex.weightsList.get( index ) ).intValue();
-           |        weightsList.add( new Integer( the_weight ) );
-           |        Super( Vertex, int ).adjustAdorns( the_vertex, index );
-           |    }
            |    public void setWeight( int weight )
            |    {
            |        addWeight( weight );
