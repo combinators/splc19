@@ -6,9 +6,19 @@ and adding new features as needed to support the functionality expected of new v
 
 \subsection{Essential Characteristics}
 
+\subsubsection{Application domain modeling}
+
+This appears missing in nearly every approach we see. This happens because Feature Trees do not require any
+other modeling besides the tree itself, and annotation-based approaches rely solely on the codebase itself.
+
+Because there is no domain modeling, the various Feature-IDE approaches all appear to have configurations
+which become ineffective domain modeling. For example, in some FeatureIDE models,
+there is a feature with sub-features that appear to be nothing more than instantiations of different
+configurations, which makes the width of feature tree in AHEAD huge.
+
 \subsubsection{CLS generic composition}
 
-With dominated approach for using feature in PL, n features in the feature tree may generate 2n configurations
+With dominated approach for using feature in PLy, n features in the feature tree may generate 2n configurations
  which will become product line instances. But if we use CLS as the algorithm for composition, the fundamental
  units will be combinators instead of features. The CLS starts with a repository of combinators to which a user
  issues a query which attempts to find a type in the repository using inferencing.
@@ -27,15 +37,6 @@ the modeling needs of the member.
 Without making 2n configurations, using CLS will significantly simplify code system in PL, optimize code structure
 make it more readable and reasonable.
 
-\subsubsection{Application domain modeling}
-
-This appears missing in nearly every approach we see. This happens because Feature Trees do not require any
-other modeling besides the tree itself, and annotation-based approaches rely solely on the codebase itself.
-
-Because there is no domain modeling, the various Feature-IDE approaches all appear to have configurations
-which become ineffective domain modeling. For example, in some FeatureIDE models,
-there is a feature with sub-features that appear to be nothing more than instantiations of different
-configurations, which makes the width of feature tree in AHEAD huge.
 
 \subsubsection{Compositional manipulation}
 
@@ -50,7 +51,7 @@ without making any changes to the units themselves.
 Without being language limited as normal ways, our approach is more laguage agnostic. Choice of language have
 been more diversified, which could benefit more engineers with different backgrounds. We don't have to take
 advantage of single language to build our code base. For example,we have to use .jak files in AHEAD. If
-you are not familiar with the language, you can't use the approach.
+you are not familiar with the language, you can't use the approach.~\cite{PEPM18}.
 
 \subsubsection{Code sharing between assets}
 

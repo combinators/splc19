@@ -32,7 +32,6 @@ Without one of these characteristics, it could only be considered a closed syste
 Here is a reference to K\"{a}stner's paper~\cite{Kastner:2012}.
 
 Here is a reference to ~\cite{leich2005tool}.
-Here is a reference to ~\cite{Thum:2014:FEF:2537169.2537315}.
 Here is a reference to ~\cite{proksch2014tool}.
 Here is a reference to ~\cite{7203038}.
 Here is a reference to ~\cite{Sayre:2005:UMA:1082983.1083277}.
@@ -49,12 +48,10 @@ Here is a reference to ~\cite{Kuhn:2015:CPC:2791060.2791092}.
 
 Here is a reference to ~\cite{Schaefer:2010:DPS:1885639.1885647}.
 
-Here is a reference to ~\cite{Apel:2013:FSP:2541773}.
 
 
 
 
-Be sure to place where it is discussed~\cite{CIDE:Eclipse}.
 
 
 \subsection{Approaches to Product Line Development}
@@ -78,7 +75,7 @@ Using different tools or language-specific capabilities, a compiler (or processo
  for a PL instance. One of the most common approaches is to use compiler directives embedded within the code as a means
  for isolating code unique to a subset of product line instances. Then each product line instance can be generated
  by compiling the same code base with different compiler flags, resulting in different executable instances.
- Due to the nature of this approach, often one cannot review the source code for individual instances.
+ Due to the nature of this approach, often one cannot review the source code for individual instances.~\cite{Apel:2013:FSP:2541773}.
 
 In annotation-based approaches, the code of all features is merged in a single code base, and annotation mark which code
  belongs to which feature. In some sense, an annotation is a function that maps a program element to the feature or
@@ -88,6 +85,7 @@ Annotation-based approaches are widely used in practice because they are easy to
 by many programming environments. It keeps good readability and low complexity, however, relatively simple tool support
 can address scattered code or error.
 
+%%cite the book
 
 
 
@@ -106,7 +104,8 @@ composition units simple and tractable.
 
 Another way to view the difference between annotation and composition is that annotation separate concerns
 virtually and composition separate concerns physically,and code is removed on demand with annotation while
-composition units are added on demand.
+composition units are added on demand. ~\cite{Thum:2014:FEF:2537169.2537315}.
+
 
 
 \subsubsection{Product Line Techniques In Industry}
@@ -117,7 +116,8 @@ Here are some existing annotation-based approaches:
 code coloring (FeatureCIDE): CIDE is an Eclipse plug-in that replaces the Java editor in SPL projects. Developers
 start with a standard Java legacy application, then they select code fragment and associate them with features
  from the context menu. The marked code is then permanently highlighted in the editor using a background color
- associated with the feature
+ associated with the feature. Here is a reference to ~\cite{CIDE:Eclipse}.
+
 
 Type checking approach,  a product-line-aware type system that statically and efficiently detects type errors in
 annotation-based product-line implementations.
@@ -131,32 +131,32 @@ AHEAD has feature modules for each concrete feature, and the corresponding compo
 source code directly into the Eclipse source folder. AHEAD brings separate tools together and selects different
 tools for different kinds of files during feature composition,establishing a clear interface to the build
 system. Composing Jak files will invoke a Jak-composition, whereas composing XML files invokes an
-XML-composition tool.
+XML-composition tool.~\cite{Batory2004FeatureorientedPA}.
 
 FeatureHouse tool suite has been developed that allows programmers to enhance given languages rapidly with
 support for feature-oriented programming. It is a framework for software composition supported by a
 corresponding tool chain. It provides facilities for feature  composition based on a language-independent
 model and tool chain for software artifact, and a plug-in mechanism for the integration of new artifact
-languages.
+languages.~\cite{Apel:2009:FLA:1555001.1555038}
 
 Deltaj is a Java-like language which allows to organize classes in modules. A program consists of a base
  module and a set of delta module in a stepwise manner. Much like a feature module, a delta module can add
  new classes and members as well as extend existing methods by overriding. In contrast to feature modules,
- delta modules can also delete existing classes and individual members.
+ delta modules can also delete existing classes and individual members.~\cite{Schaefer:2010:DPS:1885639.1885647}.
 
 In LaunchPad, each feature can contain any number of combinators, designed using a DSL we had developed to
 simplify the writing of combinators for an earlier CLS tool. A configuration is a subset of features from
 which a repository is constructed. Each feature can optionally store target definitions, which are aggregated
  together and then used as the basis for the inhabitation requests, i.e.As each request is satisfied, the
  synthesized code from the resulting type expression M is stored in the designated source folder.
-
+~\cite{Heineman:2015:TMO:2791060.2791076}.
 
 \subsubsection{Evaluation of related work}
 
 The key challenge of composition-based approaches is to keep the mapping between features and composition units
 simple and tractable. Preprocessor-based and parameter-based implementations are often criticized for their
 potential complexity, lack of modularity, and reduced readability. And they all have some problems which is the
-hard to refactoring.
+difficulty to refactoring.~\cite{Kim:2017:RJS:3106195.3106201}.
 
 In practice most PLs appear “from the ground up” where developers take advantage of language-specific capabilities
  to annotate different code regions as being enabled (or disabled) based on compiler directives. Starting from an
