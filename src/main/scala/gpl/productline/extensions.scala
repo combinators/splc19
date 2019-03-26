@@ -2,7 +2,7 @@ package gpl.productline
 
 import com.github.javaparser.ast.CompilationUnit
 import com.github.javaparser.ast.body.BodyDeclaration
-import com.github.javaparser.ast.expr.{Name, SimpleName}
+import com.github.javaparser.ast.expr.Name
 import gpl.domain._
 import org.combinators.cls.interpreter.ReflectedRepository
 import org.combinators.cls.types.{Arrow, Constructor, Type}
@@ -16,68 +16,17 @@ import org.combinators.cls.types.syntax._
   */
 trait extensions extends GraphDomain with VertexDomain with EdgeDomain with NeighborDomain with WorkspaceDomain with Base with SemanticTypes with GraphStructureDomain {
 
-
-
-  // vertexLogic(vertexLogic.base, vertexLogic.extensions).asInstanceOf[Type]
-
   // dynamic combinators added as needed in this trait
   override def init[G <: GraphDomain](gamma: ReflectedRepository[G], g: Graph):
   ReflectedRepository[G] = {
     var updated = super.init(gamma, g)
     println(">>> GPL  dynamic combinators.")
 
-    // chain together and add dynamic combinator
-    def chaining(repo: ReflectedRepository[G], base: Type, elements: Seq[Constructor]): ReflectedRepository[G] = {
-
-      class Chain0 {
-        def apply(): Seq[BodyDeclaration[_]] = Seq.empty
-        val semanticType:Type = elements.head =>: base
-      }
-
-      class Chain1 {
-        def apply(unit:Seq[BodyDeclaration[_]]): Seq[BodyDeclaration[_]] = unit
-        val semanticType:Type = elements.head =>: base
-      }
-
-      class Chain2 {
-        def apply(unit1:Seq[BodyDeclaration[_]], unit2:Seq[BodyDeclaration[_]]): Seq[BodyDeclaration[_]] = unit1 ++ unit2
-        val semanticType:Type = elements.foldRight(base) {
-          (state, next) => Arrow(state, next)
-        }
-      }
-
-      class Chain3() {
-        def apply(unit1:Seq[BodyDeclaration[_]], unit2:Seq[BodyDeclaration[_]], unit3:Seq[BodyDeclaration[_]]): Seq[BodyDeclaration[_]] = unit1 ++ unit2 ++ unit3
-        val semanticType:Type = elements.foldRight(base) {
-          (state, next) => Arrow(state, next)
-        }
-      }
-
-      class Chain4() {
-        def apply(unit1:Seq[BodyDeclaration[_]], unit2:Seq[BodyDeclaration[_]], unit3:Seq[BodyDeclaration[_]], unit4:Seq[BodyDeclaration[_]]): Seq[BodyDeclaration[_]] = unit1 ++ unit2 ++ unit3 ++ unit4
-        val semanticType:Type = elements.foldRight(base) {
-          (state, next) => Arrow(state, next)
-        }
-      }
-
-      if (elements.isEmpty) {
-        repo.addCombinator(new Chain0())
-      } else {
-        elements.size match {
-          case 1 => repo.addCombinator(new Chain1())
-          case 2 => repo.addCombinator(new Chain2())
-          case 3 => repo.addCombinator(new Chain3())
-          case 4 => repo.addCombinator(new Chain4())
-          case _ => repo
-        }
-      }
-    }
-
     // from a specification, this goes and adds into the repository the combinators
     // that are necessary. It builds up dynamic combinator fragments as needed.
     // VERTEX extensions
     //    vertexLogic(vertexLogic.base, TYPE-1)
-    var vertexExtensions:Seq[Constructor] = Seq.empty
+    var vertexExtensions = Seq(vertexLogic(vertexLogic.base))
     var workSpaceExtensions:Seq[Constructor]=Seq.empty
     var graphExtensions:Seq[Constructor] = Seq.empty
 
@@ -85,28 +34,12 @@ trait extensions extends GraphDomain with VertexDomain with EdgeDomain with Neig
     // -----------------------------------
     g.storage match {
       case gpl.domain.NeighboringNodes() =>
-        updated = updated.addCombinator (new VertexNeighborList())
-        vertexExtensions = vertexExtensions :+ vertexLogic(vertexLogic.base, vertexLogic.var_neighborList)
+        updated = updated.addCombinator (new VertexNeighborList(vertexExtensions.last, vertexLogic(vertexLogic.var_neighborList)))
+        vertexExtensions = vertexExtensions :+ vertexLogic(vertexLogic.var_neighborList)
       case gpl.domain.EdgeInstances() =>
 
       case _ =>
         // any defaults would go here.
-    }
-
-    g.storage match {
-      case gpl.domain.EdgeInstances () =>
-        // add combinators
-        updated = updated.addCombinator(new GraphExtension1)
-        updated = updated.addCombinator(new GraphExtension3)
-
-      case gpl.domain.NeighboringNodes() => {
-        updated = updated.addCombinator(new GraphExtension3)
-        updated = updated.addCombinator(new GraphExtension5)
-
-        updated = updated.addCombinator (new Chained (graphLogic(graphLogic.base, graphLogic.extensions),
-          graphLogic(graphLogic.base, 'Extension3),
-          graphLogic(graphLogic.base, 'Extension5)))
-      }
     }
 
     if (g.directed) {
@@ -123,13 +56,12 @@ trait extensions extends GraphDomain with VertexDomain with EdgeDomain with Neig
       updated = updated.addCombinator (new NoEdgeExtensions())
     }
 
-    // eventually need to choose based upon chosen algorithms
-    //updated= updated.addCombinator(new MSTPrim)
-
     //updated = updated.addCombinator(new primAlgorithm())
     if (g.capabilities.contains(Prim())) {
       updated = updated.addCombinator(new primAlgorithm())
       updated = updated.addCombinator(new graphChained1(graphLogic(graphLogic.base, graphLogic.prim)))
+      updated = updated.addCombinator (new PredKey(vertexExtensions.last, vertexLogic(vertexLogic.var_predkey)))
+      vertexExtensions = vertexExtensions :+ vertexLogic(vertexLogic.var_predkey)
       workSpaceExtensions = workSpaceExtensions:+ workSpaceLogic(workSpaceLogic.base,workSpaceLogic.var_region)
     }
 
@@ -139,95 +71,56 @@ trait extensions extends GraphDomain with VertexDomain with EdgeDomain with Neig
       workSpaceExtensions = workSpaceExtensions:+ workSpaceLogic(workSpaceLogic.base,workSpaceLogic.var_region)
     }
 
-    // EITHER-OR for Connected or StronlgyConnected -- surely can't have both
+    // EITHER-OR for Connected or StronglyConnected -- surely can't have both
 
     // need to work on workSpace
     if (g.capabilities.contains(Connected())) {
-      updated = updated.addCombinator(new SearchVertex('PartOne, 'PartTwo))  // need to have these in place THEN get request
+      updated = updated.addCombinator(new SearchVertex(vertexExtensions.last, vertexLogic(vertexLogic.search)))  // need to have these in place THEN get request
+      vertexExtensions = vertexExtensions :+ vertexLogic(vertexLogic.search)
       updated=updated.addCombinator(new searchGraph())
       updated= updated.addCombinator(new connectedGraph())
-      updated= updated.addCombinator(new ConnectedVertex('PartTwo, vertexLogic(vertexLogic.base, vertexLogic.complete)))
+      updated= updated.addCombinator(new ConnectedVertex(vertexExtensions.last, vertexLogic(vertexLogic.connected)))
+      vertexExtensions = vertexExtensions :+ vertexLogic(vertexLogic.connected)
       updated= updated.addCombinator(new RegionWorkSpace())
-      vertexExtensions = vertexExtensions :+ vertexLogic(vertexLogic.base, vertexLogic.var_search)
-      vertexExtensions = vertexExtensions :+ vertexLogic(vertexLogic.base, vertexLogic.var_conn)
       workSpaceExtensions= workSpaceExtensions:+ workSpaceLogic(workSpaceLogic.base,workSpaceLogic.var_region)
-      updated = updated.addCombinator(new graphChained2('searchCommon,'connected))
+      updated = updated.addCombinator(new graphChained2('searchCommon, 'connected))
     }
 
     //directed done, DFS done, transpose done
     // need to work on workSpace
     if (g.capabilities.contains(StronglyConnected())) {
-      updated = updated.addCombinator(new DFSVertex())
+      //updated = updated.addCombinator(new DFSVertex())
       updated = updated.addCombinator(new Transpose())
       updated = updated.addCombinator(new directedCommon())
       updated = updated.addCombinator(new stronglyCGraph())
-      updated = updated.addCombinator(new stronglyCVertex())
+      updated = updated.addCombinator(new StronglyCVertex(vertexExtensions.last, vertexLogic.var_stronglyC))
+      vertexExtensions = vertexExtensions :+ vertexLogic(vertexLogic.var_stronglyC)
       updated = updated.addCombinator(new FinishTimeWorkSpace())
       updated = updated.addCombinator(new WorkSpaceTranspose())
       updated = updated.addCombinator(new graphChained3('transpose,'directed,'stronglyC))
-      vertexExtensions = vertexExtensions :+ vertexLogic(vertexLogic.base, vertexLogic.var_dfs)
-      vertexExtensions = vertexExtensions :+ vertexLogic(vertexLogic.base, vertexLogic.var_stronglyC)
+      vertexExtensions = vertexExtensions :+ vertexLogic(vertexLogic.var_dfs)
+
       workSpaceExtensions= workSpaceExtensions:+ workSpaceLogic(workSpaceLogic.base,workSpaceLogic.var_ft)
       workSpaceExtensions= workSpaceExtensions:+ workSpaceLogic(workSpaceLogic.base,workSpaceLogic.var_trans)
     }
 
     //search and graphType???
     if (g.capabilities.contains(Number())) {
-      updated = updated.addCombinator(new SearchVertex('Part1, vertexLogic(vertexLogic.base, vertexLogic.complete)))
+      updated = updated.addCombinator(new SearchVertex(vertexExtensions.last, vertexLogic(vertexLogic.search)))
+      vertexExtensions = vertexExtensions :+ vertexLogic(vertexLogic.search)
       updated=updated.addCombinator(new searchGraph())
-      updated=updated.addCombinator(new NumVertex())
+      updated=updated.addCombinator(new NumVertex(vertexExtensions.last, vertexLogic(vertexLogic.number)))
+      vertexExtensions = vertexExtensions :+ vertexLogic(vertexLogic.number)
       updated=updated.addCombinator(new NumGraph())
       updated=updated.addCombinator(new NumberWorkSpace())
       updated = updated.addCombinator(new graphChained2('number,'searchCommon))
-      vertexExtensions = vertexExtensions :+ vertexLogic(vertexLogic.base, vertexLogic.var_search)
       workSpaceExtensions= workSpaceExtensions:+ workSpaceLogic(workSpaceLogic.base,workSpaceLogic.var_num)
-      vertexExtensions = vertexExtensions :+ vertexLogic(vertexLogic.base, vertexLogic.number)
     }
-
-    //looks awkward when the size goes up
-    if(vertexExtensions.size==1)
-      updated=updated.addCombinator(new VertexChained1(vertexExtensions(0)))
-    else if(vertexExtensions.size==2)
-      updated = updated.addCombinator(new VertexChained2(vertexExtensions(0), vertexExtensions(1)))
-    else if (vertexExtensions.size==3)
-      updated = updated.addCombinator(new VertexChained3(vertexExtensions(0), vertexExtensions(1),vertexExtensions(2)))
-    else if (vertexExtensions.size==4) {
-      updated = updated.addCombinator(new VertexChained4(vertexExtensions(0), vertexExtensions(1), vertexExtensions(2), vertexExtensions(3)))
-     // updated = chaining(updated, vertexLogic(vertexLogic.base, vertexLogic.extensions), vertexExtensions)
-
-    } else if (vertexExtensions.size==5)
-      updated = updated.addCombinator(new VertexChained5(vertexExtensions(0), vertexExtensions(1),vertexExtensions(2),vertexExtensions(3),vertexExtensions(4)))
-    else if (vertexExtensions.size==6)
-      updated = updated.addCombinator(new VertexChained6(vertexExtensions(0), vertexExtensions(1),
-        vertexExtensions(2),vertexExtensions(3),vertexExtensions(4),vertexExtensions(5)
-      ))
-
-    if(workSpaceExtensions.size==1)
-      updated=updated.addCombinator(new workSpaceChained1((workSpaceExtensions(0))))
-    else if(workSpaceExtensions.size==2) {
-      println ("In wse 2")
-      updated = updated.addCombinator(new workSpaceChained2(workSpaceExtensions(0), workSpaceExtensions(1)))
-    } else if (workSpaceExtensions.size==3)
-      updated = updated.addCombinator(new workSpaceChained3(workSpaceExtensions(0), workSpaceExtensions(1),workSpaceExtensions(2)))
-    else if (workSpaceExtensions.size==4)
-      updated = updated.addCombinator(new workSpaceChained4(workSpaceExtensions(0), workSpaceExtensions(1),workSpaceExtensions(2),workSpaceExtensions(3)))
-
-
 
     if (g.capabilities.contains(Kruskal())) {
       updated = updated.addCombinator(new kruskalAlgorithm())
       updated = updated.addCombinator(new graphChained1('kruskalImplementation))
     }
-
-
-    var body: Seq[BodyDeclaration[_]] = Seq.empty
-
-    val thisBody = refine1() ++ refine2()
-    val specialImplements = Seq(Java("Special").simpleName(), Java("Another").simpleName())
-
-    updated = updated
-      .addCombinator(new TinyClass(thisBody, specialImplements))
-
 
     // shows how you would update based on the semantics from domain
     //updated = updated.addCombinator(new VertexExtension(body))
@@ -241,19 +134,14 @@ trait extensions extends GraphDomain with VertexDomain with EdgeDomain with Neig
       .addCombinator(new RgWorkSpace())
       .addCombinator(new CCWorkSpace())
       .addCombinator(new VertexImplementations(vertexDirectedGRSemantics(vertexDirectedGRSemantics.implements)))
-      .addCombinator(new ChainedVertex(vertexDirectedGRSemantics(vertexDirectedGRSemantics.extensions),
-        vertexNodeSearchSemantics(vertexNodeSearchSemantics.extensions),
-        vertexCNSemantics(vertexCNSemantics.extensions),
-        vertexWGRSemantics(vertexWGRSemantics.extensions),
-        vertexCCSemantics(vertexCCSemantics.extensions)))
-      .addCombinator(new ChainedWorkSpace(
-        workSpaceCNSemantics(workSpaceCNSemantics.extensions),
-        workSpaceCCSemantics(workSpaceCCSemantics.extensions)))
-//      .addCombinator(new ChainedGraph(graphCCSemantics(graphCCSemantics.extensions),
-//        graphCNSemantics(graphCNSemantics.extensions), graphDGRSemantics(graphDGRSemantics.extensions),
-//        graphBMSemantics(graphBMSemantics.extensions), graphProgSemantics(graphProgSemantics.extensions),
-//        graphWGRSemantics(graphWGRSemantics.extensions),
-//        graphDCSemantics(graphDCSemantics.extensions)))
+
+
+    // FINAL steps. Connect last of VertexLogic, GraphLogic to the complete
+
+    // BASE     -->     COMPLETE
+    //   (Base ->A), (A->B), (B->Complete)
+    updated = updated.addCombinator(
+      new ChainCompilationUnit(vertexExtensions.last, vertexLogic(vertexLogic.complete)))
 
     // any changes to the repository are passed back...
     updated
@@ -268,134 +156,15 @@ trait extensions extends GraphDomain with VertexDomain with EdgeDomain with Neig
     val semanticType:Type = cons.foldRight(inner)((a,b) => Arrow(a,b))
   }
 
-  class TinyClass(extensions:Seq[BodyDeclaration[_]], implements:Seq[SimpleName] = Seq.empty) {
-    def apply(): CompilationUnit = {
-      val implementsClause = if (implements.nonEmpty) {
-        "implements " + implements.mkString(",")
-      } else {
-        ""
-      }
-
-      Java(s"""
-              |class Tiny $implementsClause {
-              |  ${extensions.mkString("\n")}
-              |}
-          """.stripMargin).compilationUnit
-    }
-
-    val semanticType: Type = tinySemantics(tinySemantics.base)
-  }
-
-
-  def refine1(): Seq[BodyDeclaration[_]] = {
-    Java(
-      s"""
-         |int m1() {
-         |  System.out.println ("in m1-refine1");
-         |  return 5;
-         |}
-         """.stripMargin).
-      classBodyDeclarations()
-  }
-
-
-  def refine2(): Seq[BodyDeclaration[_]] = {
-    Java(
-      s"""
-         |int m1() {
-         |  System.out.println ("in m1-refine2");
-         |  return 7;
-         |}
-         """.stripMargin).
-      classBodyDeclarations()
-  }
-
-  def refine3(): Seq[BodyDeclaration[_]] = {
-    Java(
-      s"""
-         |int m2() {
-         |  System.out.println ("in m2-refine13");
-         |  return 5;
-         |}
-         """.stripMargin).
-      classBodyDeclarations()
-  }
-
-  def addToClass(clazz:CompilationUnit, name:String, extra:BodyDeclaration[_]) : Unit = {
-    val method = clazz.getType(0).getMethodsByName(name).get(0)
-
-    val oldBody = method.getBody.get
-
-//    method.setBody(Java(
-//      s"""
-//         |{
-//         |
-//         |  ${oldBody.toString}
-//         |}
-//       """.stripMargin))
-  }
-
-/*
-  class ChainedVertex(cons1: Type, cons2: Type, cons3:Type, cons4:Type) {
-    def apply(one:Seq[BodyDeclaration[_]], two:Seq[BodyDeclaration[_]], three:Seq[BodyDeclaration[_]],
-              four:Seq[BodyDeclaration[_]]   ) :
-       Seq[BodyDeclaration[_]] = one ++ two ++three++four
-
-    val semanticType:Type = cons1 =>: cons2 =>: cons3 =>:cons4 =>:
-      vertexSemantics(vertexSemantics.extensions)
-  }
-  */
-
-class VertexMethods(bd:Seq[BodyDeclaration[_]]) {
-  def apply(): Seq[BodyDeclaration[_]] = bd
-
-  val semanticType: Type = vertexSemantics(vertexSemantics.extensions)
-}
-
-
-  class ChainedVertex(cons: Type*) {
-    def apply(bd:Seq[BodyDeclaration[_]]*) : Seq[BodyDeclaration[_]] =
-      bd.foldRight(Seq.empty.asInstanceOf[Seq[BodyDeclaration[_]]])(_ ++ _)
-
-    val semanticType:Type = cons.foldRight(vertexSemantics(vertexSemantics.extensions).asInstanceOf[Type])((a,b) => Arrow(a,b))
-  }
-
   /**
-    * Given ANY number of parameters of Types A, B, C , ...which means A =>: B =>: C =>: ...
-    * AND all parameters to apply() MUST BE OF THE SAME TYPE in this case Seq[ BodyDeclaration[_] ]
-    * @param cons
+    * This combinator connects via inhabitation logic a chain of in-place modifications.
+    *
+    * @param type1
+    * @param type2
     */
-  class ChainedGraph(cons: Type*) {
-    def apply(bd:Seq[BodyDeclaration[_]]*) : Seq[BodyDeclaration[_]] =
-      bd.foldRight(Seq.empty.asInstanceOf[Seq[BodyDeclaration[_]]])(_ ++ _)
-
-    val semanticType:Type = cons.foldRight(graphSemantics(graphSemantics.extensions).asInstanceOf[Type])((a,b) => Arrow(a,b))
-  }
-/*
-  class ChainedGraphOLD(cons1: Type, cons2: Type, cons3:Type, cons4:Type,cons5:Type) {
-    def apply(one:Seq[BodyDeclaration[_]], two:Seq[BodyDeclaration[_]], three:Seq[BodyDeclaration[_]],
-              four:Seq[BodyDeclaration[_]],five: Seq[BodyDeclaration[_]]   ) :
-    Seq[BodyDeclaration[_]] = one ++ two ++three++four++five
-
-    val semanticType:Type = cons1 =>: cons2 =>: cons3 =>:cons4 =>:cons5=>:
-      graphSemantics(graphSemantics.extensions)
-  }
-  */
-/*
-  class ChainedWorkSpace(cons1: Type, cons2: Type) {
-    def apply(one:Seq[BodyDeclaration[_]], two:Seq[BodyDeclaration[_]]) :
-    Seq[BodyDeclaration[_]] = one ++ two
-
-    val semanticType:Type = cons1 =>: cons2 =>:
-      workSpaceSemantics(workSpaceSemantics.extensions)
-  }
-  */
-
-  class ChainedWorkSpace(cons: Type*) {
-    def apply(bd:Seq[BodyDeclaration[_]]*) : Seq[BodyDeclaration[_]] =
-      bd.foldRight(Seq.empty.asInstanceOf[Seq[BodyDeclaration[_]]])(_ ++ _)
-
-    val semanticType:Type = cons.foldRight(workSpaceSemantics(workSpaceSemantics.extensions).asInstanceOf[Type])((a,b) => Arrow(a,b))
+  class ChainCompilationUnit(type1:Type, type2:Type) {
+    def apply(unit:CompilationUnit) : CompilationUnit = unit
+    val semanticType: Type = type1 =>: type2
   }
 
   /** Known that the directedGR feature changes vertex to add these implementations. */
@@ -403,28 +172,22 @@ class VertexMethods(bd:Seq[BodyDeclaration[_]]) {
   class DirectedGR {
     def apply() : Seq[Name] = Seq(Java("IEdge").name, Java("NeighborIfc").name)
     val semanticType:Type = vertexDirectedGRSemantics(vertexDirectedGRSemantics.implements)
-
   }
 
   class WeightedGR {
     def apply() : Seq[Name] = Seq(Java("IEdge").name, Java("NeighborIfc").name)
     val semanticType:Type = vertexWGRSemantics(vertexWGRSemantics.implements)
-
   }
 
   class RgWorkSpace{
     def apply() : Seq[Name] = Seq(Java("WorkSpace").name)
     val semanticType:Type = workSpaceCNSemantics(workSpaceCNSemantics.Extends)
-
   }
 
   class CCWorkSpace{
     def apply() : Seq[Name] = Seq(Java("WorkSpace").name)
     val semanticType:Type = workSpaceCCSemantics(workSpaceCCSemantics.Extends)
-
   }
-
-
 
   /** This reflects the lack of any interfaces being implemented by Vertex. */
 
@@ -455,107 +218,5 @@ class VertexMethods(bd:Seq[BodyDeclaration[_]]) {
   /** connected is done here, may need to fix Graph   */
 
   // do more computations here...
-
-  class GraphExtension1 {
-    def apply(): Seq[BodyDeclaration[_]] = {
-      Java(
-        s"""
-           |public void method1() {
-           |  System.out.println ("meth1");
-           |}
-           |
-           |public void method2() {
-           |   System.out.println ("meth2");
-           |}
-         """.stripMargin).classBodyDeclarations()
-    }
-
-    val semanticType: Type = graphLogic(graphLogic.base, 'Extension1)
-  }
-
-  class GraphExtension5 {
-    def apply(): Seq[BodyDeclaration[_]] = {
-      Java(
-        s"""
-           |public void method5() {
-           |  System.out.println ("meth5");
-           |}
-           |
-           |public void method6() {
-           |   System.out.println ("meth6");
-           |}
-         """.stripMargin).classBodyDeclarations()
-    }
-
-    val semanticType: Type = graphLogic(graphLogic.base, 'Extension5)
-  }
-
-
-  class GraphExtension3 {
-    def apply(): Seq[BodyDeclaration[_]] = {
-      Java(
-        s"""
-           |public void method3() {
-           |  System.out.println ("meth3");
-           |}
-           |
-           |public void method4() {
-           |   System.out.println ("meth4");
-           |}
-         """.stripMargin).classBodyDeclarations()
-    }
-
-    val semanticType: Type = graphLogic(graphLogic.base, 'Extension3)
-  }
-
-  class GraphExtension7 {
-    def apply(): Seq[BodyDeclaration[_]] = {
-      Java(
-        s"""
-           |public void method3() {
-           |  System.out.println ("meth3");
-           |}
-           |
-           |public void method4() {
-           |   System.out.println ("meth4");
-           |}
-         """.stripMargin).classBodyDeclarations()
-    }
-
-    val semanticType: Type = graphLogic(graphLogic.base, 'Extension7)
-  }
-//  class MSTPrim {
-//    def apply(): Seq[BodyDeclaration[_]] = {
-//      Java(
-//        s"""
-//           |public void prim() {
-//           |  System.out.println ("prim");
-//           |}
-//         """.stripMargin).classBodyDeclarations()
-//    }
-//
-//    val semanticType: Type = graphLogic(graphLogic.base, 'Extension7)
-//  }
-
-  class MSTKruskal {
-    def apply(): Seq[BodyDeclaration[_]] = {
-      Java(
-        s"""
-           |public void kruskal() {
-           |  System.out.println ("kruskal");
-           |}
-
-         """.stripMargin).classBodyDeclarations()
-    }
-
-    val semanticType: Type = graphLogic(graphLogic.base, 'Kruskal)
-  }
-
-  class TwoGraph(t1: Type, t2: Type) {
-    def apply(bd1:Seq[BodyDeclaration[_]], bd2:Seq[BodyDeclaration[_]]) : Seq[BodyDeclaration[_]] =
-      bd1 ++ bd2
-
-    val semanticType:Type = t1 =>: t2 =>: graphLogic(graphLogic.base, graphLogic.extensions)
-  }
 
 }

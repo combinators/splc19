@@ -1,27 +1,118 @@
 package gpl.productline
 
 import com.github.javaparser.ast.{CompilationUnit, Modifier}
-import com.github.javaparser.ast.body.{BodyDeclaration, FieldDeclaration, MethodDeclaration}
 import com.github.javaparser.ast.expr.Expression
-import gpl.domain.{Graph, GraphDomain, JavaCode, SemanticTypes}
+import com.github.javaparser.ast.stmt.Statement
+import gpl.domain._
 import org.combinators.cls.interpreter.combinator
-import org.combinators.cls.types.{Arrow, Constructor, Type}
 import org.combinators.cls.types.Type
-import org.combinators.cls.types.syntax._
 import org.combinators.templating.twirl.Java
-//(extensions:Seq[BodyDeclaration[_]]): CompilationUnit
-//(): CompilationUnit =
+import org.combinators.cls.types.syntax._
+
+
 trait VertexDomain extends SemanticTypes {
 
   val graph:Graph
 
-  // extensions:Seq[BodyDeclaration[_]]
-  @combinator object vertexBase{
-    def apply(): CompilationUnit = {
-      Java(
+  // TODO: Find Java AST for newly instantiated interface implementations
+  def getComparatorBegin(tpe:String, v:String) : String = {
+    s"""|new Comparator<$tpe>() {
+        |  public int compare( $tpe ${v}1, $tpe ${v}2 ) {""".stripMargin
+  }
+  def getComparatorEnd(tpe:String, v1:String) : String = "} }"
+
+  def getVertices(v:String, bs:Seq[Statement]) : Seq[Statement] = {
+    Java(
+      s"""
+         |for (Iterator<Vertex> it$v = getVertices(); it$v.hasNext();) {
+         |  Vertex $v = it$v.next();
+         |  ${bs.mkString("\n")}
+         |}""".stripMargin).statements
+  }
+
+  def getEdgesOf(en:String, u:String, bs:Seq[Statement]) : Seq[Statement] = {
+    Java(
+      s"""
+         |for (Iterator<Edge> it$en = getEdges($u.); it$en.hasNext();) {
+         |  Edge en = it$en.next();
+         |  ${bs.mkString("\n")}
+         |}""".stripMargin).statements
+  }
+
+  // based on model
+  def adjacentVertices(v:String, bs:Seq[Statement]) : Seq[Statement] = {
+    graph.storage match {
+      case NeighboringNodes() =>
+        Java(
+          s"""
+             |for (Iterator<Vertex> it$v = neighbors.iterator(); it$v.hasNext(); ) {
+             |  Vertex $v = it$v.next();
+             |  ${bs.mkString("\n")}
+             |}
+           """.stripMargin).statements
+
+      case _ => Seq.empty
+    }
+  }
+
+  /**
+    * Knows how to return traversal code for the fundamental needs of any graph structure.
+    *
+    * getVertices(v,bs) = return all Vertices in a graph, using variable 'v' passed in, and
+    *   presumably used within incoming bs.
+    *
+    * getEdgesOf(en,u,bs) = return all edges (u,x) in graph and return as edge variable 'en'
+    *   passed in, and presumably used within incoming bs. This method is invoked within
+    *   a Graph and since we can't rely on a vertex to store the edges (i.e., it might only
+    *   store neighbors) there is an understanding that the implementation might construct
+    *   edges anew
+    *
+    * adjacentVertices(v,bs) = return all neighbor vertices for the 'current' context, to
+    *   be included within the Vertex class, using variable 'v' passed in, and presumably
+    *   used within incoming bs.
+    */
+  class StructureGenerator {
+    def getVerticesBegin(v:String) : String = {
         s"""
+           |for ( Iterator<Vertex> it$v = getVertices(); it$v.hasNext();) {
+           |  Vertex $v = it$v.next();
+           |""".stripMargin
+    }
+    def getVerticesEnd(v:String) : String = "}"
+
+    def getEdgesOfBegin(en:String, u:String) : String = {
+        s"""
+           |for ( Iterator<Edge> it$en = getEdges($u); it$en.hasNext();) {
+           |  Edge $en = it$en.next();
+           """.stripMargin
+    }
+    def getEdgesOfEnd(v:String) : String = "}"
+
+    // Just the starting point (no closing brace)
+    def adjacentVertices(v:String) : String = {
+      s"""
+         |for (Iterator<Vertex> it$v = neighbors.iterator(); it$v.hasNext(); ) {
+         |  Vertex $v = it$v.next();
+       """.stripMargin
+    }
+
+    def adjacentVerticesEnd(v:String) : String = "}"
+  }
+
+
+//  @combinator object StandardGenerator {
+//    def apply(): StructureGenerator = new StructureGenerator()
+//
+//    val semanticType: Type = 'Generator
+//  }
+
+  @combinator object vertexBase {
+    def apply(): CompilationUnit = {
+
+      val gen = new StructureGenerator()
+
+      Java(s"""
            |package gpl;
-           |
            |import java.util.*;
            |
            |public class Vertex  {
@@ -31,117 +122,127 @@ trait VertexDomain extends SemanticTypes {
            |     this.name = n;
            |  }
            |
-           |   public String pred; // the predecessor vertex if any
-           |   public int key; // weight so far from s to it
+           |  public void display( ) {
+           |   System.out.print( " Node " + name);
+           |   ${gen.adjacentVertices("v")}
+           |     System.out.print(v.name + ", ");
+           |   ${gen.adjacentVerticesEnd("v")}
            |
-           |    public LinkedList neighbors = new LinkedList( );
-           |
-           |    public LinkedList getNeighborsObj( ) {
-           |      return neighbors;
-           |    }
-           |
-           |    public void display( ) {
-           |        System.out.print( " Node " + name + " connected to: " );
-           |
-           |        for ( Iterator<Vertex> vxiter = getNeighbors( ); vxiter.hasNext( ); ) {
-           |            System.out.print( vxiter.next().name + ", " );
-           |        }
-           |
-           |        System.out.println( );
-           |    }
-           |
-           |    public Iterator<Vertex> getNeighbors( ) { return neighbors.iterator(); }
-           |
-           |//--------------------
-           |// differences
-           |//--------------------
-           |
-           |    public void addNeighbor( Neighbor n ) {
-           |      neighbors.add( n );
-           |    }
-           |
-           |    public Iterator<Edge> getEdges( ) { return neighbors.iterator( ); }
+           |   System.out.println( );
+           |  }
            |
            |}""".stripMargin).compilationUnit
     }
 
-    val semanticType: Type = vertexLogic(vertexLogic.base, vertexLogic.complete)//vertexLogic(vertexLogic.base,vertexLogic.extensions) =>:
-
+    val semanticType: Type = vertexLogic(vertexLogic.base)
   }
 
   /**
-    * Add to existing declarations.
+    * Searching relies on common capability to record whether a vertex has been visited. A new
+    * field is added, together with a new method "init_vertex" which is to be invoked (via dispatch)
+    * when a workspace requests to init_vertex(this) on all vertices.
     *
     * Modified incoming class (vertexUnit)
     */
-  class SearchVertex(val incoming:Type, val outgoing:Type) {
-    def apply(vertexUnit:CompilationUnit) : CompilationUnit = {
+  class VertexNeighborList(incoming:Type, outgoing:Type) extends UnitModifier(incoming, outgoing) {
+    override def modify(vertexUnit: CompilationUnit): Unit = {
 
       val clazz = vertexUnit.getType(0)
 
-      // add field
-      clazz.addFieldWithInitializer(Java("boolean").tpe(), "visited", Java("false").expression[Expression](), Modifier.PUBLIC)
+      // add field(s)
+      Java("LinkedList<Vertex> neighbors = new LinkedList<>();").fieldDeclarations()
+        .foreach(f => clazz.addMember(f))
 
       // Add init_vertex method
-     val methods = Java(
+      Java("public Iterator<Vertex> getNeighbors( ) { return neighbors.iterator(); }").methodDeclarations()
+        .foreach(m => clazz.addMember(m))
+    }
+  }
+
+  /**
+    * Searching relies on common capability to record whether a vertex has been visited. A new
+    * field is added, together with a new method "init_vertex" which is to be invoked (via dispatch)
+    * when a workspace requests to init_vertex(this) on all vertices.
+    *
+    * Modified incoming class (vertexUnit)
+    */
+  class SearchVertex(incoming:Type, outgoing:Type) extends UnitModifier(incoming, outgoing) {
+    override def modify(vertexUnit: CompilationUnit): Unit = {
+      val clazz = vertexUnit.getType(0)
+
+      // add field
+      Java("public boolean visited = false;").fieldDeclarations()
+        .foreach(f => clazz.addMember(f))
+
+      // Add init_vertex method
+     Java(
         s"""
            |public void init_vertex( WorkSpace w ) {
            |  visited = false;
            |  w.init_vertex(this);
            |}
          """.stripMargin).methodDeclarations()
-      methods.foreach(m => clazz.addMember(m))
+        .foreach(m => clazz.addMember(m))
 
       val dispStmts = Java(
         s"""
            |if (visited) {
            |  System.out.print("  visited");
            |} else {
-           |  System.out.println(" !visited");
+           |  System.out.print(" !visited");
            |}""".stripMargin).statements
 
       val dispMethods = clazz.getMethodsBySignature("display")
       dispMethods.forEach (method => JavaCode.prependStatements(method, dispStmts))
 
-      vertexUnit
     }
-
-    val semanticType: Type = incoming =>: outgoing
   }
 
-  class DFSVertex {
-    def apply() : Seq[BodyDeclaration[_]] = {
-      Java(s"""
-              | public void nodeSearch( WorkSpace w )
-              |    {
-              |        Vertex v;
-              |
-              |        // Step 1: Do preVisitAction.
-              |        //            If we've already visited this node return
-              |        w.preVisitAction( ( Vertex ) this );
-              |
-              |        if ( visited )
-              |            return;
-              |
-              |        // Step 2: else remember that we've visited and
-              |        //         visit all neighbors
-              |        visited = true;
-              |
-              |        for ( Iterator<Vertex>  vxiter = getNeighbors(); vxiter.hasNext(); )
-              |        {
-              |            v = vxiter.next( );
-              |            w.checkNeighborAction( ( Vertex ) this, v );
-              |            v.nodeSearch( w );
-              |        }
-              |
-              |        // Step 3: do postVisitAction now
-              |        w.postVisitAction( ( Vertex ) this );
-              |    } // of dftNodeSearch
-              |""".stripMargin).classBodyDeclarations()
+  class PredKey(incoming:Type, outgoing:Type) extends UnitModifier(incoming, outgoing) {
+    override def modify(vertexUnit: CompilationUnit): Unit = {
+      val clazz = vertexUnit.getType(0)
+
+      // add field(s)
+      Java(
+        """
+          |public String pred;   // name of previous vertex
+          |public int key;
+        """.stripMargin).fieldDeclarations()
+        .foreach(f => clazz.addMember(f))
     }
+  }
 
-    val semanticType: Type = vertexLogic(vertexLogic.base, vertexLogic.var_dfs)
+  class DFSVertex(incoming:Type, outgoing:Type) extends UnitModifier(incoming, outgoing) {
+    override def modify(vertexUnit: CompilationUnit): Unit = {
 
+      val clazz = vertexUnit.getType(0)
+      val methods = Java(
+        s"""
+           | public void nodeSearch( WorkSpace w ) {
+           |    Vertex v;
+           |
+           |    // Step 1: Do preVisitAction.
+           |    //            If we've already visited this node return
+           |    w.preVisitAction( ( Vertex ) this );
+           |
+           |    if (visited) return;
+           |
+           |    // Step 2: else remember that we've visited and
+           |    //         visit all neighbors
+           |    visited = true;
+           |
+           |    for (Iterator<Vertex> vxiter = getNeighbors(); vxiter.hasNext(); ) {
+           |        v = vxiter.next();
+           |        w.checkNeighborAction(this, v);
+           |        v.nodeSearch(w);
+           |    }
+           |
+              |    // Step 3: do postVisitAction now
+           |    w.postVisitAction (this);
+           |} // of dftNodeSearch""".stripMargin).methodDeclarations()
+
+      methods.foreach(m => clazz.addMember(m))
+    }
   }
 
   /**
@@ -149,8 +250,8 @@ trait VertexDomain extends SemanticTypes {
     *
     * Modified incoming class (vertexUnit) and adds componentNumber
     */
-  class ConnectedVertex(val incoming:Type, val outgoing:Type) {
-    def apply(vertexUnit:CompilationUnit) : CompilationUnit = {
+  class ConnectedVertex(incoming:Type, outgoing:Type) extends UnitModifier(incoming, outgoing) {
+    override def modify(vertexUnit: CompilationUnit): Unit = {
 
       val clazz = vertexUnit.getType(0)
 
@@ -160,219 +261,39 @@ trait VertexDomain extends SemanticTypes {
       val dispStmts = Java("""System.out.print( " comp# "+ componentNumber + " " );""").statements
 
       val dispMethods = clazz.getMethodsBySignature("display")
+      dispMethods.forEach(method => JavaCode.prependStatements(method, dispStmts))
+    }
+  }
+
+  class StronglyCVertex(incoming:Type, outgoing:Type) extends UnitModifier(incoming, outgoing) {
+    override def modify(vertexUnit: CompilationUnit): Unit = {
+
+      val clazz = vertexUnit.getType(0)
+
+      // add field
+      clazz.addFieldWithInitializer(Java("int").tpe(), "finishTime", Java("0").expression[Expression](), Modifier.PUBLIC)
+      clazz.addFieldWithInitializer(Java("int").tpe(), "strongComponentNumber", Java("0").expression[Expression](), Modifier.PUBLIC)
+
+      val dispStmts = Java("""System.out.print( " FinishTime -> " + finishTime + " SCCNo -> " + strongComponentNumber );""").statements
+
+      val dispMethods = clazz.getMethodsBySignature("display")
+      dispMethods.forEach(method => JavaCode.prependStatements(method, dispStmts))
+    }
+  }
+
+  class NumVertex(incoming:Type, outgoing:Type) extends UnitModifier(incoming, outgoing) {
+    override def modify(vertexUnit: CompilationUnit): Unit = {
+      val clazz = vertexUnit.getType(0)
+
+      // add field
+      clazz.addFieldWithInitializer(Java("int").tpe(), "VertexNumber", Java("0").expression[Expression](), Modifier.PUBLIC)
+
+      val dispStmts = Java(s"""System.out.print( " # "+ VertexNumber + " " );""").statements
+
+      val dispMethods = clazz.getMethodsBySignature("display")
       dispMethods.forEach (method => JavaCode.prependStatements(method, dispStmts))
 
-      vertexUnit
     }
-    val semanticType: Type = incoming =>: outgoing
   }
 
-  class stronglyCVertex {
-    def apply() : Seq[BodyDeclaration[_]] = {
-      Java(s"""
-              |    public int finishTime;
-              |    public int strongComponentNumber;
-              |
-              |    public void display() {
-              |        System.out.print( " FinishTime -> " + finishTime + " SCCNo -> " + strongComponentNumber );
-              |        Super().display();
-              |    }
-              |""".stripMargin).classBodyDeclarations()
-    }
-
-    val semanticType: Type = vertexLogic(vertexLogic.base, vertexLogic.var_stronglyC)
-
-  }
-
-  class NumVertex {
-    def apply() : Seq[BodyDeclaration[_]] = {
-      Java(s"""
-              |    public int VertexNumber;
-              |
-              |    public void display( )
-              |    {
-              |        System.out.print( " # "+ VertexNumber + " " );
-              |        Super( ).display( );
-              |    }
-              |""".stripMargin).classBodyDeclarations()
-    }
-    val semanticType: Type = vertexLogic(vertexLogic.base, vertexLogic.number)
-  }
-
-  /**
-    * Extensions to the Vertex concept
-    *
-    * 1. adjacentVertices as linked list
-    * 2. get neighbors as iterator
-    */
-    class VertexNeighborList {
-      def apply(): Seq[BodyDeclaration[_]] = {
-      Java(
-        s"""
-           | public LinkedList<Vertex> adjacentVertices = new LinkedList<>();
-           |
-           | public VertexIter getNeighbors( ) { return adjacentVertices.iterator(); }
-           |
-           |//--------------------
-           |// differences
-           |//--------------------
-           |
-           |    public void addAdjacent( Vertex n ) {
-           |        adjacentVertices.add( n );
-           |    }
-           |
-           |    public LinkedList<Vertex> getNeighborsObj() {
-           |      return adjacentVertices;
-           |    }
-           |
-           |    public Iterator<Edge> getEdges( ) { return adjacentVertices.iterator( ); }
-         """.stripMargin).classBodyDeclarations()
-    }
-
-    val semanticType: Type = vertexLogic(vertexLogic.base, vertexLogic.var_neighborList)
-  }
-
-
-
-  @combinator object VertexIter{
-    def apply(): CompilationUnit  = {
-      Java(
-        s"""
-           |package gpl;
-           |
-           |import java.util.Iterator;
-           |public class VertexIter{
-           |   private Iterator iter;
-           |
-           |   VertexIter() { } // used for anonymous class
-           |   VertexIter( Graph g ) { iter = g.vertices.iterator(); }
-           |   public Vertex next() { return (Vertex)iter.next(); }
-           |   public boolean hasNext() { return iter.hasNext(); }
-           |
-           |}
-         """.stripMargin).compilationUnit
-    }
-
-    val semanticType: Type = vertexIterLogic(vertexIterLogic.base,vertexIterLogic.complete )
-
-  }
-
-//  class VertexChaining(cons: Type*) {
-//    val empty:Seq[BodyDeclaration[_]] = Seq.empty
-//    def apply(bd:Seq[BodyDeclaration[_]]*) : Seq[BodyDeclaration[_]] = bd.foldRight(empty)(_ ++ _)
-//
-//    val semanticType:Type = cons.foldRight(vertexLogic(vertexLogic.base, vertexLogic.extensions))((current,last) => Arrow(current,last)).asInstanceOf[Constructor]
-//  }
-
-  class workSpaceChained1(t1:Type) {
-    def apply(bd1:Seq[BodyDeclaration[_]]): Seq[BodyDeclaration[_]] =
-      bd1
-
-    val semanticType:Type = workSpaceLogic(workSpaceLogic.base, t1) =>:
-      workSpaceLogic(workSpaceLogic.base, workSpaceLogic.extensions)
-  }
-
-  class workSpaceChained2(t1:Type, t2:Type) {
-    def apply(bd1:Seq[BodyDeclaration[_]], bd2:Seq[BodyDeclaration[_]]): Seq[BodyDeclaration[_]] =
-      bd1 ++ bd2
-
-    val semanticType:Type = t1 =>: t2 =>: workSpaceLogic(workSpaceLogic.base, workSpaceLogic.extensions)
-
-    //    val semanticType:Type = vertexLogic(vertexLogic.base, t1) =>:
-    //                            vertexLogic(vertexLogic.base, t2) =>:
-    //                            vertexLogic(vertexLogic.base, vertexLogic.extensions)
-  }
-
-  class workSpaceChained3(t1:Type, t2:Type,t3:Type) {
-    def apply(bd1:Seq[BodyDeclaration[_]], bd2:Seq[BodyDeclaration[_]],bd3:Seq[BodyDeclaration[_]]): Seq[BodyDeclaration[_]] =
-      bd1 ++ bd2 ++bd3
-
-    val semanticType:Type = t1 =>: t2 =>: t3 =>: workSpaceLogic(workSpaceLogic.base, workSpaceLogic.extensions)
-
-    //    val semanticType:Type = vertexLogic(vertexLogic.base, t1) =>:
-    //                            vertexLogic(vertexLogic.base, t2) =>:
-    //                            vertexLogic(vertexLogic.base, vertexLogic.extensions)
-  }
-
-  class workSpaceChained4(t1:Type, t2:Type,t3:Type,t4:Type) {
-    def apply(bd1:Seq[BodyDeclaration[_]], bd2:Seq[BodyDeclaration[_]],bd3:Seq[BodyDeclaration[_]],bd4:Seq[BodyDeclaration[_]]): Seq[BodyDeclaration[_]] =
-      bd1 ++ bd2 ++bd3++bd4
-
-    val semanticType:Type = t1 =>: t2 =>: t3 =>:t4 =>: workSpaceLogic(workSpaceLogic.base, workSpaceLogic.extensions)
-
-    //    val semanticType:Type = vertexLogic(vertexLogic.base, t1) =>:
-    //                            vertexLogic(vertexLogic.base, t2) =>:
-    //                            vertexLogic(vertexLogic.base, vertexLogic.extensions)
-  }
-
-
-
-
- class VertexChained1(t1:Type) {
-    def apply(bd1:Seq[BodyDeclaration[_]]): Seq[BodyDeclaration[_]] =
-     bd1
-
-    val semanticType:Type = vertexLogic(vertexLogic.base, t1) =>:
-      vertexLogic(vertexLogic.base, vertexLogic.extensions)
- }
-
-  class VertexChained2(t1:Type, t2:Type) {
-    def apply(bd1:Seq[BodyDeclaration[_]], bd2:Seq[BodyDeclaration[_]]): Seq[BodyDeclaration[_]] =
-      bd1 ++ bd2
-
-    val semanticType:Type = t1 =>: t2 =>: vertexLogic(vertexLogic.base, vertexLogic.extensions)
-
-    //    val semanticType:Type = vertexLogic(vertexLogic.base, t1) =>:
-    //                            vertexLogic(vertexLogic.base, t2) =>:
-    //                            vertexLogic(vertexLogic.base, vertexLogic.extensions)
-  }
-
-  class VertexChained3(t1:Type, t2:Type,t3:Type) {
-    def apply(bd1:Seq[BodyDeclaration[_]], bd2:Seq[BodyDeclaration[_]],bd3:Seq[BodyDeclaration[_]]): Seq[BodyDeclaration[_]] =
-      bd1 ++ bd2 ++bd3
-
-    val semanticType:Type = t1 =>: t2 =>: t3 =>: vertexLogic(vertexLogic.base, vertexLogic.extensions)
-
-    //    val semanticType:Type = vertexLogic(vertexLogic.base, t1) =>:
-    //                            vertexLogic(vertexLogic.base, t2) =>:
-    //                            vertexLogic(vertexLogic.base, vertexLogic.extensions)
-  }
-
-  class VertexChained4(t1:Type, t2:Type,t3:Type,t4:Type) {
-    def apply(bd1:Seq[BodyDeclaration[_]], bd2:Seq[BodyDeclaration[_]],bd3:Seq[BodyDeclaration[_]],bd4:Seq[BodyDeclaration[_]]): Seq[BodyDeclaration[_]] =
-      bd1 ++ bd2 ++bd3++bd4
-
-    val semanticType:Type = t1 =>: t2 =>: t3 =>:t4 =>: vertexLogic(vertexLogic.base, vertexLogic.extensions)
-
-    //    val semanticType:Type = vertexLogic(vertexLogic.base, t1) =>:
-    //                            vertexLogic(vertexLogic.base, t2) =>:
-    //                            vertexLogic(vertexLogic.base, vertexLogic.extensions)
-  }
-
-  class VertexChained5(t1:Type, t2:Type,t3:Type,t4:Type,t5:Type) {
-    def apply(bd1:Seq[BodyDeclaration[_]], bd2:Seq[BodyDeclaration[_]],bd3:Seq[BodyDeclaration[_]],bd4:Seq[BodyDeclaration[_]],bd5:Seq[BodyDeclaration[_]]): Seq[BodyDeclaration[_]] =
-      bd1 ++ bd2 ++bd3++bd4++bd5
-
-    val semanticType:Type = t1 =>: t2 =>: t3 =>:t4 =>:t5 =>: vertexLogic(vertexLogic.base, vertexLogic.extensions)
-
-    //    val semanticType:Type = vertexLogic(vertexLogic.base, t1) =>:
-    //                            vertexLogic(vertexLogic.base, t2) =>:
-    //                            vertexLogic(vertexLogic.base, vertexLogic.extensions)
-  }
-
-
-  class VertexChained6(t1:Type, t2:Type,t3:Type,t4:Type,t5:Type,t6:Type) {
-    def apply(bd1:Seq[BodyDeclaration[_]], bd2:Seq[BodyDeclaration[_]],bd3:Seq[BodyDeclaration[_]],bd4:Seq[BodyDeclaration[_]],bd5:Seq[BodyDeclaration[_]],bd6:Seq[BodyDeclaration[_]]): Seq[BodyDeclaration[_]] =
-      bd1 ++ bd2 ++bd3++bd4++bd5++bd6
-
-    val semanticType:Type = t1 =>: t2 =>: t3 =>:t4 =>:t5 =>:t6 =>: vertexLogic(vertexLogic.base, vertexLogic.extensions)
-
-    //    val semanticType:Type = vertexLogic(vertexLogic.base, t1) =>:
-    //                            vertexLogic(vertexLogic.base, t2) =>:
-    //                            vertexLogic(vertexLogic.base, vertexLogic.extensions)
-  }
-
-
-
-  // vertexLogic(vertexLogic.base, vertexLogic.var_neighborList)
 }

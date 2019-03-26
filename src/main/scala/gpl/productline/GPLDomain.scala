@@ -24,10 +24,9 @@ class GPLDomain(override val graph:Graph) extends GraphDomain(graph) with Semant
          |import java.util.Iterator;
          |import java.util.LinkedList;
          |
-         |
          |public class Graph {
-         |LinkedList vertices;
-         |   Graph(){
+         |   LinkedList vertices;
+         |   Graph() {
          |     vertices = new LinkedList();
          |   }
          |
@@ -37,10 +36,6 @@ class GPLDomain(override val graph:Graph) extends GraphDomain(graph) with Semant
          |      Collections.sort(vertices, c);
          |   }
          |
-         |   IEdge addEdge( Vertex v1, Vertex v2 ) { return null; }
-         |   Vertex findsVertex( String name ) { return null; }
-         |   void display() { }
-         |   void addVertex( Vertex v ) { }
          |   ${extensions.mkString("\n")}
          |}
        """.stripMargin).compilationUnit
@@ -49,20 +44,6 @@ class GPLDomain(override val graph:Graph) extends GraphDomain(graph) with Semant
       graphSemantics(graphSemantics.base)
   }
 
-
-/*  @combinator object GraphExtensions {
-    def apply(): Seq[MethodDeclaration] = {
-      Java(
-        s"""
-           |public void someMethod() { }
-           |public void anotherMethod() { }
-           |
-         """.stripMargin).methodDeclarations
-    }
-
-    val semanticType: Type = graphSemantics(graphSemantics.extensions)
-  }
-  */
 
   /**
     * Edge Information as helper method for edge.
@@ -89,48 +70,6 @@ class GPLDomain(override val graph:Graph) extends GraphDomain(graph) with Semant
 
   }
 
-//  @combinator object edgeIter{
-//    def apply(extensions: Seq[BodyDeclaration[_]]): CompilationUnit = {
-//      Java(
-//        s"""
-//           |package gpl;
-//           |public class EdgeIter
-//           |{
-//           |    // methods whose bodies will be overridden by subsequent layers
-//           |    public boolean hasNext( ) { return false; }
-//           |    public IEdge next( ) { return null; }
-//           |   ${extensions.mkString("\n")}
-//           |}
-//         """.stripMargin).compilationUnit
-//    }
-//
-//    val semanticType: Type = edgeIterSemantics(edgeIterSemantics.extensions) =>:
-//      edgeIterSemantics(edgeIterSemantics.base)
-//
-//  }
-//
-//  @combinator object vertexIter{
-//    def apply(extensions: Seq[BodyDeclaration[_]]): CompilationUnit = {
-//      Java(
-//        s"""
-//           |package gpl;
-//           |public class VertexIter {
-//           |   private Iterator iter;
-//           |
-//           |   VertexIter() { } // used for anonymous class
-//           |   VertexIter( Graph g ) { iter = g.vertices.iterator(); }
-//           |   public Vertex next() { return (Vertex)iter.next(); }
-//           |   public boolean hasNext() { return iter.hasNext(); }
-//           |   ${extensions.mkString("\n")}
-//           |}
-//         """.stripMargin).compilationUnit
-//    }
-//
-//    val semanticType: Type = vertexIterSemantics(vertexIterSemantics.extensions) =>:
-//      vertexIterSemantics(vertexIterSemantics.base)
-//
-//  }
-  // base ended here
 
   //shell only contains prog and base
 

@@ -1,5 +1,6 @@
 package gpl.domain
 
+import com.github.javaparser.ast.CompilationUnit
 import org.combinators.cls.types._
 import org.combinators.cls.types.syntax._
 
@@ -112,6 +113,12 @@ trait SemanticTypes {
     val empty : Type = 'Empty
   }
 
+  object generator {
+    def apply (part:Type): Constructor = 'Generator(part)
+
+    val complete:Type = 'Complete
+  }
+
   // Simpler
   object vertexExtension {
     def apply (part:Type): Constructor = 'VertexExtension(part)
@@ -122,24 +129,27 @@ trait SemanticTypes {
 
   // parts of the widgets during move : Dynamic Behavior
   object vertexLogic {
-    def apply (part:Type, features:Type): Constructor = 'VertexLogic (part, features)
+    def apply (part:Type): Constructor = 'VertexLogic (part)
+
+    // always start with BASE
+    val base:Type = 'Base
+    val empty : Type = 'Empty
+    val complete : Type = 'Complete
 
     val extensions:Type = 'Extensions
 
     // known variations for storage of neighbor information
+    val var_predkey = 'PredKey
     val var_neighborList = 'NeighborList
     val var_edgeList = 'EdgeList
-    val var_search='Search
+    val search='Search
     val number ='Number
     val var_dfs='DFS
     val var_stronglyC='StronglyC
-    val var_conn='Conn
+    val connected = 'Connected
     val var_colored = 'Colored
     val var_weighted = 'Weighted
     val implements:Type = 'Implements
-    val base:Type = 'Base
-    val empty : Type = 'Empty
-    val complete : Type = 'Complete
 
   }
 
@@ -234,65 +244,6 @@ trait SemanticTypes {
   val GraphRefine2 = new GraphExtension("Refine2")
   val GraphRefine3 = new GraphExtension("Refine3")
 
-  /*
-  object graphWGRSemantics {
-    def apply (part:Type): Constructor = 'Graph (part)
-
-    val extensions:Type = 'Extensions
-    val base:Type = 'Base
-  }
-  */
-
-  /*
-  object graphProgSemantics {
-    def apply (part:Type): Constructor = 'Graph (part)
-
-    val extensions:Type = 'Extensions
-    val base:Type = 'Base
-  }
-
-  object graphBMSemantics {   //benchmark
-    def apply (part:Type): Constructor = 'Graph (part)
-
-    val extensions:Type = 'Extensions
-    val base:Type = 'Base
-  }
-  */
-
-  /*
-  object graphCNSemantics {  //connected
-    def apply (part:Type): Constructor = 'Graph (part)
-
-    val extensions:Type = 'Extensions
-    val base:Type = 'Base
-  }
-  */
-  /*
-
-  object graphDGRSemantics { //directedGR
-    def apply (part:Type): Constructor = 'Graph (part)
-
-    val extensions:Type = 'Extensions
-    val base:Type = 'Base
-  }
-  */
-/*
-  object graphCCSemantics { //connected
-    def apply (part:Type): Constructor = 'Graph (part)
-
-    val extensions:Type = 'Extensions
-    val base:Type = 'Base
-  }
-  */
-
-  /*
-  object graphDCSemantics { //connected
-    def apply (part:Type): Constructor = 'Graph (part)
-
-    val extensions:Type = 'Extensions
-    val base:Type = 'Base
-  }
-  */
   val graphWGRSemantics= new GraphExtension("graphWGR")
   val graphProgSemantics= new GraphExtension("graphProg")
   val graphBMSemantics= new GraphExtension("graphBM")
@@ -340,43 +291,6 @@ trait SemanticTypes {
 
   }
 
-  /*
-  * *
-  object vertexDirectedGRSemantics{
-    def apply (part:Type): Constructor = 'VertexNodeDirectedGR (part)
-    val implements:Type = 'Implements
-    val extensions:Type = 'Extensions
-    val base:Type = 'Base
-
-  }
-    */
-
-//
-//  object vertexWGRSemantics{
-//    def apply (part:Type): Constructor = 'VertexWGR (part)
-//    val extensions:Type = 'Extensions
-//    val base:Type = 'Base
-//
-//  }
-
-
-/*
-  object vertexCNSemantics{
-    def apply (part:Type): Constructor = 'VertexCNSearch (part)
-    val extensions:Type = 'Extensions
-    val base:Type = 'Base
-
-  }
-  */
-
-  /*
-  object vertexCCSemantics{
-    def apply (part:Type): Constructor = 'VertexCNSearch (part)
-    val extensions:Type = 'Extensions
-    val base:Type = 'Base
-
-  }
-  */
 
   object vertexIterSemantics{
     def apply (part:Type): Constructor = 'VertexIter (part)
@@ -425,22 +339,34 @@ trait SemanticTypes {
   val workSpaceCNSemantics= new WSExtension("WSCN")
 
   val workSpaceCCSemantics= new WSExtension("WSCC")
-  /*
-  object workSpaceCNSemantics{
-    def apply (part:Type): Constructor = 'WorkSpaceCN (part)
-    val Extends:Type = 'Extends
-    val extensions:Type = 'Extensions
-    val base:Type = 'Base
-  }
-  */
-/*
-  object workSpaceCCSemantics{
-    def apply (part:Type): Constructor = 'WorkSpaceCN (part)
-    val Extends:Type = 'Extends
-    val extensions:Type = 'Extensions
-    val base:Type = 'Base
-  }
-  */
 
+  /**
+    * Extend the apply() method of this class to properly include the desired changes to a CompilationUnit
+    *
+    * Consider fixing to resolve as decorator rather than using CLS. decorator approach with code generation
+    *
+    * Using CLS works when components may have other components on which they depend, and use
+    * CLS to detect
+    *
+    * Most commonly related to DeltaJ and possibly Batory X11
+    *
+    * @param incoming
+    * @param outgoing
+    */
+  abstract class UnitModifier(incoming:Type, outgoing:Type) {
+    def apply(unit:CompilationUnit) : CompilationUnit = {
+      modify(unit)
+      unit
+    }
+
+    /**
+      * Every subclass knows how to modify the unit.
+      *
+      * Pass in a UNIT so we can update the imports clauses and perhaps add other inner classes as well
+      */
+    def modify(unit:CompilationUnit) : Unit
+
+    val semanticType: Type = incoming =>: outgoing
+  }
 
 }

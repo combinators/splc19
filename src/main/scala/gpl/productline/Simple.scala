@@ -1,7 +1,6 @@
 package gpl.productline
 
 import javax.inject.Inject
-
 import org.webjars.play.WebJarsUtil
 import com.github.javaparser.ast.CompilationUnit
 import gpl.domain._
@@ -10,20 +9,12 @@ import org.combinators.cls.git._
 import org.combinators.cls.types.Constructor
 import org.combinators.templating.persistable.JavaPersistable._
 import play.api.inject.ApplicationLifecycle
-
-import org.combinators.cls.types.Type
-import org.combinators.cls.types.syntax._
+import play.api.mvc.{Action, AnyContent}
 
 class Simple @Inject()(webJars: WebJarsUtil, lifeCycle: ApplicationLifecycle) extends InhabitationController(webJars, lifeCycle) with SemanticTypes with RoutingEntries {
 
   // specify desired target by (a) declaring algorithm traits; (b) graph structure
-  val graph:Graph = new undirectedKruskalNeighborNodes
- // val graph:Graph = new Target
- //   with UndirectedEdges with WeightedEdges
- //   with NeighborStorage with LabeledVertex with UncoloredVertex
- //   with Prim with Kruskal
-
-    //new undirectedNeighborNodes
+  val graph:Graph =  new undirectedKruskalNeighborNodes // new undirectedPrimNeighborNodes   // new undirectedKruskalNeighborNodes
 
   /** KlondikeDomain for Klondike defined herein. Controllers are defined in Controllers area. */
   lazy val repository = new GPLDomain(graph) with VertexDomain with EdgeDomain with extensions {}
@@ -35,18 +26,20 @@ class Simple @Inject()(webJars: WebJarsUtil, lifeCycle: ApplicationLifecycle) ex
 
   lazy val combinatorComponents = Gamma.combinatorComponents
 
+  // git clone -b variation_0 http://localhost:9000/simple/simple.git
+
   // ALL intersection types must be *.complete because those are the CompilationUnits
   lazy val targets:Seq[Constructor]= Seq(
     // vertex
-      vertexLogic(vertexLogic.base, vertexLogic.complete),
+      vertexLogic(vertexLogic.complete),
      // DEPRECATE vertexIterLogic(vertexIterLogic.base,vertexIterLogic.complete ),
     // edge
       edgeLogic(edgeLogic.base,edgeLogic.complete),
       edgeIfcLogic(edgeIfcLogic.base,edgeIfcLogic.complete ),
      // edgeIterLogic(edgeIterLogic.base,edgeIterLogic.complete ),
     // neighbor
-      neighborIfcLogic(neighborIfcLogic.base,neighborIfcLogic.complete ),
-      neighborLogic(neighborLogic.base,neighborLogic.complete),
+    //  neighborIfcLogic(neighborIfcLogic.base,neighborIfcLogic.complete ),
+    //  neighborLogic(neighborLogic.base,neighborLogic.complete),
     // workspace: These should only be generated based on the target
       workSpaceLogic(workSpaceLogic.base,workSpaceLogic.complete),
     // GRAPH as final
@@ -57,5 +50,13 @@ class Simple @Inject()(webJars: WebJarsUtil, lifeCycle: ApplicationLifecycle) ex
       .addJobs[CompilationUnit](targets).compute() //hacking
 
   lazy val controllerAddress: String = graph.name
+
+  /** Always prepares result 0 before checking out */
+  override def serveFile(name: String): Action[AnyContent] = {
+    implicit val ex = defaultExecutionContext
+    Action.async(request =>
+      super.prepare(0)(request).flatMap(_ => super.serveFile(name)(request))
+    )
+  }
 
 }

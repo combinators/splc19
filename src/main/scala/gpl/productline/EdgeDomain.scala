@@ -42,7 +42,7 @@ trait EdgeDomain extends SemanticTypes {
            |
            |// *************************************************************************
            |
-           |public class Edge extends Neighbor {
+           |public class Edge {
            |    private  Vertex start;
            |    private  Vertex end;
            |    int source;
@@ -76,7 +76,7 @@ trait EdgeDomain extends SemanticTypes {
            |    }
            |
            |    public void display()  {
-           |      System.out.println( " start=" + start.name + " end=" + end.name+"weight"+weight );
+           |      System.out.println( " start=" + start.name + " end=" + end.name+ " weight="+weight );
            |    }
            |   ${extensions.mkString("\n")}
            |}""".stripMargin).compilationUnit
@@ -98,7 +98,7 @@ trait EdgeDomain extends SemanticTypes {
         s"""
            |    private int weight;
            |
-           |    Edge (Vertex the_start, Vertex the_end, int the_weight ) {
+           |    public Edge (Vertex the_start, Vertex the_end, int the_weight ) {
            |        this.start = the_start;
            |        this.end  = the_end;
            |        this.weight = the_weight;

@@ -59,11 +59,8 @@ sealed trait EdgeStorage
 
 case class NeighboringNodes() extends EdgeStorage
 case class EdgeInstances() extends EdgeStorage
-//
-//sealed trait EdgeAlgo
-//
-//case class primAlg() extends EdgeAlgo
-//case class kruskalAlg() extends EdgeAlgo
+case class AdjacencyMatrix() extends EdgeStorage
+
 
 /**
   * Provides 'superclass' concepts for any edge
@@ -116,7 +113,7 @@ class FinalConcept(val algos:Seq[Algo], val weighted:Boolean, val directed:Boole
 }
 
 class undirectedKruskalNeighborNodes extends FinalConcept(Seq(Kruskal(), Connected()), weighted=true, directed=false, storage=NeighboringNodes())  {
-  override val name:String = "Prim with connected components"
+  override val name:String = "Kruskal with connected components"
 }
 
 class undirectedPrimNeighborNodes extends FinalConcept(Seq(Prim(), Connected()), weighted=true, directed=false, storage=NeighboringNodes())  {

@@ -8,48 +8,125 @@ import org.combinators.cls.types.syntax._
 import org.combinators.cls.types.{Arrow, Type}
 import org.combinators.templating.twirl.Java
 
-
-trait GraphStructureDomain extends SemanticTypes {
+trait GraphStructureDomain extends SemanticTypes with VertexDomain {
 
   val graph:Graph
 
   class primAlgorithm {
+
+    val gen = new StructureGenerator()
+
+    // pass in a generator as argument -- not code itself, but code that would know how
+    // to generate. HEre CLS no wires together everything, which avoids my needing to
+    // do it manually. pre-selecting components and then use CLS to determine wiring.
+    // FeatureIDE pre-select components but then manually add constraints to ensure/filter
+    // only the valid ones.
     def apply() : Seq[BodyDeclaration[_]] = {
-      Java(
-        s"""
-           |public void Prim( ) {
-           |  Vertex start;
-           |        start =(Vertex) vertices.get(0);
-           |        newVertex.add(start);
-           |        for (int n = 0; n < vertices.size() - 1; n++) {
-           |            Vertex temp = new Vertex(start.name);
-           |            Edge tempedge = new Edge(start, start, 1000);
-           |            for (Vertex v : newVertex) {
-           |                for (Edge e : edges) {
-           |                    if (e.getStart() == v && !containVertex(e.getEnd())) {
-           |                        if (e.getWeight() < tempedge.getWeight()) {
-           |                            temp = e.getEnd();
-           |                            tempedge = e;
-           |                        }
-           |                    }
-           |                }
-           |            }
-           |            newVertex.add(temp);
-           |        }
-           |        Iterator it = newVertex.iterator();
-           |        while (it.hasNext()) {
-           |            Vertex v = (Vertex) it.next();
-           |            System.out.println(v.name);
-           |        }
-           |}""".stripMargin).classBodyDeclarations()
+
+      val str = s"""
+           |public Graph Prim() {
+           |    // NOTE: IN TESTING THIS DIDN'T FIND PROPER MST ON SAMPLE. PLEASE FIX !
+           |		Vertex root = null;
+           |
+           |		// 2. and 3. Initializes the vertices
+           |    ${gen.getVerticesBegin("v")}
+           |		   if (root == null) { root = v; }
+           |       v.pred = null;
+           |       v.key = Integer.MAX_VALUE;
+           |    ${gen.getVerticesEnd("v")}
+
+           |		// 4. and 5.
+           |		root.key = 0;
+           |		root.pred = null;
+           |
+           |		// 1. Queue <- V[G], copy the vertex in the graph in the priority queue
+           |		PriorityQueue<Vertex> queue = new PriorityQueue<>(
+           |      ${getComparatorBegin("Vertex", "v")}
+           |        if (v1.key < v2.key) return -1;
+           |        if (v1.key == v2.key) return 0;
+           |        return 1;
+           |      ${getComparatorEnd("Vertex", "v")});
+           |		Set<String> inQueue = new HashSet<>();
+           |
+           |		// Inserts the root at the head of the queue
+           |		queue.add(root);
+           |		inQueue.add(root.name);
+           |    ${gen.getVerticesBegin("v")}
+           |      if (v.key != 0) { // this means, if this is not the root
+           |        queue.add(v);
+           |        inQueue.add(v.name);
+           |      }
+           |    ${gen.getVerticesEnd("v")}
+           |
+           |		// Queue is a list ordered by key values.
+           |		// At the beginning all key values are INFINITUM except
+           |		// for the root whose value is 0.
+           |		while (queue.size() !=0) {
+           |			// 7. u <- Extract-Min(Q);
+           |			// Since this is an ordered queue the first element is the min
+           |			Vertex u = queue.remove();
+           |			inQueue.remove (u.name);
+           |
+           |			// 8. for each vertex v adjacent to u
+           |      ${gen.getEdgesOfBegin("en", "u")}
+           |        Vertex v = en.getOtherVertex(u);
+           |
+           |        // Check to see if the neighbor is in the queue
+           |        int wuv = en.getWeight();
+           |
+           |        // 9. Relax (u,v w)
+           |        if (inQueue.contains(v.name) && (wuv < v.key)) {
+           |          v.key = wuv;
+           |          v.pred = u.name;
+           |          queue.remove(v);  // NOT EFFICIENT. Should support decreaseKey operation
+           |          queue.add(v);
+           |         }
+           |       ${gen.getEdgesOfEnd("en")}
+           |		} // of while
+           |
+           |		// Creates the new Graph that contains the SSSP
+           |		String theName;
+           |		Graph newGraph = new  Graph();
+           |
+           |		// Creates and adds the vertices with the same name
+           |    ${gen.getVerticesBegin("vx")}
+           |       newGraph.addVertex(new Vertex(vx.name));
+           |    ${gen.getVerticesEnd("vx")}
+           |
+           |		// Creates and adds the vertices with the same name
+           |		${gen.getVerticesBegin("theVertex")}
+           |			Vertex thePred = findsVertex(theVertex.pred);
+           |
+           |			// if theVertex is the source then continue we dont need
+           |			// to create a new edge at all
+           |			if (thePred == null)
+           |				continue;
+           |
+           |			Edge oldEdge = getEdge(findsVertex(theVertex.name), findsVertex(thePred.name));
+           |      oldEdge.display();
+           |
+           |      // Creates the new edge from predecessor -> vertex in the newGraph
+           |      newGraph.addEdge(newGraph.findsVertex(theVertex.name),
+           |      newGraph.findsVertex(thePred.name),
+           |      oldEdge.getWeight());
+           |		${gen.getVerticesEnd("theVertex")}
+           |
+           |		return newGraph;
+           |	}
+           |""".stripMargin
+
+      println(str)
+      Java(str).classBodyDeclarations
     }
 
     val semanticType: Type = graphLogic(graphLogic.base, graphLogic.prim)
   }
 
-
   class kruskalAlgorithm {
     def apply() : Seq[BodyDeclaration[_]] = {
+
+      val gen = new StructureGenerator()
+
       Java(
         s"""
            | int ver;
@@ -440,14 +517,6 @@ trait GraphStructureDomain extends SemanticTypes {
     val semanticType: Type = 'undirectedGenR//'undirectedGenR
   }
 
-  //        val options = Seq(graphLogic(graphLogic.base, 'primImplementation),
-  //          graphLogic(graphLogic.base, 'Extension3))
-  //
-  //        // note: SEQ : _ * turns a sequence into a variable arguments list IN A FUNCTION CALL
-  //        updated = updated.addCombinator (
-  //          new Chained (graphLogic(graphLogic.base, graphLogic.extensions), options : _ *)
-  //
-
   class ChainedHere(inner:Type, cons: Type*) {
     def apply(bd:Seq[BodyDeclaration[_]]*) : Seq[BodyDeclaration[_]] =
       bd.foldRight(Seq.empty.asInstanceOf[Seq[BodyDeclaration[_]]])(_ ++ _)
@@ -469,8 +538,10 @@ trait GraphStructureDomain extends SemanticTypes {
            |import java.util.*;
            |
            |public class Graph  {
+           |
            |public static List<Vertex> newVertex = new ArrayList<Vertex>();//vertex visited
-           |LinkedList vertices;
+           |  LinkedList vertices;
+           |
            |   public Graph(){
            |     vertices = new LinkedList();
            |   }
@@ -480,7 +551,38 @@ trait GraphStructureDomain extends SemanticTypes {
            |      Collections.sort(vertices, c);
            |   }
            |   public IEdge addEdge( Vertex v1, Vertex v2 ) { return null; }
-           |   public Vertex findsVertex( String name ) { return null; }
+           |
+           |   public Vertex findsVertex(String name) {
+           |        for (Iterator<Vertex> it = getVertices(); it.hasNext(); ) {
+           |            Vertex v = it.next();
+           |            if (v.name.equals(name)) {
+           |                return v;
+           |            }
+           |        }
+           |        return null;
+           |    }
+           |
+           |   public Iterator<Edge> getEdges(Vertex u) {
+           |    	LinkedList<Edge> filter = new LinkedList<Edge>();
+           |        for (Iterator<Edge> it = edges.iterator(); it.hasNext(); ) {
+           |        	Edge e = it.next();
+           |        	if (e.getStart().equals(u)) { filter.add(e); }
+           |        }
+           |
+           |        return filter.iterator();
+           |    }
+           |
+           |    public Edge getEdge(Vertex u, Vertex v) {
+           |    	LinkedList<Edge> filter = new LinkedList<Edge>();
+           |        for (Iterator<Edge> it = edges.iterator(); it.hasNext(); ) {
+           |        	Edge e = it.next();
+           |        	if (e.getStart().equals(u) && e.getEnd().equals(v)) { return e; }
+           |          if (e.getStart().equals(v) && e.getEnd().equals(u)) { return e; }
+           |        }
+           |
+           |        return null;
+           |    }
+           |
            |   public void display() {  System.out.println( "******************************************" );
            |        System.out.println( "Vertices " );
            |        for ( Iterator<Vertex> vxiter = getVertices(); vxiter.hasNext() ; )
@@ -501,21 +603,6 @@ trait GraphStructureDomain extends SemanticTypes {
            |    }
            |
            |    public Iterator<Edge> getEdges() { return edges.iterator(); }
-           |
-           |    // Finds an Edge given both of its vertices
-           |    public  Edge findsEdge( Vertex theSource, Vertex theTarget )
-           |       {
-           |        for( Iterator<Edge> edgeiter = theSource.getEdges(); edgeiter.hasNext(); )
-           |         {
-           |            Edge theEdge = edgeiter.next();
-           |            if ( ( theEdge.getStart().name.equals( theSource.name ) &&
-           |                  theEdge.getEnd().name.equals( theTarget.name ) ) ||
-           |                 ( theEdge.getStart().name.equals( theTarget.name ) &&
-           |                  theEdge.getEnd().name.equals( theSource.name ) ) )
-           |                return theEdge;
-           |        }
-           |        return null;
-           |    }
            |
            |    public void addEdge( Vertex start,  Vertex end, int weight ) {
            |         Edge e = new Edge(start, end, weight);
