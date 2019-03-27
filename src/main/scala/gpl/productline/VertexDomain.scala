@@ -9,7 +9,6 @@ import org.combinators.cls.types.Type
 import org.combinators.templating.twirl.Java
 import org.combinators.cls.types.syntax._
 
-
 trait VertexDomain extends SemanticTypes {
 
   val graph:Graph
@@ -55,61 +54,17 @@ trait VertexDomain extends SemanticTypes {
     }
   }
 
-  /**
-    * Knows how to return traversal code for the fundamental needs of any graph structure.
-    *
-    * getVertices(v,bs) = return all Vertices in a graph, using variable 'v' passed in, and
-    *   presumably used within incoming bs.
-    *
-    * getEdgesOf(en,u,bs) = return all edges (u,x) in graph and return as edge variable 'en'
-    *   passed in, and presumably used within incoming bs. This method is invoked within
-    *   a Graph and since we can't rely on a vertex to store the edges (i.e., it might only
-    *   store neighbors) there is an understanding that the implementation might construct
-    *   edges anew
-    *
-    * adjacentVertices(v,bs) = return all neighbor vertices for the 'current' context, to
-    *   be included within the Vertex class, using variable 'v' passed in, and presumably
-    *   used within incoming bs.
-    */
-  class StructureGenerator {
-    def getVerticesBegin(v:String) : String = {
-        s"""
-           |for ( Iterator<Vertex> it$v = getVertices(); it$v.hasNext();) {
-           |  Vertex $v = it$v.next();
-           |""".stripMargin
-    }
-    def getVerticesEnd(v:String) : String = "}"
 
-    def getEdgesOfBegin(en:String, u:String) : String = {
-        s"""
-           |for ( Iterator<Edge> it$en = getEdges($u); it$en.hasNext();) {
-           |  Edge $en = it$en.next();
-           """.stripMargin
-    }
-    def getEdgesOfEnd(v:String) : String = "}"
 
-    // Just the starting point (no closing brace)
-    def adjacentVertices(v:String) : String = {
-      s"""
-         |for (Iterator<Vertex> it$v = neighbors.iterator(); it$v.hasNext(); ) {
-         |  Vertex $v = it$v.next();
-       """.stripMargin
-    }
+  @combinator object StandardGenerator {
+    def apply(): StructureGenerator = new StructureGenerator()
 
-    def adjacentVerticesEnd(v:String) : String = "}"
+    val semanticType: Type = 'StructureGenerator
   }
 
-
-//  @combinator object StandardGenerator {
-//    def apply(): StructureGenerator = new StructureGenerator()
-//
-//    val semanticType: Type = 'Generator
-//  }
-
   @combinator object vertexBase {
-    def apply(): CompilationUnit = {
-
-      val gen = new StructureGenerator()
+    def apply(gen: StructureGenerator): CompilationUnit = {
+      //val gen = new StructureGenerator()
 
       Java(s"""
            |package gpl;
@@ -134,7 +89,18 @@ trait VertexDomain extends SemanticTypes {
            |}""".stripMargin).compilationUnit
     }
 
-    val semanticType: Type = vertexLogic(vertexLogic.base)
+    val semanticType: Type = 'StructureGenerator =>: vertexLogic(vertexLogic.base)
+  }
+
+  // Clean solution. Wants the modification that inserts the fields and the code that accesses
+  // the fields to be in one place.
+  abstract class DataProvider {
+
+    // update run-time structure with new fields and/or accessor methods
+    def modify(unit:CompilationUnit) : CompilationUnit
+
+    // retrieve appropriate generator now that you know structure
+    def gen() : StructureGenerator
   }
 
   /**

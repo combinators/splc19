@@ -14,7 +14,7 @@ trait GraphStructureDomain extends SemanticTypes with VertexDomain {
 
   class primAlgorithm {
 
-    val gen = new StructureGenerator()
+    //val gen = new StructureGenerator()
 
     // pass in a generator as argument -- not code itself, but code that would know how
     // to generate. HEre CLS no wires together everything, which avoids my needing to
@@ -22,6 +22,8 @@ trait GraphStructureDomain extends SemanticTypes with VertexDomain {
     // FeatureIDE pre-select components but then manually add constraints to ensure/filter
     // only the valid ones.
     def apply() : Seq[BodyDeclaration[_]] = {
+
+      val gen = new StructureGenerator()
 
       val str = s"""
            |public Graph Prim() {
@@ -34,7 +36,7 @@ trait GraphStructureDomain extends SemanticTypes with VertexDomain {
            |       v.pred = null;
            |       v.key = Integer.MAX_VALUE;
            |    ${gen.getVerticesEnd("v")}
-
+           |
            |		// 4. and 5.
            |		root.key = 0;
            |		root.pred = null;

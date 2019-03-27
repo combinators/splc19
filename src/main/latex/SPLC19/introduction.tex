@@ -1,34 +1,80 @@
+%% 
+%% Introduction
+%%
+%% Key ideas: 
+%%
+%% 1. Augmenting feature models with application domain modeling
+%% 2. Impact this has on the toolsuite for featureIDE and composition engines
+%%
+%% 3. Expose programming API instead of providing a standard black-box
+%%    capability, which might otherwise restrict users' abilities.
 
-Software product lines (SPLs) refer to software engineering methods, tools and
-techniques for creating a collection of similar software systems from a shared set of
-software assets using a common means of production.
+Software product lines (SPLs) refer to software engineering methods,
+tools and techniques for creating a collection of similar software
+systems, called product line members, from a shared set of software
+assets using a common means of production. A number of characteristics
+separate SPLs from routine large, complex systems and thus there is a need for specialized tools and techniques to design, implement and maintain SPLs. 
 
-A SPL is a family of related programs. When the units of program construction are features—increments in
-program functionality or development—every program in an SPL is identified by a unique and legal
-combination of features, and vice versa. Family member refers to individual product. A variation point
-represents a decision leading to different variants of an asset. A variation point consists of a set of
-possible instantiations (legal variations of the variation point). A variation point usually specifies the
-binding times, that is the time/times at which a decision about the instantiation has to be taken.
+Fundamental to many SPL approaches is the concept of a \textit{Feature
+Model}, first introduced by the Feature-Oriented Domain Analysis (FODA)
+technique~\cite{Kang1990} and refined over the years by numerous
+researchers. A feature model is composed of user-visible features from
+which a wide variety of configurations can be defined through the
+selection of individual features. Many tool chains have been developed
+to generate product line members ``on demand'' from a feature model
+configuration. Developers need to construct the SPL code artifacts in a
+specific way that enables the tools to work; this may include, for
+example, low-level compiler directives embedded in source code, or
+specialized languages (such as JAK~\cite{Batory2004FeatureorientedPA} or
+DeltaJ~\cite{Schaefer:2010:DPS:1885639.1885647}) that developers use to
+encode the artifacts.
 
-The variant derivation is the action in which assets are combined from the set of available assets and
-contained variation points are bound/instantiated. If there are variation points with multiple binding times,
-the derivation will happen stepwise at each binding time. The result of such a derivation is a set of derived
-assets. The derivation can be executed technically in many ways. The simplest way is to copy assets and modify
-(parts of) them (e.g. the configuration parameters) manually. The result of such a derivation is often called a
-configuration.
+\begin{figure}
+    \includegraphics[scale=0.4]{gpl2.png}
+    \caption{Graph Product Line Feature Model}
+    \label{fig:feature-model}
+\end{figure}
 
-We make the following observations regarding product lines:
+There remains a potential issue, however, when the variability inherent in the product line relates to the application domain model. The common result is that one must integrate these domain-model concepts into the feature model so they can become part of the configuration process. The feature model from Figure~\ref{fig:feature-model} contains features relating to behavior (i.e., \textbf{Prim} contains Prim's implementation of the Minimum Spanning Tree problem) and some relate to structure (i.e., \textbf{Weighted} captures the notion that edges in a graph may have weights). 
 
---It should be possible to generate an instance of the product line using configuration
+In past work, we have explored product lines within a number of application domains~\cite{Heineman:2015:TMO:2791060.2791076,PEPM18}
 
---Should be able to add to and remove features from a product line after it has been defined
+%We make the following observations regarding product lines:
+%
+%--
+%
+%--Should be able to add to and remove features from a product line after it has been defined
+%
+%--A product line definition is still reflected in software artifacts, which means it should support common refactoring functionality
+%
+%--Should be feature-rich, which means one can potentially envision a significant number of PL members (e.g., not just a handful)
+%
+%Without one of these characteristics, it could only be considered a closed system.
 
---A product line definition is still reflected in software artifacts, which means it should support common refactoring functionality
 
---Should be feature-rich, which means one can potentially envision a significant number of PL members (e.g., not just a handful)
+% A SPL is a family of related programs. When the units of program
+% construction are feature—increments in program functionality or
+%development—every program in an SPL is identified by a unique and legal
+%combination of features, and vice versa. Family member refers to
+%individual product. A variation point represents a decision leading to
+%different variants of an asset. A variation point consists of a set of
+%possible instantiations (legal variations of the variation point). A
+%variation point usually specifies the binding times, that is the
+%time/times at which a decision about the instantiation has to be taken.
 
-Without one of these characteristics, it could only be considered a closed system.
+%The variant derivation is the action in which assets are combined from
+%the set of available assets and contained variation points are
+%bound/instantiated. If there are variation points with multiple binding
+%times, the derivation will happen stepwise at each binding time. The
+%result of such a derivation is a set of derived assets. The derivation
+%can be executed technically in many ways. The simplest way is to copy
+%assets and modify (parts of) them (e.g. the configuration parameters)
+%manually. The result of such a derivation is often called a
+%configuration.
 
+
+
+%% THESE NEED TO BE PLACED IN CONTEXT.
 Here is a reference to K\"{a}stner's paper~\cite{Kastner:2012}.
 
 Here is a reference to ~\cite{leich2005tool}.
@@ -40,8 +86,6 @@ Here is a reference to ~\cite{Sousa:2016:EFM:2934466.2934475}.
 
 Here is a reference to ~\cite{Arcaini:2017:ARV:3106195.3106206}.
 
-Here is a reference to ~\cite{Heineman:2015:TMO:2791060.2791076}.
-
 Here is a reference to ~\cite{Vasilevskiy:2016:TRP:2934466.2934484}.
 
 Here is a reference to ~\cite{Kuhn:2015:CPC:2791060.2791092}.
@@ -51,31 +95,36 @@ Here is a reference to ~\cite{Schaefer:2010:DPS:1885639.1885647}.
 Here is a reference to ~\cite{Apel:2008:AFF:1428476.1428480}.
 
 
-
-
-
 \subsection{Approaches to Product Line Development}
 
-Software product lines create unique engineering challenges for a number of reasons. First, it should be
-possible to generate any number of  instances of the product line, and by this we mean the code artifacts
-for the instance application. These are then compiled (or interpreted) to realize the execution of the
-application. Second, there are multiple development efforts; one can work on code that will effectively be
-used by all product line instances, but at other times, one is focused on writing code for just a single
-instance from the PL.
+Software product lines create unique engineering challenges for a number
+of reasons. First, it should be possible to generate any number of
+instances of the product line, and by this we mean the code artifacts
+for the instance application. These are then compiled (or interpreted)
+to realize the execution of the application. Second, there are multiple
+development efforts; one can work on code that will effectively be used
+by all product line instances, but at other times, one is focused on
+writing code for just a single instance from the PL.
 
-A major goal of featured-oriented PL is to derive a product automatically based on user’s selection. There are
-two approach widely used in practice,  annotation-based approach or a composition-based approach, which differ in
-the way they represent variability in the code base and the way they generate products.
-
+A major goal of featured-oriented PL is to derive a product
+automatically based on user’s selection. There are two philosophical
+approaches widely used in practice -- \textit{annotation-based} or 
+\textit{composition-based} -- which differ in the way they represent
+variability in the code base and the way they generate products.
 
 \subsubsection{Annotation-based Approach}
 
-There is a single body of code artifacts which fully contains all code resources used by all members of the product line.
-Using different tools or language-specific capabilities, a compiler (or processor) will extract subsets of the code to be used
- for a PL instance. One of the most common approaches is to use compiler directives embedded within the code as a means
- for isolating code unique to a subset of product line instances. Then each product line instance can be generated
- by compiling the same code base with different compiler flags, resulting in different executable instances.
- Due to the nature of this approach, often one cannot review the source code for individual instances.~\cite{Apel:2013:FSP:2541773}.
+There is a single body of code artifacts which fully contains all code
+resources used by all members of the product line. Using different tools
+or language-specific capabilities, a compiler (or processor) will
+extract subsets of the code to be used for a PL instance. One of the
+most common approaches is to use compiler directives embedded within the
+code as a means for isolating code unique to a subset of product line
+instances. Then each product line instance can be generated by compiling
+the same code base with different compiler flags, resulting in different
+executable instances. Due to the nature of this approach, often one
+cannot review the source code for individual
+instances.~\cite{Apel:2013:FSP:2541773}.
 
 In annotation-based approaches, the code of all features is merged in a single code base, and annotation mark which code
  belongs to which feature. In some sense, an annotation is a function that maps a program element to the feature or
