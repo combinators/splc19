@@ -78,9 +78,11 @@ class ColoredVertex {
 
 By using Scala rather than a DSL we can immediately take advantage of writing reusable and extensible combinators.
 In AHEAD approach, there are many duplicated code, for example, the refinements to Edge are exactly same in MSTKruskalPrepGr
- and MSTPRIMPREPGnr. Also some empty methods are there only for future override. If you are not clear for the whole
- scope in the begining, which happens a lot in industries, it's hard to construct a structure like that. With our
- approach, it's much easier to construct product lines from scratch, and the code will make more sense.
+ and MSTPRIMPREPGnr. Also some empty methods are there only for future override. If you do not have a solid understanding
+  for the whole scope in the beginning, which happens a lot in industries, it's hard to construct a structure like that.
+  With our approach, it's much easier to construct product lines from scratch, and the code will make more sense.
+  In Ahead approach, some features can only be used for once. For example, only thing feature dProgStronglyConnected do
+  was to provide a run method. This will lead to redundant code, while our approach doesn't have such problems.
 
  Other than adding content to existing class, which can also be realized with DeltaJ, we can also modify content in the
  class easily by constructing a combinator which takes a CompliationUnit as parameter, customize the class and return it

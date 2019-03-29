@@ -18,10 +18,12 @@ configurations, which makes the width of feature tree in AHEAD huge.
 
 \subsubsection{CLS generic composition}
 
-With dominated approach for using feature in PLy, n features in the feature tree may generate 2n configurations
+With dominated approach for using feature in PLs, n features in the feature tree may generate 2n configurations
  which will become product line instances. But if we use CLS as the algorithm for composition, the fundamental
  units will be combinators instead of features. The CLS starts with a repository of combinators to which a user
- issues a query which attempts to find a type in the repository using inferencing.
+ issues a query which attempts to find a type in the repository using inferencing. Using CLS generic composition,
+ limitations of composition tools are eliminated.
+
 
 Combinators can be dynamic and added at composition time, something which is simply not possible in traditional
 feature trees used by feature-oriented product lines.

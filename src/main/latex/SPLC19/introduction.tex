@@ -29,11 +29,11 @@ specialized languages (such as JAK~\cite{Batory2004FeatureorientedPA} or
 DeltaJ~\cite{Schaefer:2010:DPS:1885639.1885647}) that developers use to
 encode the artifacts.
 
-\begin{figure}
-    \includegraphics[scale=0.4]{gpl2.png}
-    \caption{Graph Product Line Feature Model}
-    \label{fig:feature-model}
-\end{figure}
+%%\begin{figure}
+%%    \includegraphics[scale=0.4,natwidth=1154,natheight=576]{gpl2.png}
+%%    \caption{Graph Product Line Feature Model}
+%%    \label{fig:feature-model}
+%%\end{figure}
 
 There remains a potential issue, however, when the variability inherent in the product line relates to the application domain model. The common result is that one must integrate these domain-model concepts into the feature model so they can become part of the configuration process. The feature model from Figure~\ref{fig:feature-model} contains features relating to behavior (i.e., \textbf{Prim} contains Prim's implementation of the Minimum Spanning Tree problem) and some relate to structure (i.e., \textbf{Weighted} captures the notion that edges in a graph may have weights). 
 
@@ -107,9 +107,9 @@ by all product line instances, but at other times, one is focused on
 writing code for just a single instance from the PL.
 
 A major goal of featured-oriented PL is to derive a product
-automatically based on user’s selection. There are two philosophical
-approaches widely used in practice -- \textit{annotation-based} or 
-\textit{composition-based} -- which differ in the way they represent
+automatically based on user’s selection. There are three philosophical
+approaches widely used in practice -- \textit{annotation-based} ,
+\textit{composition-based} or \textit{component-based} -- which differ in the way they represent
 variability in the code base and the way they generate products.
 
 \subsubsection{Annotation-based Approach}
@@ -132,9 +132,7 @@ In annotation-based approaches, the code of all features is merged in a single c
 
 Annotation-based approaches are widely used in practice because they are easy to use and already natively supported
 by many programming environments. It keeps good readability and low complexity, however, relatively simple tool support
-can address scattered code or error.
-
-%%cite the book
+can address scattered code or error.~cite{Kastner:2012,Apel:2013:FSP:2541773}
 
 
 
@@ -153,7 +151,20 @@ composition units simple and tractable.
 
 Another way to view the difference between annotation and composition is that annotation separate concerns
 virtually and composition separate concerns physically,and code is removed on demand with annotation while
-composition units are added on demand. ~\cite{Thum:2014:FEF:2537169.2537315}.
+composition units are added on demand. ~\cite{Thum:2014:FEF:2537169.2537315,Apel:2013:FSP:2541773}.
+
+\subsubsection{Component-based Approach}
+
+A software component is a unit of composition with contractually specified interfaces and explicit context
+dependencies only. A software component can be deployed independently and is subject to composition by third
+parties. The key idea of a component is to form a modular, reusable unit.
+
+Developing product line by constructing and composing reusable was a common strategy. With domain analysis,
+developers decided which functionality should be reused across multiple products of the product line designed
+components accordingly. To derive a product for a given feature selection during application engineering, a
+developer selects suitable components and then manually writes glue code to connect components for every
+product individually.
+
 
 
 
@@ -169,7 +180,7 @@ start with a standard Java legacy application, then they select code fragment an
 
 
 Type checking approach,  a product-line-aware type system that statically and efficiently detects type errors in
-annotation-based product-line implementations.
+annotation-based product-line implementations.~\cite{Kastner:2012}
 
 
 To work with FeatureIDE, the primary challenge is to design a feature tree model to represent the desired product
@@ -206,6 +217,12 @@ The key challenge of composition-based approaches is to keep the mapping between
 simple and tractable. Preprocessor-based and parameter-based implementations are often criticized for their
 potential complexity, lack of modularity, and reduced readability. And they all have some problems which is the
 difficulty to refactoring.~\cite{Kim:2017:RJS:3106195.3106201}.
+
+Although component-based implementations are common in product line practice, they lack the automation potential
+of feature orientation that we aim at. Deciding when to build a reusable component and what to include in
+that component is a difficult design decision, one need to have good understanding of whole scope to do that.
+There is no domain in this approach, glue code is a necessary, it's no more than assembling components.
+~\cite{Apel:2013:FSP:2541773}
 
 In practice most PLs appear “from the ground up” where developers take advantage of language-specific capabilities
  to annotate different code regions as being enabled (or disabled) based on compiler directives. Starting from an

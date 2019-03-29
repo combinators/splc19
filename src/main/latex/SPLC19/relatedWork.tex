@@ -2,6 +2,30 @@ variants are the SPL frameworks supported by the most extensive commercial case-
 share with CLS is support for domain spaces with non-boolean types (e.g., numbers), which can also be automatically
 computed. This exceeds the capabilities of feature diagrams, where extensions have been proposed to include numbers for
 modeling cardinalities .\cite{Sousa:2016:EFM:2934466.2934475}. In our example, variable cardinalities are used to model
-the different numbers of piles in a
- game and positions for their layout are automatically computed. Inclusion of non- booleans blows up
+the different numbers of piles in a game and positions for their layout are automatically computed. Inclusion of non-booleans blows up
  the order of magnitude of possible products from 2n , where n is the number of decisions to be made, to infinity.
+
+The authors of ~\cite{Apel:2009:FLA:1555001.1555038} explains the importance of supporting multiple target languages and one of the main improvements of
+their FeatureHouse framework over AHEAD ~\cite{Batory2004FeatureorientedPA} is to eliminate language extension overhead. From a BNF grammar with some
+annotations, FeatureHouse generates a parser and pretty printer for superimposed AST components. Given an ordered
+sequence of these components, they can be automatically composed to generate an AST, which is then pretty printed
+to create a target source code artifact. CLS is in some sense complementary to this approach: it automates finding the
+sequence in which AST manipulations are to be made and leaves their specification to the developer. In principle, the
+two frameworks could be combined. This seems especially promising for the generation of parsers and pretty printers,
+which is currently one of the major efforts when adapting CLS to a new target language.
+
+The DOPLER ~\cite{Dhungana:2011:DMD:1924082.1924092} framework avoids any assumptions about target languages and instead
+ operates with a decision-based meta model of code generators. Code generators are automatically executed by the
+ rule-based Drools engine ~\cite{DBLP:conf/agtive/2007} whenever decisions are taken. This offers similar flexibility to combinators in CLS,
+ which can perform arbitrary computation. A downside of the DOPLER framework is that the low level, solution space
+ specific collaboration of code generators has to be coded manually. In CLS, code generating combinators can specify
+ their need for input from other code generators in their type, and the inhabitation algorithm will automatically
+ compose them. In DOPLER this solution space dependency would have to be hard coded or pushed to the domain space
+ to be handled by Drools.
+
+
+In the broader scope of software product lines beyond a specific framework, a feature-based extension to UML
+is proposed in ~\cite{Czarnecki:2006:VFM:1173706.1173738}. In contrast to our modeling of the domain specific
+variability with classes, this extension modifies models of solution domain classes depending on Object Constraint
+Language (OCL) expressions.
+
