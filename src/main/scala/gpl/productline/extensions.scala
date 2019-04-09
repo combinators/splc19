@@ -22,13 +22,15 @@ trait extensions extends GraphDomain with VertexDomain with EdgeDomain with Neig
     var updated = super.init(gamma, g)
     println(">>> GPL  dynamic combinators.")
 
+    // Start with Graph class, and mutate/add/remove as we move forward
+
     // from a specification, this goes and adds into the repository the combinators
     // that are necessary. It builds up dynamic combinator fragments as needed.
     // VERTEX extensions
     //    vertexLogic(vertexLogic.base, TYPE-1)
     var vertexExtensions = Seq(vertexLogic(vertexLogic.base))
     var workSpaceExtensions:Seq[Constructor]=Seq.empty
-    var graphExtensions:Seq[Constructor] = Seq.empty
+    var graphExtensions = Seq(graphLogic(graphLogic.base))
 
     // GRAPH features are processed here.
     // -----------------------------------
@@ -59,7 +61,7 @@ trait extensions extends GraphDomain with VertexDomain with EdgeDomain with Neig
     //updated = updated.addCombinator(new primAlgorithm())
     if (g.capabilities.contains(Prim())) {
       updated = updated.addCombinator(new primAlgorithm())
-      updated = updated.addCombinator(new graphChained1(graphLogic(graphLogic.base, graphLogic.prim)))
+      updated = updated.addCombinator(new graphChained1(graphLogic(graphLogic.prim)))
       updated = updated.addCombinator (new PredKey(vertexExtensions.last, vertexLogic(vertexLogic.var_predkey)))
       vertexExtensions = vertexExtensions :+ vertexLogic(vertexLogic.var_predkey)
       workSpaceExtensions = workSpaceExtensions:+ workSpaceLogic(workSpaceLogic.base,workSpaceLogic.var_region)
@@ -67,7 +69,7 @@ trait extensions extends GraphDomain with VertexDomain with EdgeDomain with Neig
 
     if (g.capabilities.contains(Kruskal())) {
       updated = updated.addCombinator(new kruskalAlgorithm())
-      updated = updated.addCombinator(new graphChained1(graphLogic(graphLogic.base, graphLogic.kruskal)))
+      updated = updated.addCombinator(new graphChained1(graphLogic(graphLogic.kruskal)))
       workSpaceExtensions = workSpaceExtensions:+ workSpaceLogic(workSpaceLogic.base,workSpaceLogic.var_region)
     }
 

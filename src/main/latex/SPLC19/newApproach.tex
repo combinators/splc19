@@ -1,62 +1,113 @@
+% New Approach % As we investigated the way in which application domains
+were represented in feature models, we identified a number of
+limitations in how modeling was represented and devised a number of
+strategies for improving the way these application domain models could
+improve the process of generating product line members.
 
-There are features to represent the structure of a variations, and there is a feature for each variation.
-Our goal was to support the easy construction of new variations by reusing existing features where possible
-and adding new features as needed to support the functionality expected of new variations.
+There are features to represent the structure of a variations, and there
+is a feature for each variation. Our goal was to support the easy
+construction of new variations by reusing existing features where
+possible and adding new features as needed to support the functionality
+expected of new variations.
+
+\subsection{Integrated application domain models}
+
+The concept of an application domain model is common in software
+engineering because of its ability to identify real-world concepts that
+will ultimately be present in a software system. When the model is
+actively maintained over time, as changes are introduced and the
+software system evolves, there is the opportunity to take advantage of
+its high-quality information.
+
+Annotation-based approaches for SPLs that rely solely on the embedded
+compiler directives within the code are incompatible with a separately
+designed application domain model. When product lines use compiler
+directives to alter the very structure of the object-oriented classes in
+the code base, as observed in~\cite{Kastner:2012}, there needs to be
+extensive type checking to ensure only valid product line members are
+generated. In these cases, one typically finds that ``the code is the
+design'' and there no other separate representation of the classes being
+manipulated by the compiler directives. For this reason, our
+investigation focused primarily on composition-based SPLC approaches.
+
+Researchers have investigated various object-oriented technologies to
+support SPLs~\cite{Griss1999,Batory2000} with the focus of finding ways
+to develop reusable components within an SPLC, whether using variations
+of \textit{mixins}~\cite{Bracha:1990:MI:97946.97982} or C++
+Templates~\cite{VanHilst:1996:UCT:646898.710025}. What is missing,
+however, is the capability for the application domain model to be fully
+integrated into the SPLC tool chain and have as great an influence as
+the features themselves. We observed in nearly every approach using
+feature models that the lack of a domain model resulted in increasingly
+complicated feature models. Specifically, numerous sub-features appeared
+to be nothing more than instantiations of different configurations, as
+we first identified in Figure~\ref{fig:feature-model}. This is most
+evident when reviewing sample product lines as supported by
+FeatureIDE~\ref{Thum:2014:FEF:2537169.2537315}, an extensible
+Eclipse-based framework for feature-oriented software development. A
+product line member is defined solely by the configuration of existing
+features in the feature model, as allowed by the defined constraints.
+Because there is no separate domain model, the various FeatureIDE
+approaches all appear to have configurations which become ineffective
+domain modeling. For example, in some FeatureIDE models, there are
+features with sub-features that appear to be nothing more than
+instantiations of different configurations, which does little to reduce
+the overall complexity, and instead, simply widens the feature model tree.
+
+\subsection{CLS generic composition}
+
+With dominated approach for using feature in PLs, n features in the
+feature tree may generate 2n configurations which will become product
+line instances. But if we use CLS as the algorithm for composition, the
+fundamental units will be combinators instead of features. The CLS
+starts with a repository of combinators to which a user issues a query
+which attempts to find a type in the repository using inferencing. Using
+CLS generic composition, limitations of composition tools are
+eliminated.
 
 
-\subsection{Essential Characteristics}
+Combinators can be dynamic and added at composition time, something
+which is simply not possible in traditional feature trees used by
+feature-oriented product lines.
 
-\subsubsection{Application domain modeling}
+To better explain these dynamic combinators, consider having a feature
+model with a feature that provides variability and there are a number of
+fixed sub-features that are tailored for each valid variation. For
+example, “Number of external hard disks” might have sub-features
+“One-Hard-Disk”, “Two-hard-disks” and so on. Individual members of the
+PL are configured, accordingly, to select the desired number of external
+hard disks. In contrast, using CLS a single combinator class
+NumberOfExternalDisks is parameterized with an integer, and one can
+instantiate a combinator (NumberOfExternalDisks(3)) and add to the
+repository as needed based on the modeling needs of the member.
 
-This appears missing in nearly every approach we see. This happens because Feature Trees do not require any
-other modeling besides the tree itself, and annotation-based approaches rely solely on the codebase itself.
-
-Because there is no domain modeling, the various Feature-IDE approaches all appear to have configurations
-which become ineffective domain modeling. For example, in some FeatureIDE models,
-there is a feature with sub-features that appear to be nothing more than instantiations of different
-configurations, which makes the width of feature tree in AHEAD huge.
-
-\subsubsection{CLS generic composition}
-
-With dominated approach for using feature in PLs, n features in the feature tree may generate 2n configurations
- which will become product line instances. But if we use CLS as the algorithm for composition, the fundamental
- units will be combinators instead of features. The CLS starts with a repository of combinators to which a user
- issues a query which attempts to find a type in the repository using inferencing. Using CLS generic composition,
- limitations of composition tools are eliminated.
-
-
-Combinators can be dynamic and added at composition time, something which is simply not possible in traditional
-feature trees used by feature-oriented product lines.
-
-To better explain these dynamic combinators, consider having a feature model with a feature that provides
-variability and there are a number of fixed sub-features that are tailored for each valid variation.
-For example, “Number of external hard disks” might have sub-features “One-Hard-Disk”, “Two-hard-disks” and
-so on. Individual members of the PL are configured, accordingly, to select the desired number of external hard
-disks. In contrast, using CLS a single combinator class NumberOfExternalDisks is parameterized with an integer,
-and one can instantiate a combinator (NumberOfExternalDisks(3)) and add to the repository as needed based on
-the modeling needs of the member.
-
-Without making 2n configurations, using CLS will significantly simplify code system in PL, optimize code structure
-make it more readable and reasonable.
+Without making 2n configurations, using CLS will significantly simplify
+code system in PL, optimize code structure make it more readable and
+reasonable.
 
 
 \subsubsection{Compositional manipulation}
 
-Feature-IDE relies on externally provided composition engines to process code fragments. The challenge
-is that FeatureIDE can make no semantic guarantees about the resulting code. Also there is no theoretical
-foundation for the composition, which rather simply is assembly. During assembly, units are wired together
-without making any changes to the units themselves.
+Feature-IDE relies on externally provided composition engines to process
+code fragments. The challenge is that FeatureIDE can make no semantic
+guarantees about the resulting code. Also there is no theoretical
+foundation for the composition, which rather simply is assembly. During
+assembly, units are wired together without making any changes to the
+units themselves.
 
 \subsubsection{Language agnostic}
 
 
-Without being language limited as normal ways, our approach is more laguage agnostic. Choice of language have
-been more diversified, which could benefit more engineers with different backgrounds. We don't have to take
-advantage of single language to build our code base. For example,we have to use .jak files in AHEAD. If
-you are not familiar with the language, you can't use the approach.~\cite{PEPM18}.
+Without being language limited as normal ways, our approach is more
+laguage agnostic. Choice of language have been more diversified, which
+could benefit more engineers with different backgrounds. We don't have
+to take advantage of single language to build our code base. For
+example,we have to use .jak files in AHEAD. If you are not familiar with
+the language, you can't use the approach.~\cite{PEPM18}.
 
 \subsubsection{Code sharing between assets}
 
 
-Like we mentioned above, dynamic combinators can be constructed to add methods into classes. Assets can share
-some basic code, with different methods included.
+Like we mentioned above, dynamic combinators can be constructed to add
+methods into classes. Assets can share some basic code, with different
+methods included.
