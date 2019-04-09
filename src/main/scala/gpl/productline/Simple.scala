@@ -14,7 +14,7 @@ import play.api.mvc.{Action, AnyContent}
 class Simple @Inject()(webJars: WebJarsUtil, lifeCycle: ApplicationLifecycle) extends InhabitationController(webJars, lifeCycle) with SemanticTypes with RoutingEntries {
 
   // specify desired target by (a) declaring algorithm traits; (b) graph structure
-  val graph:Graph =  new undirectedPrimNeighborNodes // new undirectedPrimNeighborNodes   // new undirectedKruskalNeighborNodes
+  val graph:Graph =  new undirectedKruskalNeighborNodes // new undirectedPrimNeighborNodes   // new undirectedKruskalNeighborNodes
 
   /** KlondikeDomain for Klondike defined herein. Controllers are defined in Controllers area. */
   lazy val repository = new GPLDomain(graph) with VertexDomain with EdgeDomain with extensions {}
@@ -43,7 +43,7 @@ class Simple @Inject()(webJars: WebJarsUtil, lifeCycle: ApplicationLifecycle) ex
     // workspace: These should only be generated based on the target
       workSpaceLogic(workSpaceLogic.base,workSpaceLogic.complete),
     // GRAPH as final
-    graphLogic(graphLogic.base,graphLogic.complete )
+    graphLogic(graphLogic.complete )
   )
 
   lazy val results: Results = EmptyInhabitationBatchJobResults(Gamma)

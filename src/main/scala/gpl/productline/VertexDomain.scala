@@ -64,7 +64,6 @@ trait VertexDomain extends SemanticTypes {
 
   @combinator object vertexBase {
     def apply(gen: StructureGenerator): CompilationUnit = {
-      //val gen = new StructureGenerator()
 
       Java(s"""
            |package gpl;
@@ -93,7 +92,7 @@ trait VertexDomain extends SemanticTypes {
   }
 
   // Clean solution. Wants the modification that inserts the fields and the code that accesses
-  // the fields to be in one place.
+  // the fields to be in one place. NOT YET USED
   abstract class DataProvider {
 
     // update run-time structure with new fields and/or accessor methods

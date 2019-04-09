@@ -28,7 +28,7 @@ trait SemanticTypes {
 
   // parts of the widgets during move : Dynamic Behavior
   object graphLogic {
-    def apply (part:Type, features:Type): Constructor = 'GraphLogic (part, features)
+    def apply (part:Type): Constructor = 'GraphLogic (part)
 
     val extensions:Type = 'Extensions
     val implements:Type = 'Implements
@@ -275,8 +275,6 @@ trait SemanticTypes {
 
   val vertexDirectedGRSemantics= new VertexExtension("VertexDirectedGRS")
 
-  //val vertexNodeSearchSemantics= new VertexExtension("VertexNodeSearch")
-
   val vertexCNSemantics= new VertexExtension("VertexCN")
 
   val vertexCCSemantics= new VertexExtension("VertexCC")
@@ -288,9 +286,7 @@ trait SemanticTypes {
     val dfs : Type = 'DFS
     val extensions:Type = 'Extensions
     val base:Type = 'Base
-
   }
-
 
   object vertexIterSemantics{
     def apply (part:Type): Constructor = 'VertexIter (part)
