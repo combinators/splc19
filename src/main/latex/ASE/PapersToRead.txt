@@ -1,0 +1,130 @@
+Domain Modeling --> Model Driven Engineering
+Feature Modeling --> Product Line
+Synthesis --> Generation
+
+
+ASE-2018 former papers
+
+1.https://salt.ece.ubc.ca/publications/docs/ase18.pdf
+title: Generating reusable web components from Mockups
+relevant: yes/no
+reason: yes:perhaps can be referred when talking about component-based approach
+        no: focus on using machine learning to match components, nothing to do with our work.
+
+P.S.: generating reusable web components from a mockup.
+find potential component instance identification, use unsupervised learning to match,
+refactor HTML code to generate new one.
+component-based,
+
+
+
+2.https://dl.acm.org/citation.cfm?id=3238166
+title: deep learning based feature envy detection
+relevant: no
+reason: train classifier on corpus of software, use it on current one,
+        talking about deep learning whole paper.
+
+P.S.:  identify which part of the software should be refactored
+       use deep learning to select feature automatically,
+       train classifier on corpus of software, use it on current one.
+
+ASE-2017 papers
+
+3.Gremlin-ATL: a scalable model transformation framework: https://hal.archives-ouvertes.fr/hal-01589582/document
+relevant:yes?
+reason: maybe this can be referred when talking about our model, like when we generate Kruskal instead
+        of Prim?
+P.S.: Gremlin-ATL, a scalable and efficient
+      model-to-model transformation framework that translates ATL
+      transformations into Gremlin, a query language supported by
+      several NoSQL databases. With Gremlin-ATL, the transformation is computed within the database itself.
+      Models are manipulated and refined using model-to-model transformations.
+
+
+
+
+ https://dblp.org/db/conf/kbse/ase2017 [ Program Synthesis, Models]
+ program verification:
+		Jiaying Li, Jun Sun, Li Li, Quang Loc Le, Shang-Wei Lin:
+5. Automatic loop-invariant generation and refinement through selective sampling. 782-792
+   relevant: No
+   reason: This paper is talking about machine learning to find loop-invariant, nothing to do with our work.
+		Shang-Wei Lin, Jun Sun, Hao Xiao, Yang Liu, David Sanán, Henri Hansen:
+
+6. FiB: squeezing loop invariants by interpolation between Forward/Backward predicate transformers. 793-803
+   relevant: no
+   reason: talking about algorithm to find loop invariants, not even close.
+
+		ThanhVu Nguyen, Matthew B. Dwyer, Willem Visser:
+7. SymInfer: inferring program invariants using symbolic states. 804-814
+   relevant: no
+   reason: not even close.
+
+		Alan Leung, Sorin Lerner:
+8. Parsimony: an IDE for example-guided synthesis of lexers and parsers. 815-825
+
+	relevant: no
+	reason: program analysis algorithm
+	P.S.: program analysis,
+
+		Thomas Krismayer, Rick Rabiser, Paul Grünbacher:
+9. Mining constraints for event-based monitoring in systems of systems. 826-831
+   relevant: I dont think so
+   reason:
+   P.S.: Constraints mining from events
+         Our approach aims at finding constraints based on structures
+         and patterns reappearing in rich event logs.
+         (1)find the most frequent event sequences for each event sequence type. (process mining)
+         (2)create mapping to feature vector using timestamp (algorithm)
+         (3) learning /ranking constraints (ML)
+
+		Shayan Zamanirad, Boualem Benatallah, Moshe Chai Barukh, Fabio Casati, Carlos Rodríguez:
+10. Programming bots by synthesizing natural language expressions into API invocations. 832-837
+    relevant: no
+    P.S.:  a bot programming
+          platform that dynamically synthesizes natural(human) language user
+          expressions into API invocations.
+
+ASE 2016 [https://dblp.org/db/conf/kbse/ase2016]
+
+ 11. Keynote: Program generation for performance. Markus Puschel
+     relevant: yes
+     P.S. : Can't find the whole paper, but should be relevant
+
+
+ 12. On essential configuration complexity: measuring interactions in highly-configurable systems. 483-494
+      relevant: yes
+      reason: feature interactions, use gpl as a case study.
+              when we talk about feature interactions, we can cite this paper.
+      P.S.:  how to measure interactions in high-configurable system
+      feature interactions,describes the situation in which features modify or influence another feature in describing or
+             generating the system’s overall behavior
+
+
+13.  Battery-aware transformations in mobile applications
+     relevant: no
+
+14.  SuperMod: tool support for collaborative filtered model-driven software product line engineering.
+     relevant: yes
+     reason: talk about SPL, MDPLE, gpl
+             Feature model editor: just by modify the uml and make sure there is no contradiction.
+
+     P.S.: is a Eclipse plug-in,the tool offers capabilities for editing
+           feature models and specifying feature configurations, multi-variant,support filtered MDPLE,
+           version control
+           This paper just talk about how to use the functions of the tool, doesnt explain how it works
+           though.
+
+
+
+--- separate to read
+
+15. Scrap Your Boilerplate
+https://www.microsoft.com/en-us/research/wp-content/uploads/2003/01/hmap.pdf
+
+relevant: yes
+reason: our approach can generate boilerplate and let programmers focus on logic part too.
+
+P.S.:(Haskell)Our technique allows most of this boilerplate to be written once and
+     for all, or even generated mechanically, leaving the programmer
+     free to concentrate on the important part of the algorithm

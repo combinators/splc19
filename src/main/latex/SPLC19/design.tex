@@ -1,4 +1,6 @@
 
+
+
 Our improved solution successfully integrates application domain modeling with CLS to dramatically improve our
 ability to automatically compose members of a product line structure. We start by designing a domain model.
 This domain model simply models aspects of these variations, and define constraints between assets. For example,
@@ -12,7 +14,12 @@ We have achieved the following vision: to introduce a new member of the product 
 existing one –just create (or modify) the application domain model and synthesize the member using
 automatic composition. When a variation includes unique logic that has not been seen before, then appropriate
  localized Scala code changes are introduced; if multiple variations could benefit from the variation-specific concepts,
-  then the Scala code is refactored to bring this logic into the shared area.
+  then the Scala code is refactored to bring this logic into the shared area. We combine the advantages
+  of feature model and object-oriented model together and discard  the limitations.
+  The light-weight partial modeling allows us to model a small part we are developing
+ ,make the domain extensible and flexible. Code synthesis can generate all boilerplate code directly
+ that we can focus more on the inner logic of the system, there will be no necessary that we
+ copy paste large amount of code like what people did in AHEAD.
 
  \subsection{More powerful Scala Implementation}
 
