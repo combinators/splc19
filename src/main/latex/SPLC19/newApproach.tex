@@ -30,6 +30,18 @@ design'' and there no other separate representation of the classes being
 manipulated by the compiler directives. For this reason, our
 investigation focused primarily on composition-based SPLC approaches.
 
+The application domain modeling is still problematic on both feature model
+system and Object-oriented system. The feature model system is no more than
+a closed feature tree system, with features encapsulated in black boxes. It's a
+full model that we plan every detail of the model in advance, with no guarantee that the
+code generated eventually will work. It's hard to deal with domain variability and extension.
+We can only add features into the system who doesn't change the structure.
+In the Object-oriented system, the configuration becomes
+ hard that there are no boxes of features for us to choose from. Though
+we can utilize UML or MDE for modeling, it relies on deep understanding and proficient using of various
+tools. The limitation of tools would finally restrict it's ability.
+Type safe problem is also a widely discussed problem with modeling of OO system.
+
 Researchers have investigated various object-oriented technologies to
 support SPLs~\cite{Griss1999,Batory2000} with the focus of finding ways
 to develop reusable components within an SPLC, whether using variations
@@ -39,9 +51,7 @@ however, is the capability for the application domain model to be fully
 integrated into the SPLC tool chain and have as great an influence as
 the features themselves. We observed in nearly every approach using
 feature models that the lack of a domain model resulted in increasingly
-complicated feature models. Specifically, numerous sub-features appeared
-to be nothing more than instantiations of different configurations, as
-we first identified in Figure~\ref{fig:feature-model}. This is most
+complicated feature models.This is most
 evident when reviewing sample product lines as supported by
 FeatureIDE~\ref{Thum:2014:FEF:2537169.2537315}, an extensible
 Eclipse-based framework for feature-oriented software development. A
@@ -51,8 +61,13 @@ Because there is no separate domain model, the various FeatureIDE
 approaches all appear to have configurations which become ineffective
 domain modeling. For example, in some FeatureIDE models, there are
 features with sub-features that appear to be nothing more than
-instantiations of different configurations, which does little to reduce
+instantiations of different configurations,as we first identified in Figure~\ref{fig:feature-model}.  which does little to reduce
 the overall complexity, and instead, simply widens the feature model tree.
+
+In our approach, we realized lightweight partial modeling and code synthesis.
+We don't have to model the full domain in the first place like feature model system,
+or rely on tool sets that much like OO system. We simply model the part we want and synthesize
+code.
 
 \subsection{CLS generic composition}
 

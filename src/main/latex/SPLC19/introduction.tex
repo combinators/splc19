@@ -1,8 +1,13 @@
-%% %% Introduction %% %% Key ideas: %% %% 1. Augmenting feature models
-with application domain modeling %% 2. Impact this has on the toolsuite
-for featureIDE and composition engines %% %% 3. Expose programming API
-instead of providing a standard black-box %% capability, which might
-otherwise restrict users' abilities.
+%% 
+%% Introduction
+%%
+%% Key ideas: 
+%%
+%% 1. Augmenting feature models with application domain modeling
+%% 2. Impact this has on the toolsuite for featureIDE and composition engines
+%%
+%% 3. Expose programming API instead of providing a standard black-box
+%%    capability, which might otherwise restrict users' abilities.
 
 Software product lines (SPLs) refer to software engineering methods,
 tools and techniques for creating a collection of similar software
@@ -27,12 +32,11 @@ DeltaJ~\cite{Schaefer:2010:DPS:1885639.1885647}) that developers use to
 encode the artifacts.
 
 %% ,natwidth=1154,natheight=576
-
-\begin{figure} 
-  \includegraphics[scale=0.25]{gpl2.png} 
-  \caption{Graph Product Line Feature Model} 
-  \label{fig:feature-model} 
-\end{figure}
+%%\begin{figure}
+%%  \includegraphics[scale=0.25]{gpl2.png}
+%%  \caption{Graph Product Line Feature Model}
+%%  \label{fig:feature-model}
+%%\end{figure}
 
 There remains a potential issue, however, when the variability inherent
 in the product line relates to the application domain model. The common
@@ -76,7 +80,7 @@ significant impact on each other.
  %be considered a closed system.
 
 
-% A SPL is a family of related programs. When the units of program 
+% A SPL is a family of related programs. When the units of program
 % construction are feature—increments in program functionality or
 %development—every program in an SPL is identified by a unique and legal
 %combination of features, and vice versa. Family member refers to
@@ -152,16 +156,9 @@ easy to use and are already natively supported by many programming
 environments. While these approaches are easily adopted, the limited
 (and typically non-extensible) tool support can make it more complicated
 to maintain an SPLC in the face of constant evolution and added (or
-removed) features. CIDE~\cite{CIDE:Eclipse} is an Eclipse plug-in that
-replaces the Java editor in SPL projects. Developers start with a
-standard Java legacy application, then they select code fragment and
-associate them with features from the context menu. The marked code is
-then permanently highlighted in the editor using a background color
-associated with the feature. Researchers have shown how to type check
-software product lines to identify and eliminate common errors, such as
-missing class fields or methods. A product-line-aware type checking
+removed) features. A product-line-aware type checking
 system has also been developed to statically and efficiently detects
-type errors in annotation-based product-line
+type errors in annotation-based product-line.
 implementations~\cite{Kastner:2012,Apel:2013:FSP:2541773}.
 
 \subsubsection{Composition-based Approach}
@@ -173,7 +170,7 @@ artifacts. A product line instance is configured by selecting
 for inclusion features from the feature tree, potentially restricted by
 constraints. A composition engine processes the code assets associated
 with the selected features to create the final source code for the
-product line instance. The n
+product line instance.
 
 Composition-based approaches locate code belonging to a feature or
 feature combination in a dedicated file, container, or module. A classic
@@ -212,7 +209,17 @@ Annotation-based approach are not so widely used as composition-based
 approach because drawbacks mentioned above. Here are some existing
 annotation-based approaches:
 
+CIDE~\cite{CIDE:Eclipse} is an Eclipse plug-in that
+replaces the Java editor in SPL projects. Developers start with a
+standard Java legacy application, then they select code fragment and
+associate them with features from the context menu. The marked code is
+then permanently highlighted in the editor using a background color
+associated with the feature. Researchers have shown how to type check
+software product lines to identify and eliminate common errors, such as
+missing class fields or methods.
 
+Boost is a set of libraries for the C++ programming language that provide support for
+tasks and structures.
 
 
 To work with FeatureIDE, the primary challenge is to design a feature
