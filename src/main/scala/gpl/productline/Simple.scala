@@ -43,7 +43,7 @@ class Simple @Inject()(webJars: WebJarsUtil, lifeCycle: ApplicationLifecycle) ex
     // workspace: These should only be generated based on the target
       workSpaceLogic(workSpaceLogic.base,workSpaceLogic.complete),
     // GRAPH as final
-    graphLogic(graphLogic.complete )
+    graphLogic(graphLogic.complete)
   )
 
   lazy val results: Results = EmptyInhabitationBatchJobResults(Gamma)

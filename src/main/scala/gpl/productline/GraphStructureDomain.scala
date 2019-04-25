@@ -41,7 +41,6 @@ trait GraphStructureDomain extends SemanticTypes with VertexDomain {
            |   public void sortVertices(Comparator c) {
            |      Collections.sort(vertices, c);
            |   }
-           |   public IEdge addEdge( Vertex v1, Vertex v2 ) { return null; }
            |
            |   public Vertex findsVertex(String name) {
            |        for (Iterator<Vertex> it = getVertices(); it.hasNext(); ) {
@@ -129,25 +128,49 @@ trait GraphStructureDomain extends SemanticTypes with VertexDomain {
          """.stripMargin).compilationUnit
     }
 
-    val semanticType: Type = 'StructureGenerator =>: graphLogic(graphLogic.complete)
+    val semanticType: Type = 'StructureGenerator =>: graphLogic(graphLogic.base)
   }
 
-  class primAlgorithm {
+  class primAlgorithm(incoming:Type, outgoing:Type) {
 
-    //val gen = new StructureGenerator()
 
     // pass in a generator as argument -- not code itself, but code that would know how
     // to generate. HEre CLS no wires together everything, which avoids my needing to
     // do it manually. pre-selecting components and then use CLS to determine wiring.
     // FeatureIDE pre-select components but then manually add constraints to ensure/filter
     // only the valid ones.
-    def apply() : Seq[BodyDeclaration[_]] = {
+    def apply(gen: StructureGenerator, unit:CompilationUnit) : CompilationUnit = {
 
-      val gen = new StructureGenerator()
+      // design-time factory not a run-time factory.
+      // why no develop own Domain specific language. A strong desire to work
+      // within a single development environment and use just the target language under consideration.
+      // ANy DSL loses the rich computational ability of whatever language you are using.
+      // DSL researchers over-sell the idea.
+      //
+      // The individual code I write must be readable AND the resulting code in the target language
+      // after synthesis must be readable; and this latter is not the concern of DSL because they
+      // typically are only concerned about proper functionality of the generated code, not whether
+      // it is human-readable.
+      //
+      // one last argument against creating a DSL is we are already trying to find a way to
+      // blend feature-model capabilities with domain-modeling capabilities and so the DSL would
+      // have to be a superset of both.
+      //
+      // interaction with 3rd-party target libraries would have to be modeled within the DSL
+      // itself (or simply be supported by foreign API calls).
+      //
+      // finally without creating the added burden of designing a DSL we wanted to investigate
+      // how to effectively blend/coordinate feature-modeling capabilities with domain-modeling
+      //
+      // the model is a declarative DSL model from which we synthesize the target language in a
+      // way that produces more readable code that can easily integrate with arbitrary libraries
+      // in the target language.
+      //
+      // We are truly interested in producing a minimal code base that can easily be understood
+      //val gen = new StructureGenerator()
 
       val str = s"""
            |public Graph Prim() {
-           |    // NOTE: IN TESTING THIS DIDN'T FIND PROPER MST ON SAMPLE. PLEASE FIX !
            |		Vertex root = null;
            |
            |		// 2. and 3. Initializes the vertices
@@ -237,45 +260,40 @@ trait GraphStructureDomain extends SemanticTypes with VertexDomain {
            |	}
            |""".stripMargin
 
-      println(str)
-      Java(str).classBodyDeclarations
+      // add to existing unit
+      val clazz = unit.getType(0)
+      Java(str).methodDeclarations()
+        .foreach(m => clazz.addMember(m))
+
+      unit
     }
 
-    val semanticType: Type = graphLogic(graphLogic.prim)
+    val semanticType: Type = 'StructureGenerator =>: incoming =>: outgoing  // graphLogic(graphLogic.prim)
   }
 
-  class kruskalAlgorithm {
-    def apply() : Seq[BodyDeclaration[_]] = {
+  class kruskalAlgorithm(incoming:Type, outgoing:Type) {
+    def apply(gen: StructureGenerator, unit:CompilationUnit) : CompilationUnit = {
 
-      val gen = new StructureGenerator()
-
-      Java(
-        s"""
-           | int ver;
-           |
-           |    public Graph(int ver) {
-           |        this();
-           |        this.ver = ver;
-           |    }
-           |     public void Kruskal(){
+      val methods = Java(s"""
+           |    public void Kruskal(){
            |        PriorityQueue<Edge> pq = new PriorityQueue<>(edges.size(), Comparator.comparingInt(o -> o.getWeight()));
            |
-           |        //add all the edges to priority queue, // sort the edges on weights
-           |        for (int i = 0; i <edges.size() ; i++) {
-           |            pq.add(edges.get(i));
-           |        }
+           |        // add all the edges to priority queue, // sort the edges on weights
+           |        ${gen.getEdgesBegin("en")}
+           |            pq.add(en);
+           |        ${gen.getEdgesEnd("en")}
            |
            |        //create a parent [] and set it up properly so parent[i] = i
-           |        int [] parent = new int[ver];
+           |        int [] parent = new int[N];
            |        makeSet(parent);
            |
            |        ArrayList<Edge> mst = new ArrayList<>();
            |
-           |        //process vertices - 1 edges
+           |        // process N - 1 edges
            |        int index = 0;
-           |        while (index < ver-1) {
+           |        while (index < N-1) {
            |            Edge edge = pq.remove();
-           |            //check if adding this edge creates a cycle
+           |            // check if adding this edge creates a cycle
            |            int x_set = find(parent, edge.source);
            |            int y_set = find(parent, edge.destination);
            |
@@ -293,7 +311,7 @@ trait GraphStructureDomain extends SemanticTypes with VertexDomain {
            |
            |    public void makeSet(int [] parent){
            |        // Make set- creating a new element with a parent pointer to itself.
-           |        for (int i = 0; i < ver ; i++) {
+           |        for (int i = 0; i < N ; i++) {
            |            parent[i] = i;
            |        }
            |    }
@@ -307,21 +325,36 @@ trait GraphStructureDomain extends SemanticTypes with VertexDomain {
            |    }
            |
            |    public void union(int [] parent, int x, int y){
-           |        int x_set_parent = find(parent, x);
            |        int y_set_parent = find(parent, y);
-           |        // make x as parent of y
-           |        parent[y_set_parent] = x_set_parent;
+           |
+           |        parent[y_set_parent] = find(parent, x);      // make x as parent of y
            |    }
            |
            |    public void printGraph(ArrayList<Edge> edgeList){
-           |        for (int i = 0; i <edgeList.size() ; i++) {
-           |            System.out.println(edgeList.get(i));
+           |        for (Edge e : edgeList) {
+           |            System.out.println(e);
            |        }
            |    }
-           |""".stripMargin).classBodyDeclarations()
+           |""".stripMargin).methodDeclarations()
+
+      // add to existing unit
+      val clazz = unit.getType(0)
+      methods.foreach(m => clazz.addMember(m))
+
+      Java("""public Graph(int N) {
+          |        this();
+          |        this.N = N;
+          |}""".stripMargin).constructors().foreach(f => clazz.addMember(f))
+
+      // add 'int N' as class attribute.
+      // add field(s)
+      Java("int N;").fieldDeclarations()
+        .foreach(f => clazz.addMember(f))
+
+      unit
     }
 
-    val semanticType: Type = graphLogic(graphLogic.kruskal)
+    val semanticType: Type = 'StructureGenerator =>: incoming =>: outgoing
   }
 
   class searchGraph {
@@ -530,29 +563,29 @@ trait GraphStructureDomain extends SemanticTypes with VertexDomain {
     val semanticType: Type ='directed //graphLogic(graphLogic.base, graphLogic.prim)//
   }
 
-  class graphChained1(t1:Type) {
-    def apply(bd1:Seq[BodyDeclaration[_]]): Seq[BodyDeclaration[_]] =
-      bd1
-
-    val semanticType:Type = t1 =>:
-      graphLogic(graphLogic.extensions)
-  }
-
-  class graphChained2(t1:Type,t2:Type) {
-    def apply(bd1:Seq[BodyDeclaration[_]],bd2:Seq[BodyDeclaration[_]]): Seq[BodyDeclaration[_]] =
-      bd1 ++ bd2
-
-    val semanticType:Type = t1 =>: t2 =>:
-      graphLogic(graphLogic.extensions)
-  }
-
-  class graphChained3(t1:Type,t2:Type,t3:Type) {
-    def apply(bd1:Seq[BodyDeclaration[_]],bd2:Seq[BodyDeclaration[_]],bd3:Seq[BodyDeclaration[_]]): Seq[BodyDeclaration[_]] =
-      bd1 ++ bd2 ++ bd3
-
-    val semanticType:Type = t1 =>: t2 =>:t3 =>:
-      graphLogic(graphLogic.extensions)
-  }
+//  class graphChained1(t1:Type) {
+//    def apply(bd1:Seq[BodyDeclaration[_]]): Seq[BodyDeclaration[_]] =
+//      bd1
+//
+//    val semanticType:Type = t1 =>:
+//      graphLogic(graphLogic.extensions)
+//  }
+//
+//  class graphChained2(t1:Type,t2:Type) {
+//    def apply(bd1:Seq[BodyDeclaration[_]],bd2:Seq[BodyDeclaration[_]]): Seq[BodyDeclaration[_]] =
+//      bd1 ++ bd2
+//
+//    val semanticType:Type = t1 =>: t2 =>:
+//      graphLogic(graphLogic.extensions)
+//  }
+//
+//  class graphChained3(t1:Type,t2:Type,t3:Type) {
+//    def apply(bd1:Seq[BodyDeclaration[_]],bd2:Seq[BodyDeclaration[_]],bd3:Seq[BodyDeclaration[_]]): Seq[BodyDeclaration[_]] =
+//      bd1 ++ bd2 ++ bd3
+//
+//    val semanticType:Type = t1 =>: t2 =>:t3 =>:
+//      graphLogic(graphLogic.extensions)
+//  }
 
   @combinator object undirectedGenR {
     def apply() : Seq[BodyDeclaration[_]] = {

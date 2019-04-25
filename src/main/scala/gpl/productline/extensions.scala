@@ -60,16 +60,14 @@ trait extensions extends GraphDomain with VertexDomain with EdgeDomain with Neig
 
     //updated = updated.addCombinator(new primAlgorithm())
     if (g.capabilities.contains(Prim())) {
-      updated = updated.addCombinator(new primAlgorithm())
-      updated = updated.addCombinator(new graphChained1(graphLogic(graphLogic.prim)))
+      updated = updated.addCombinator(new primAlgorithm(graphLogic(graphLogic.base), graphLogic(graphLogic.complete)))
       updated = updated.addCombinator (new PredKey(vertexExtensions.last, vertexLogic(vertexLogic.var_predkey)))
       vertexExtensions = vertexExtensions :+ vertexLogic(vertexLogic.var_predkey)
       workSpaceExtensions = workSpaceExtensions:+ workSpaceLogic(workSpaceLogic.base,workSpaceLogic.var_region)
     }
 
     if (g.capabilities.contains(Kruskal())) {
-      updated = updated.addCombinator(new kruskalAlgorithm())
-      updated = updated.addCombinator(new graphChained1(graphLogic(graphLogic.kruskal)))
+      updated = updated.addCombinator(new kruskalAlgorithm(graphLogic(graphLogic.base), graphLogic(graphLogic.complete)))
       workSpaceExtensions = workSpaceExtensions:+ workSpaceLogic(workSpaceLogic.base,workSpaceLogic.var_region)
     }
 
@@ -85,7 +83,7 @@ trait extensions extends GraphDomain with VertexDomain with EdgeDomain with Neig
       vertexExtensions = vertexExtensions :+ vertexLogic(vertexLogic.connected)
       updated= updated.addCombinator(new RegionWorkSpace())
       workSpaceExtensions= workSpaceExtensions:+ workSpaceLogic(workSpaceLogic.base,workSpaceLogic.var_region)
-      updated = updated.addCombinator(new graphChained2('searchCommon, 'connected))
+     // updated = updated.addCombinator(new graphChained2('searchCommon, 'connected))
     }
 
     //directed done, DFS done, transpose done
@@ -99,7 +97,7 @@ trait extensions extends GraphDomain with VertexDomain with EdgeDomain with Neig
       vertexExtensions = vertexExtensions :+ vertexLogic(vertexLogic.var_stronglyC)
       updated = updated.addCombinator(new FinishTimeWorkSpace())
       updated = updated.addCombinator(new WorkSpaceTranspose())
-      updated = updated.addCombinator(new graphChained3('transpose,'directed,'stronglyC))
+      //updated = updated.addCombinator(new graphChained3('transpose,'directed,'stronglyC))
       vertexExtensions = vertexExtensions :+ vertexLogic(vertexLogic.var_dfs)
 
       workSpaceExtensions= workSpaceExtensions:+ workSpaceLogic(workSpaceLogic.base,workSpaceLogic.var_ft)
@@ -115,14 +113,10 @@ trait extensions extends GraphDomain with VertexDomain with EdgeDomain with Neig
       vertexExtensions = vertexExtensions :+ vertexLogic(vertexLogic.number)
       updated=updated.addCombinator(new NumGraph())
       updated=updated.addCombinator(new NumberWorkSpace())
-      updated = updated.addCombinator(new graphChained2('number,'searchCommon))
+      //updated = updated.addCombinator(new graphChained2('number,'searchCommon))
       workSpaceExtensions= workSpaceExtensions:+ workSpaceLogic(workSpaceLogic.base,workSpaceLogic.var_num)
     }
 
-    if (g.capabilities.contains(Kruskal())) {
-      updated = updated.addCombinator(new kruskalAlgorithm())
-      updated = updated.addCombinator(new graphChained1('kruskalImplementation))
-    }
 
     // shows how you would update based on the semantics from domain
     //updated = updated.addCombinator(new VertexExtension(body))

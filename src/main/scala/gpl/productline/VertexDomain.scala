@@ -124,6 +124,17 @@ trait VertexDomain extends SemanticTypes {
     }
   }
 
+  // for the record: we COULD have more complicated adjustments, whether to remove methods
+  // or rename methods, even different parameter sets?
+
+  // refines class Vertex {
+  //    LinkedList<Vertex> neighbors = new LinkedList<>();
+  //    public Iterator<Vertex> getNeighbors( ) { return neighbors.iterator(); }
+  //
+  //    public int fake( ) { return 2 + Super().fake(); }
+  // }
+
+
   /**
     * Searching relies on common capability to record whether a vertex has been visited. A new
     * field is added, together with a new method "init_vertex" which is to be invoked (via dispatch)

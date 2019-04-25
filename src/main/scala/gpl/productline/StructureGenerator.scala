@@ -19,15 +19,22 @@ package gpl.productline
 class StructureGenerator {
   def getVerticesBegin(v:String) : String = {
     s"""
-       |for ( Iterator<Vertex> it$v = getVertices(); it$v.hasNext();) {
+       |for (Iterator<Vertex> it$v = getVertices(); it$v.hasNext(); ) {
        |  Vertex $v = it$v.next();
        |""".stripMargin
   }
   def getVerticesEnd(v:String) : String = "}"
 
+  def getEdgesBegin(en:String) : String = {
+    s"""
+       |for (Edge $en : edges) {
+       |  """.stripMargin
+  }
+  def getEdgesEnd(v:String) : String = "}"
+
   def getEdgesOfBegin(en:String, u:String) : String = {
     s"""
-       |for ( Iterator<Edge> it$en = getEdges($u); it$en.hasNext();) {
+       |for (Iterator<Edge> it$en = getEdges($u); it$en.hasNext(); ) {
        |  Edge $en = it$en.next();
            """.stripMargin
   }
