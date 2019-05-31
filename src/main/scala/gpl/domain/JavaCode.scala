@@ -34,4 +34,17 @@ object JavaCode {
     method.setBody(block)
     method
   }
+
+  def replaceStatements(method: MethodDeclaration, stmts: Seq[Statement]): MethodDeclaration = {
+    if (!method.getBody.isPresent) {
+      val bb: BlockStmt = new BlockStmt()
+      method.setBody(bb)
+    }
+    var block = method.getBody.get
+
+
+    stmts.reverse.foreach(s => block = block.setStatement(0,s))
+    method.setBody(block)
+    method
+  }
 }

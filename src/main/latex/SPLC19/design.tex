@@ -91,12 +91,28 @@ In AHEAD approach, there are many duplicated code, for example, the refinements 
   In Ahead approach, some features can only be used for once. For example, only thing feature dProgStronglyConnected do
   was to provide a run method. This will lead to redundant code, while our approach doesn't have such problems.
 
- Other than adding content to existing class, which can also be realized with DeltaJ, we can also modify content in the
- class easily by constructing a combinator which takes a CompliationUnit as parameter, customize the class and return it
- as a CompliationUnit.
+\subsection{More flexible code construction}
+
+ Other than adding content to existing class, which can also be realized with AHEAD by use refinement in JAK file,
+ we can also modify or even delete content in place easily by constructing a combinator which takes a CompliationUnit
+  as parameter, customize the class and return it as a CompliationUnit.
+
+  %%Code example will be added here
 
  With our approach, it makes it possible to customize existing classes by either adding content or just changing it.
 
+\subsection{BoilerPlate ready to go}
+
+Boilerplate code can be wrote once and applied in any number of contests. In widely used approach Boost,
+you have to be an expert in C++ and the Boost library to use the API. With our approach, all the complicated code could
+be synthesized, programmers can focus on designing artifacts.
+
+For example, in Prim algorithm, we need couple loops with iterator to go through the list of vertices and
+ edges. While in our approach, we can add content between these two interfaces
+ ${gen.getVerticesBegin("vx")} and ${gen.getVerticesEnd("vx")} to go through the list and use
+ information of the vertices.
+
+here we ~\cite{Schwagerl:2016:STS:2970276.2970288}.
 
  \subsection{Perform Computations During Synthesis}
 
@@ -111,7 +127,8 @@ methods of the respective combinators in the types are computed.
  solution domain code fragments directly from application domain elements.
  This capability truly shows how to transform a lightweight application domain model into executable solution domain
  code, without relying on proprietary or complicated tool support. The resulting product line members are constructed
- more directly than existing configuration mechanisms.
+ more directly than existing configuration mechanisms. Code synthesize is more like a process of assembling
+ model.
 
  The automated composition technology reveals the direct links between the application domain and the solution
  domain while allowing each to be independently evolved and modified. Evolution can occur in the application domain

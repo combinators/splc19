@@ -41,6 +41,7 @@ trait SemanticTypes {
     val directed:Type='Directed
     val searchCommon:Type='SearchCommon
     val complete:Type = 'Complete
+    val cycle: Type='Cycle
 
 
     // features
@@ -58,6 +59,7 @@ trait SemanticTypes {
     val var_num='Number
     val var_ft='FinishTime
     val var_trans='Transpose
+    val var_cyc='Cycle
     // features
     val empty : Type = 'Empty
   }
@@ -67,6 +69,18 @@ trait SemanticTypes {
     def apply (part:Type): Constructor = 'WorkSpaceExtension(part)
 
     val region = 'Region
+    val cycle='Cycle
+  }
+
+  object cycleWorkSpaceLogic {
+    def apply (part:Type, features:Type): Constructor = 'CycleWorkSpaceLogic (part, features)
+
+    val extensions:Type = 'Extensions
+    val implements:Type = 'Implements
+    val base:Type = 'Base
+    val complete:Type = 'Complete
+    // features
+    val empty : Type = 'Empty
   }
 
   object regionWorkSpaceLogic {
@@ -145,6 +159,7 @@ trait SemanticTypes {
     val search='Search
     val number ='Number
     val var_dfs='DFS
+    val var_cyc='Cycle
     val var_stronglyC='StronglyC
     val connected = 'Connected
     val var_colored = 'Colored

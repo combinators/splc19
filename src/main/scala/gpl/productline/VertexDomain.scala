@@ -170,7 +170,6 @@ trait VertexDomain extends SemanticTypes {
 
       val dispMethods = clazz.getMethodsBySignature("display")
       dispMethods.forEach (method => JavaCode.prependStatements(method, dispStmts))
-
     }
   }
 
@@ -213,9 +212,9 @@ trait VertexDomain extends SemanticTypes {
            |        v.nodeSearch(w);
            |    }
            |
-              |    // Step 3: do postVisitAction now
+           |    // Step 3: do postVisitAction now
            |    w.postVisitAction (this);
-           |} // of dftNodeSearch""".stripMargin).methodDeclarations()
+           |} """.stripMargin).methodDeclarations()
 
       methods.foreach(m => clazz.addMember(m))
     }
@@ -272,4 +271,20 @@ trait VertexDomain extends SemanticTypes {
     }
   }
 
+  class CycVertex(incoming:Type, outgoing:Type) extends UnitModifier(incoming, outgoing) {
+    override def modify(vertexUnit: CompilationUnit): Unit = {
+      val clazz = vertexUnit.getType(0)
+
+      // add field
+      clazz.addFieldWithInitializer(Java("int").tpe(), "VertexCycle", Java("0").expression[Expression](), Modifier.PUBLIC)
+      clazz.addFieldWithInitializer(Java("int").tpe(), "VertexColor", Java("0").expression[Expression](), Modifier.PUBLIC)
+
+
+      val dispStmts = Java(s"""System.out.print( " VertexCycle# " + VertexCycle + " " );""").statements
+
+      val dispMethods = clazz.getMethodsBySignature("display")
+      dispMethods.forEach (method => JavaCode.prependStatements(method, dispStmts))
+
+    }
+  }
 }

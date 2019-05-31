@@ -1,20 +1,22 @@
 package gpl.productline
 
-import javax.inject.Inject
-import org.webjars.play.WebJarsUtil
 import com.github.javaparser.ast.CompilationUnit
 import gpl.domain._
-import org.combinators.cls.interpreter.ReflectedRepository
+import javax.inject.Inject
 import org.combinators.cls.git._
+import org.combinators.cls.interpreter.ReflectedRepository
 import org.combinators.cls.types.Constructor
 import org.combinators.templating.persistable.JavaPersistable._
+import org.webjars.play.WebJarsUtil
 import play.api.inject.ApplicationLifecycle
 import play.api.mvc.{Action, AnyContent}
-//This is for MST testing
-class Simple @Inject()(webJars: WebJarsUtil, lifeCycle: ApplicationLifecycle) extends InhabitationController(webJars, lifeCycle) with SemanticTypes with RoutingEntries {
+
+//This is for Connected
+//undirected && search
+class Comp @Inject()(webJars: WebJarsUtil, lifeCycle: ApplicationLifecycle) extends InhabitationController(webJars, lifeCycle) with SemanticTypes with RoutingEntries {
 
   // specify desired target by (a) declaring algorithm traits; (b) graph structure
-  val graph:Graph =  new undirectedPrimNeighborNodes//undirectedCycleNeighborNodes    // new undirectedKruskalNeighborNodes
+  val graph:Graph =  new undirectedConnectedNeighborNodes//undirectedCycleNeighborNodes    // new undirectedKruskalNeighborNodes
 
   /** KlondikeDomain for Klondike defined herein. Controllers are defined in Controllers area. */
   lazy val repository = new GPLDomain(graph) with VertexDomain with EdgeDomain with extensions {}
@@ -42,6 +44,8 @@ class Simple @Inject()(webJars: WebJarsUtil, lifeCycle: ApplicationLifecycle) ex
     //  neighborLogic(neighborLogic.base,neighborLogic.complete),
     // workspace: These should only be generated based on the target
       workSpaceLogic(workSpaceLogic.base,workSpaceLogic.complete),//complete),
+    regionWorkSpaceLogic(regionWorkSpaceLogic.base,regionWorkSpaceLogic.complete),
+
     // GRAPH as final
     graphLogic(graphLogic.complete)
   )

@@ -45,7 +45,9 @@ trait extensions extends GraphDomain with VertexDomain with EdgeDomain with Neig
     }
 
     if (g.directed) {
-      updated = updated.addCombinator(new DirectedGR())
+      updated = updated.addCombinator(new directedCommon(graphExtensions.last,graphLogic(graphLogic.directed)))
+      graphExtensions = graphExtensions :+ graphLogic(graphLogic.directed)
+
     }
 
     if (g.weighted){
@@ -68,17 +70,70 @@ trait extensions extends GraphDomain with VertexDomain with EdgeDomain with Neig
 
     if (g.capabilities.contains(Kruskal())) {
       updated = updated.addCombinator(new kruskalAlgorithm(graphLogic(graphLogic.base), graphLogic(graphLogic.complete)))
-      workSpaceExtensions = workSpaceExtensions:+ workSpaceLogic(workSpaceLogic.base,workSpaceLogic.var_region)
+      updated=updated.addCombinator(new RegionWorkSpace())
+      workSpaceExtensions = workSpaceExtensions:+ workSpaceLogic(workSpaceLogic.base,workSpaceExtension.region)
+    }
+    //Search is actually mandatory for DFS, because visited is defined in Search Vertex
+//DFS
+    //next
+    if(g.capabilities.contains(Cycle())){
+   //   updated=updated.addCombinator(new searchGraph())
+      //DFS a necessary constraint
+      updated=updated.addCombinator(new CycleGraph(graphLogic(graphLogic.base), graphLogic(graphLogic.complete)))
+      updated=updated.addCombinator(new CycVertex(vertexExtensions.last, vertexLogic(vertexLogic.var_cyc)))
+      vertexExtensions = vertexExtensions :+ vertexLogic(vertexLogic.var_cyc)
+
+      //have to add Search to make sure we get field visited
+      updated = updated.addCombinator(new SearchVertex(vertexExtensions.last, vertexLogic(vertexLogic.search)))
+      vertexExtensions = vertexExtensions :+ vertexLogic(vertexLogic.search)
+      //DFS
+
+      updated= updated.addCombinator(new DFSVertex(vertexExtensions.last, vertexLogic(vertexLogic.var_dfs)))
+      vertexExtensions = vertexExtensions :+ vertexLogic(vertexLogic.var_dfs)
+
+      updated= updated.addCombinator(new CycleWorkSpace())
+
+      workSpaceExtensions = workSpaceExtensions:+ workSpaceLogic(workSpaceLogic.base,workSpaceExtension.cycle)
     }
 
     // EITHER-OR for Connected or StronglyConnected -- surely can't have both
 
+    if (g.capabilities.contains(StronglyC())) {
+      //  updated = updated.addCombinator(new Transpose())
+      //  updated = updated.addCombinator(new directedCommon())//should be added with directed
+      updated=updated.addCombinator(new searchGraph(graphExtensions.last,graphLogic.searchCommon))
+      graphExtensions= graphExtensions :+ graphLogic(graphLogic.searchCommon)
+
+      updated = updated.addCombinator(new stronglyCGraph(graphExtensions.last, graphLogic.stronglyC))
+      graphExtensions = graphExtensions :+ graphLogic(graphLogic.stronglyC)
+
+      updated=updated.addCombinator(new StronglyCVertex(vertexExtensions.last, vertexLogic(vertexLogic.var_stronglyC)))
+      vertexExtensions = vertexExtensions :+ vertexLogic(vertexLogic.var_stronglyC)
+
+      //have to add Search to make sure we get field visited
+      updated = updated.addCombinator(new SearchVertex(vertexExtensions.last, vertexLogic(vertexLogic.search)))
+      vertexExtensions = vertexExtensions :+ vertexLogic(vertexLogic.search)
+      //dfs
+      updated= updated.addCombinator(new DFSVertex(vertexExtensions.last, vertexLogic(vertexLogic.var_dfs)))
+      vertexExtensions = vertexExtensions :+ vertexLogic(vertexLogic.var_dfs)
+
+      //WorkSpace
+      updated = updated.addCombinator(new FinishTimeWorkSpace())
+      updated = updated.addCombinator(new WorkSpaceTranspose())
+      workSpaceExtensions= workSpaceExtensions:+ workSpaceLogic(workSpaceLogic.base,workSpaceLogic.var_ft)
+      workSpaceExtensions= workSpaceExtensions:+ workSpaceLogic(workSpaceLogic.base,workSpaceLogic.var_trans)
+    }
+
+    //updated = updated.addCombinator(new graphChained3('transpose,'directed,'stronglyC))
+
+
     // need to work on workSpace
+    //undirected && Search
     if (g.capabilities.contains(Connected())) {
       updated = updated.addCombinator(new SearchVertex(vertexExtensions.last, vertexLogic(vertexLogic.search)))  // need to have these in place THEN get request
       vertexExtensions = vertexExtensions :+ vertexLogic(vertexLogic.search)
-      updated=updated.addCombinator(new searchGraph())
-      updated= updated.addCombinator(new connectedGraph())
+ //     updated=updated.addCombinator(new searchGraph(graphLogic(graphLogic.base), graphLogic(graphLogic.complete)))
+      updated= updated.addCombinator(new connectedGraph(graphLogic(graphLogic.base), graphLogic(graphLogic.complete)))
       updated= updated.addCombinator(new ConnectedVertex(vertexExtensions.last, vertexLogic(vertexLogic.connected)))
       vertexExtensions = vertexExtensions :+ vertexLogic(vertexLogic.connected)
       updated= updated.addCombinator(new RegionWorkSpace())
@@ -86,29 +141,20 @@ trait extensions extends GraphDomain with VertexDomain with EdgeDomain with Neig
      // updated = updated.addCombinator(new graphChained2('searchCommon, 'connected))
     }
 
-    //directed done, DFS done, transpose done
-    // need to work on workSpace
-    if (g.capabilities.contains(StronglyConnected())) {
-      //updated = updated.addCombinator(new DFSVertex())
-      updated = updated.addCombinator(new Transpose())
-      updated = updated.addCombinator(new directedCommon())
-      updated = updated.addCombinator(new stronglyCGraph())
-      updated = updated.addCombinator(new StronglyCVertex(vertexExtensions.last, vertexLogic.var_stronglyC))
-      vertexExtensions = vertexExtensions :+ vertexLogic(vertexLogic.var_stronglyC)
-      updated = updated.addCombinator(new FinishTimeWorkSpace())
-      updated = updated.addCombinator(new WorkSpaceTranspose())
-      //updated = updated.addCombinator(new graphChained3('transpose,'directed,'stronglyC))
-      vertexExtensions = vertexExtensions :+ vertexLogic(vertexLogic.var_dfs)
+    if (g.capabilities.contains(Shortest())){
 
-      workSpaceExtensions= workSpaceExtensions:+ workSpaceLogic(workSpaceLogic.base,workSpaceLogic.var_ft)
-      workSpaceExtensions= workSpaceExtensions:+ workSpaceLogic(workSpaceLogic.base,workSpaceLogic.var_trans)
     }
 
-    //search and graphType???
+    //directed done, DFS done, transpose done
+    // need to work on workSpace
+    //Transpose has only be used by StronglyConnected, no need to be a stand alone feature
+
+
+    //search and graphType
     if (g.capabilities.contains(Number())) {
       updated = updated.addCombinator(new SearchVertex(vertexExtensions.last, vertexLogic(vertexLogic.search)))
       vertexExtensions = vertexExtensions :+ vertexLogic(vertexLogic.search)
-      updated=updated.addCombinator(new searchGraph())
+     // updated=updated.addCombinator(new searchGraph())
       updated=updated.addCombinator(new NumVertex(vertexExtensions.last, vertexLogic(vertexLogic.number)))
       vertexExtensions = vertexExtensions :+ vertexLogic(vertexLogic.number)
       updated=updated.addCombinator(new NumGraph())
@@ -136,6 +182,12 @@ trait extensions extends GraphDomain with VertexDomain with EdgeDomain with Neig
 
     // BASE     -->     COMPLETE
     //   (Base ->A), (A->B), (B->Complete)
+    updated = updated.addCombinator(
+      new ChainCompilationUnit(graphExtensions.last, graphLogic(graphLogic.complete)))
+
+    // any changes to the repository are passed back...
+
+
     updated = updated.addCombinator(
       new ChainCompilationUnit(vertexExtensions.last, vertexLogic(vertexLogic.complete)))
 

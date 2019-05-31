@@ -14,3 +14,18 @@ GET   /simple                          gpl.productline.Simple.overview()
 GET   /simple/raw_:number              gpl.productline.Simple.raw(number: Long)
 GET   /simple/prepare                  gpl.productline.Simple.prepare(number: Long)
 GET   /simple/simple.git/*file  	   gpl.productline.Simple.serveFile(file)
+
+GET   /next                          gpl.productline.Next.overview()
+GET   /next/raw_:number              gpl.productline.Next.raw(number: Long)
+GET   /next/prepare                  gpl.productline.Next.prepare(number: Long)
+GET   /next/next.git/*file  	   gpl.productline.Next.serveFile(file)
+
+GET   /comp                          gpl.productline.Comp.overview()
+GET   /comp/raw_:number              gpl.productline.Comp.raw(number: Long)
+GET   /comp/prepare                  gpl.productline.Comp.prepare(number: Long)
+GET   /comp/comp.git/*file  	   gpl.productline.Comp.serveFile(file)
+
+GET   /strong                          gpl.productline.Strong.overview()
+GET   /strong/raw_:number              gpl.productline.Strong.raw(number: Long)
+GET   /strong/prepare                  gpl.productline.Strong.prepare(number: Long)
+GET   /strong/strong.git/*file  	   gpl.productline.Strong.serveFile(file)

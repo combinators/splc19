@@ -38,6 +38,35 @@ object constraintChecker {
       return false
     }
 
+    if(algos.contains(Prim())&& (g.directed || !g.weighted))
+      return false
+
+    if(algos.contains(Kruskal())&& (g.directed || !g.weighted))
+      return false
+
+    //connected=> undirected && search
+    if (algos.contains(Connected())&& g.directed)
+      return false
+
+    if(algos.contains(Shortest())&& (!g.directed || !g.weighted))
+      return false
+
+    if(algos.contains(StronglyC()) && !g.directed )
+      return false
+
+    if(algos.contains(StronglyC) && algos.contains(Connected))
+      return false
+
+//    if(algos.contains(Shortest())&& !g.weighted)
+//      return false
+//
+
+//later
+//    if(algos.contains(Cycle() )&& !algos.contains(DFS())){
+//
+//      return false
+//    }
+
     // Number => GraphType ^ Search
     if (algos.contains(Number()) && (!algos.contains(Search()))) {
       return false
@@ -52,6 +81,7 @@ object constraintChecker {
   * Any information about vertices goes here. Nothing for now
   */
 trait Vertex {
+  def visited:Boolean = false
 }
 
 // really the same thing as an Enum in Java
@@ -116,8 +146,21 @@ class undirectedKruskalNeighborNodes extends FinalConcept(Seq(Kruskal(), Connect
   override val name:String = "Kruskal with connected components"
 }
 
-class undirectedPrimNeighborNodes extends FinalConcept(Seq(Prim(), Connected()), weighted=true, directed=false, storage=NeighboringNodes())  {
-  override val name:String = "Prim with connected components"
+
+class undirectedPrimNeighborNodes extends FinalConcept(Seq(Prim()), weighted=true, directed=false, storage=NeighboringNodes())  {
+  override val name:String = "Prim"
+}
+
+class undirectedCycleNeighborNodes extends FinalConcept(Seq(Cycle()),weighted=true,directed=false, storage=NeighboringNodes()){
+  override val name:String = "Cycle"
+}
+
+class undirectedConnectedNeighborNodes extends FinalConcept(Seq(Connected(),Search()),weighted=true,directed=false, storage=NeighboringNodes()){
+  override val name:String = "Connected"
+}
+
+class directedStronglyCNeighborNodes extends FinalConcept(Seq(StronglyC()),weighted=true,directed=true, storage=NeighboringNodes()){
+  override val name:String = "StronglyC"
 }
 // all GPL algorithms must extend this trait
 abstract class Algo() {
@@ -127,6 +170,16 @@ abstract class Algo() {
 
   // every algorithm knows whether it is compatible with graph structure
   def valid(g: Graph): Boolean
+}
+
+case class Cycle() extends Algo {
+  override def name:String = "CYCLE"
+  def valid(g: Graph): Boolean = true
+}
+
+case class Shortest() extends Algo {
+  override def name:String = "SHORTEST"
+  def valid(g: Graph): Boolean = true
 }
 
 case class Search() extends Algo {
@@ -154,14 +207,16 @@ case class Prim() extends MST {
   override def name:String = super.name + "PRIM"
 }
 
+
 case class Kruskal() extends MST {
   override def name:String = super.name + "Kruskal"
 }
 
-class BFS extends Search {
+class BFS() extends Search {
   override def name:String = super.name + "BFS"
 }
-class DFS extends Search {
+
+class DFS() extends Search {
   override def name:String = super.name + "DFS"
 }
 
@@ -172,8 +227,8 @@ case class Connected() extends Algo {
   def valid(g: Graph): Boolean = !g.directed
 }
 
-case class StronglyConnected() extends Algo {
-  override def name:String = "StronglyConnected"
+case class StronglyC() extends Algo {
+  override def name:String = "StronglyC"
 
   // Must be strongly connected
   override def valid(g: Graph): Boolean = g.directed
