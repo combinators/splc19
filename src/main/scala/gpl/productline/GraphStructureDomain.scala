@@ -795,9 +795,10 @@ trait GraphStructureDomain extends SemanticTypes with VertexDomain {
     override def modify(graphUnit: CompilationUnit): Unit = {
 
       val clazz = graphUnit.getType(0)
+      Java("public static final boolean isDirected = true;").fieldDeclarations()
+        .foreach(f => clazz.addMember(f))
       val methods = Java(
         s"""
-           | public static final boolean isDirected = true;
            |
            |    public void addVertex( Vertex v ) {
            |        vertices.add( v );

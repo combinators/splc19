@@ -101,10 +101,13 @@ trait extensions extends GraphDomain with VertexDomain with EdgeDomain with Neig
     if (g.capabilities.contains(StronglyC())) {
       //  updated = updated.addCombinator(new Transpose())
       //  updated = updated.addCombinator(new directedCommon())//should be added with directed
-      updated=updated.addCombinator(new searchGraph(graphExtensions.last,graphLogic.searchCommon))
-      graphExtensions= graphExtensions :+ graphLogic(graphLogic.searchCommon)
+//      updated = updated.addCombinator(new directedCommon(graphExtensions.last,graphLogic(graphLogic.directed)))
+//      graphExtensions = graphExtensions :+ graphLogic(graphLogic.directed)
 
-      updated = updated.addCombinator(new stronglyCGraph(graphExtensions.last, graphLogic.stronglyC))
+      updated=updated.addCombinator(new searchGraph(graphExtensions.last,graphLogic(graphLogic.searchCommon)))
+      graphExtensions= graphExtensions :+ graphLogic(graphLogic.searchCommon)
+//
+      updated = updated.addCombinator(new stronglyCGraph(graphExtensions.last, graphLogic(graphLogic.stronglyC)))
       graphExtensions = graphExtensions :+ graphLogic(graphLogic.stronglyC)
 
       updated=updated.addCombinator(new StronglyCVertex(vertexExtensions.last, vertexLogic(vertexLogic.var_stronglyC)))
