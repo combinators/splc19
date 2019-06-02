@@ -91,6 +91,28 @@ trait VertexDomain extends SemanticTypes {
     val semanticType: Type = 'StructureGenerator =>: vertexLogic(vertexLogic.base)
   }
 
+  @combinator object vertexIterBase {
+    def apply(gen: StructureGenerator): CompilationUnit = {
+
+      Java(s"""
+              |package gpl;
+              |import java.util.*;
+              |
+              |public class VertexIter
+              |{
+              |   private Iterator iter;
+              |
+              |   VertexIter() { } // used for anonymous class
+              |   VertexIter( Graph g ) { iter = g.vertices.iterator(); }
+              |   public Vertex next() { return (Vertex)iter.next(); }
+              |   public boolean hasNext() { return iter.hasNext(); }
+              |}
+           |""".stripMargin).compilationUnit
+    }
+
+    val semanticType: Type = 'StructureGenerator =>: vertexIterLogic(vertexIterLogic.base)
+  }
+
   // Clean solution. Wants the modification that inserts the fields and the code that accesses
   // the fields to be in one place. NOT YET USED
   abstract class DataProvider {

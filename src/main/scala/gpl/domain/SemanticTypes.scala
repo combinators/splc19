@@ -39,6 +39,7 @@ trait SemanticTypes {
     val number:Type = 'Number
     val stronglyC:Type='StronglyC
     val directed:Type='Directed
+    val undirected: Type='Undirected
     val searchCommon:Type='SearchCommon
     val complete:Type = 'Complete
     val cycle: Type='Cycle
@@ -184,7 +185,7 @@ trait SemanticTypes {
   }
 
   object vertexIterLogic{
-    def apply (part:Type, features:Type): Constructor = 'VertexIter (part, features)
+    def apply (part:Type): Constructor  = 'VertexIterLogic (part)
     val extensions:Type = 'Extensions
     val implements:Type = 'Implements
     val base:Type = 'Base

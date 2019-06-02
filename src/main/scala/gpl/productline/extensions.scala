@@ -47,8 +47,13 @@ trait extensions extends GraphDomain with VertexDomain with EdgeDomain with Neig
     if (g.directed) {
       updated = updated.addCombinator(new directedCommon(graphExtensions.last,graphLogic(graphLogic.directed)))
       graphExtensions = graphExtensions :+ graphLogic(graphLogic.directed)
+    }
+    else{
+      updated = updated.addCombinator(new undirectedCommon(graphExtensions.last,graphLogic(graphLogic.undirected)))
+      graphExtensions = graphExtensions :+ graphLogic(graphLogic.undirected)
 
     }
+
 
     if (g.weighted){
      // updated= updated.addCombinator(new WeightedGR())
@@ -79,9 +84,15 @@ trait extensions extends GraphDomain with VertexDomain with EdgeDomain with Neig
     if(g.capabilities.contains(Cycle())){
    //   updated=updated.addCombinator(new searchGraph())
       //DFS a necessary constraint
-      updated=updated.addCombinator(new CycleGraph(graphLogic(graphLogic.base), graphLogic(graphLogic.complete)))
+      updated=updated.addCombinator(new CycleGraph(graphExtensions.last, graphLogic(graphLogic.cycle)))
+      graphExtensions= graphExtensions :+ graphLogic(graphLogic.cycle)
+
       updated=updated.addCombinator(new CycVertex(vertexExtensions.last, vertexLogic(vertexLogic.var_cyc)))
       vertexExtensions = vertexExtensions :+ vertexLogic(vertexLogic.var_cyc)
+
+      //GraphSearch
+      updated=updated.addCombinator(new searchGraph(graphExtensions.last,graphLogic(graphLogic.searchCommon)))
+      graphExtensions= graphExtensions :+ graphLogic(graphLogic.searchCommon)
 
       //have to add Search to make sure we get field visited
       updated = updated.addCombinator(new SearchVertex(vertexExtensions.last, vertexLogic(vertexLogic.search)))
@@ -99,10 +110,6 @@ trait extensions extends GraphDomain with VertexDomain with EdgeDomain with Neig
     // EITHER-OR for Connected or StronglyConnected -- surely can't have both
 
     if (g.capabilities.contains(StronglyC())) {
-      //  updated = updated.addCombinator(new Transpose())
-      //  updated = updated.addCombinator(new directedCommon())//should be added with directed
-//      updated = updated.addCombinator(new directedCommon(graphExtensions.last,graphLogic(graphLogic.directed)))
-//      graphExtensions = graphExtensions :+ graphLogic(graphLogic.directed)
 
       updated=updated.addCombinator(new searchGraph(graphExtensions.last,graphLogic(graphLogic.searchCommon)))
       graphExtensions= graphExtensions :+ graphLogic(graphLogic.searchCommon)
@@ -136,7 +143,18 @@ trait extensions extends GraphDomain with VertexDomain with EdgeDomain with Neig
       updated = updated.addCombinator(new SearchVertex(vertexExtensions.last, vertexLogic(vertexLogic.search)))  // need to have these in place THEN get request
       vertexExtensions = vertexExtensions :+ vertexLogic(vertexLogic.search)
  //     updated=updated.addCombinator(new searchGraph(graphLogic(graphLogic.base), graphLogic(graphLogic.complete)))
-      updated= updated.addCombinator(new connectedGraph(graphLogic(graphLogic.base), graphLogic(graphLogic.complete)))
+
+      updated= updated.addCombinator(new connectedGraph(graphExtensions.last, graphLogic(graphLogic.connected)))
+      graphExtensions= graphExtensions :+ graphLogic(graphLogic.connected)
+
+      updated=updated.addCombinator(new searchGraph(graphExtensions.last,graphLogic(graphLogic.searchCommon)))
+      graphExtensions= graphExtensions :+ graphLogic(graphLogic.searchCommon)
+
+      //method NodeSearch in searchGraph needs either DFS or BFS
+      updated= updated.addCombinator(new DFSVertex(vertexExtensions.last, vertexLogic(vertexLogic.var_dfs)))
+      vertexExtensions = vertexExtensions :+ vertexLogic(vertexLogic.var_dfs)
+
+
       updated= updated.addCombinator(new ConnectedVertex(vertexExtensions.last, vertexLogic(vertexLogic.connected)))
       vertexExtensions = vertexExtensions :+ vertexLogic(vertexLogic.connected)
       updated= updated.addCombinator(new RegionWorkSpace())

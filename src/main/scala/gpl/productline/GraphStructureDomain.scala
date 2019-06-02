@@ -42,15 +42,15 @@ trait GraphStructureDomain extends SemanticTypes with VertexDomain {
            |      Collections.sort(vertices, c);
            |   }
            |
-           |   public Vertex findsVertex(String name) {
-           |        for (Iterator<Vertex> it = getVertices(); it.hasNext(); ) {
-           |            Vertex v = it.next();
-           |            if (v.name.equals(name)) {
-           |                return v;
-           |            }
-           |        }
-           |        return null;
-           |    }
+           |  // public Vertex findsVertex(String name) {
+           |  //      for (Iterator<Vertex> it = getVertices(); it.hasNext(); ) {
+           |  //          Vertex v = it.next();
+           |  //          if (v.name.equals(name)) {
+           |  //              return v;
+           |  //          }
+           |  //      }
+           |  //      return null;
+           |  //  }
            |
            |   public Iterator<Edge> getEdges(Vertex u) {
            |    	LinkedList<Edge> filter = new LinkedList<Edge>();
@@ -86,7 +86,8 @@ trait GraphStructureDomain extends SemanticTypes with VertexDomain {
            |
            |        System.out.println( "******************************************" );
            |    }
-           |    public void addVertex( Vertex v ) {vertices.add(v); }
+           |    //Defined in both directedCommon and undirectedCommon
+           |    //public void addVertex( Vertex v ) {vertices.add(v); }
            |
            |    LinkedList<Edge> edges = new LinkedList();
            |
@@ -800,8 +801,9 @@ trait GraphStructureDomain extends SemanticTypes with VertexDomain {
       val methods = Java(
         s"""
            |
+           |
            |    public void addVertex( Vertex v ) {
-           |        vertices.add( v );
+           |       vertices.add( v );
            |    }
            |
            |     public IEdge addEdge( Vertex start,  Vertex end ) {
@@ -825,6 +827,36 @@ trait GraphStructureDomain extends SemanticTypes with VertexDomain {
            |                return theVertex;
            |        }
            |        return null;
+           |    }
+           |
+           | """.stripMargin).methodDeclarations()
+
+      methods.foreach(m => clazz.addMember(m))
+    }
+  }
+
+  class undirectedCommon(incoming:Type, outgoing:Type) extends UnitModifier(incoming, outgoing) {
+    override def modify(graphUnit: CompilationUnit): Unit = {
+
+      val clazz = graphUnit.getType(0)
+      Java("public static final boolean isDirected = false;" +
+        "protected Map verticesMap = new HashMap( );").fieldDeclarations()
+        .foreach(f => clazz.addMember(f))
+      val methods = Java(
+        s"""
+           |
+           |
+           |    public void addVertex( Vertex v ) {
+           |      vertices.add( v );
+           |      verticesMap.put( v.name, v );
+           |    }
+           |
+           |    // Finds a vertex given its name in the vertices list
+           |    public  Vertex findsVertex( String theName ) {
+           |        // if we are dealing with the root
+           |        if ( theName==null )
+           |            return null;
+           |          return ( Vertex ) verticesMap.get( theName );
            |    }
            |
            | """.stripMargin).methodDeclarations()
