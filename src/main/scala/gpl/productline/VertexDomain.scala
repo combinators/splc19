@@ -70,11 +70,19 @@ trait VertexDomain extends SemanticTypes {
            |import java.util.*;
            |
            |public class Vertex  {
-           |  public final String name;
+           |  public String name ;
            |
            |  public Vertex (String n) {
            |     this.name = n;
            |  }
+           |
+           |  public  Vertex assignName( String name ) {
+           |      this.name = name;
+           |      return ( Vertex ) this;
+           |  }
+           |
+           |  public String getName( ) {  return this.name; }
+           |
            |
            |  public void display( ) {
            |   System.out.print( " Node " + name);
@@ -91,27 +99,27 @@ trait VertexDomain extends SemanticTypes {
     val semanticType: Type = 'StructureGenerator =>: vertexLogic(vertexLogic.base)
   }
 
-  @combinator object vertexIterBase {
-    def apply(gen: StructureGenerator): CompilationUnit = {
-
-      Java(s"""
-              |package gpl;
-              |import java.util.*;
-              |
-              |public class VertexIter
-              |{
-              |   private Iterator iter;
-              |
-              |   VertexIter() { } // used for anonymous class
-              |   VertexIter( Graph g ) { iter = g.vertices.iterator(); }
-              |   public Vertex next() { return (Vertex)iter.next(); }
-              |   public boolean hasNext() { return iter.hasNext(); }
-              |}
-           |""".stripMargin).compilationUnit
-    }
-
-    val semanticType: Type = 'StructureGenerator =>: vertexIterLogic(vertexIterLogic.base)
-  }
+//  @combinator object vertexIterBase {
+//    def apply(gen: StructureGenerator): CompilationUnit = {
+//
+//      Java(s"""
+//              |package gpl;
+//              |import java.util.*;
+//              |
+//              |public class VertexIter
+//              |{
+//              |   private Iterator iter;
+//              |
+//              |   VertexIter() { } // used for anonymous class
+//              |   VertexIter( Graph g ) { iter = g.vertices.iterator(); }
+//              |   public Vertex next() { return (Vertex)iter.next(); }
+//              |   public boolean hasNext() { return iter.hasNext(); }
+//              |}
+//           |""".stripMargin).compilationUnit
+//    }
+//
+//    val semanticType: Type = 'StructureGenerator =>: vertexIterLogic(vertexIterLogic.base)
+//  }
 
   // Clean solution. Wants the modification that inserts the fields and the code that accesses
   // the fields to be in one place. NOT YET USED
@@ -206,6 +214,29 @@ trait VertexDomain extends SemanticTypes {
           |public int key;
         """.stripMargin).fieldDeclarations()
         .foreach(f => clazz.addMember(f))
+    }
+  }
+
+  class directedVertex(incoming:Type, outgoing:Type) extends UnitModifier(incoming, outgoing) {
+    override def modify(vertexUnit: CompilationUnit): Unit = {
+      val clazz = vertexUnit.getType(0)
+
+      // add field(s)
+      Java(
+        """
+          |public LinkedList adjacentVertices = new LinkedList();
+        """.stripMargin).fieldDeclarations()
+        .foreach(f => clazz.addMember(f))
+
+      Java(
+        s"""
+           |public void addAdjacent( Vertex n ) {
+           |        adjacentVertices.add( n );
+           |    }
+         """.stripMargin).methodDeclarations()
+        .foreach(m => clazz.addMember(m))
+
+
     }
   }
 

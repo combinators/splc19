@@ -159,6 +159,7 @@ trait SemanticTypes {
     val var_edgeList = 'EdgeList
     val search='Search
     val number ='Number
+    val directed='Directed
     val var_dfs='DFS
     val var_cyc='Cycle
     val var_stronglyC='StronglyC

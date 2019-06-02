@@ -634,12 +634,38 @@ trait GraphStructureDomain extends SemanticTypes with VertexDomain {
 //    val semanticType: Type ='StructureGenerator =>: incoming =>: outgoing//graphLogic(graphLogic.base, graphLogic.prim)//
 //  }
 
+//  public void GraphSearch( WorkSpace w )
+//  {
+//    // Step 1: initialize visited member of all nodes
+//    Iterator<Vertex> vxiter = getVertices( );
+//    if ( vxiter.hasNext( ) == false )
+//    {
+//      return;
+//    }
+//
+//    // Showing the initialization process
+//    while(vxiter.hasNext( ) )
+//    {
+//      Vertex v = vxiter.next( );
+//      v.init_vertex( w );
+//    }
+//
+//    // Step 2: traverse neighbors of each node
+//    for (vxiter = getVertices( ); vxiter.hasNext( ); )
+//    {
+//      Vertex v = vxiter.next( );
+//      if ( !v.visited )
+//      {
+//        w.nextRegionAction( v );
+//        v.nodeSearch( w );
+//      }
+//    } //end for
 
-  class stronglyCGraph(incoming:Type, outgoing:Type) extends UnitModifier(incoming, outgoing) {
-    override def modify(graphUnit: CompilationUnit): Unit = {
 
-      val clazz = graphUnit.getType(0)
-      val methods = Java(
+  class stronglyCGraph(incoming:Type, outgoing:Type)  {
+     def apply(gen: StructureGenerator,unit: CompilationUnit): CompilationUnit = {
+
+      val methods =
         s"""
            | public  Graph ComputeTranspose( Graph the_graph )
            |   {
@@ -651,30 +677,33 @@ trait GraphStructureDomain extends SemanticTypes with VertexDomain {
            |        Graph newGraph = new  Graph();
            |
            |        // Creates and adds the vertices with the same name
-           |        for ( VertexIter vxiter = getVertices(); vxiter.hasNext(); )
-           |        {
-           |            theName = vxiter.next().getName();
-           |            Vertex v = new  Vertex( ).assignName( theName );
+           |            ${gen.getVerticesBegin("x")}
+           |
+           |           // theName = vxiter.next().getName();
+           |            theName = x.getName();
+           |            Vertex v = new  Vertex(theName );
            |            newGraph.addVertex( v );
            |            newVertices.put( theName, v );
-           |        }
+           |            ${gen.getVerticesEnd("x")}
+           |
            |
            |        Vertex theVertex, newVertex;
            |        Vertex theNeighbor;
            |        Vertex newAdjacent;
-           |        EdgeIfc newEdge;
+           |        Edge newEdge;
            |
            |        // adds the transposed edges
-           |        VertexIter newvxiter = newGraph.getVertices( );
-           |        for ( VertexIter vxiter = getVertices(); vxiter.hasNext(); )
-           |        {
+           |
+           |        Iterator<Vertex> newvxiter = newGraph.getVertices( );
+           |        ${gen.getVerticesBegin("v")}
+           |
            |            // theVertex is the original source vertex
            |            // the newAdjacent is the reference in the newGraph to theVertex
-           |            theVertex = vxiter.next();
+           |            theVertex = v;
            |
            |            newAdjacent = newvxiter.next( );
            |
-           |            for( VertexIter neighbors = theVertex.getNeighbors(); neighbors.hasNext(); )
+           |            for( Iterator<Vertex> neighbors = theVertex.getNeighbors(); neighbors.hasNext(); )
            |            {
            |                // Gets the neighbor object
            |                theNeighbor = neighbors.next();
@@ -686,7 +715,8 @@ trait GraphStructureDomain extends SemanticTypes with VertexDomain {
            |                // Creates a new Edge object and adjusts the adornments
            |                newEdge = newGraph.addEdge( newVertex, newAdjacent );
            |            } // all adjacentNeighbors
-           |        } // all the vertices
+           |         // all the vertices
+           |        ${gen.getVerticesEnd("v")}
            |
            |        return newGraph;
            |
@@ -728,11 +758,19 @@ trait GraphStructureDomain extends SemanticTypes with VertexDomain {
            |
            |    } // of Strong Components
            |
-           | """.stripMargin).methodDeclarations()
+           | """.stripMargin
 
-      methods.foreach(m => clazz.addMember(m))
-    }
+       val clazz = unit.getType(0)
+       Java(methods).methodDeclarations()
+         .foreach(m => clazz.addMember(m))
+
+       unit
+     }
+
+    val semanticType: Type = 'StructureGenerator =>: incoming =>: outgoing//graphLogic(graphLogic.base, graphLogic.prim)//
   }
+
+
 
 //  class Transpose {
 //    def apply() : Seq[BodyDeclaration[_]] = {
@@ -796,20 +834,29 @@ trait GraphStructureDomain extends SemanticTypes with VertexDomain {
     override def modify(graphUnit: CompilationUnit): Unit = {
 
       val clazz = graphUnit.getType(0)
-      Java("public static final boolean isDirected = true;").fieldDeclarations()
+      Java("public static final boolean isDirected = true;"
+        ).fieldDeclarations()
         .foreach(f => clazz.addMember(f))
       val methods = Java(
         s"""
-           |
            |
            |    public void addVertex( Vertex v ) {
            |       vertices.add( v );
            |    }
            |
-           |     public IEdge addEdge( Vertex start,  Vertex end ) {
+           |     public Edge addEdge( Vertex start,  Vertex end ) {
            |        start.addAdjacent( end );
-           |        return (IEdge) start;
+           |        Edge e= new Edge(start,end);
+           |        e.source= index(start);
+           |        e.destination= index(end);
+           |        edges.add(e);
+           |        return e;
            |    }
+           |
+           |//     public IEdge addEdge(Vertex start, Vertex end) {
+           |//        start.addAdjacent(end);
+           |//        return (IEdge) start;
+           |//    }
            |
            |    // Finds a vertex given its name in the vertices list
            |    public  Vertex findsVertex( String theName )

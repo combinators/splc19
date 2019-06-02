@@ -49,7 +49,7 @@ class Strong @Inject()(webJars: WebJarsUtil, lifeCycle: ApplicationLifecycle) ex
     WorkSpaceTpLogic(WorkSpaceTpLogic.base,WorkSpaceTpLogic.complete),
     //cycleWorkSpaceLogic(cycleWorkSpaceLogic.base,cycleWorkSpaceLogic.complete),
 
-    vertexIterLogic(vertexIterLogic.base),
+  //  vertexIterLogic(vertexIterLogic.base),
 
 
     // GRAPH as final
