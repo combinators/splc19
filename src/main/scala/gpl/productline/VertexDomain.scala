@@ -151,8 +151,15 @@ trait VertexDomain extends SemanticTypes {
       // Add init_vertex method
       Java("public Iterator<Vertex> getNeighbors( ) { return neighbors.iterator(); }").methodDeclarations()
         .foreach(m => clazz.addMember(m))
+
+      Java("public void addNeighbor( Vertex n ) { neighbors.add( n ); }").methodDeclarations()
+        .foreach(m => clazz.addMember(m))
     }
   }
+
+  //public void addNeighbor( Vertex n ) {
+    //          |        neighbors.add( n );
+    //          |    }
 
   // for the record: we COULD have more complicated adjustments, whether to remove methods
   // or rename methods, even different parameter sets?
@@ -239,6 +246,22 @@ trait VertexDomain extends SemanticTypes {
 
     }
   }
+
+//  class undirectedVertex(incoming:Type, outgoing:Type) extends UnitModifier(incoming, outgoing) {
+//    override def modify(vertexUnit: CompilationUnit): Unit = {
+//      val clazz = vertexUnit.getType(0)
+//
+//      // add field(s)
+//      Java(
+//        """
+//          |public void addNeighbor( Vertex n ) {
+//          |        neighbors.add( n );
+//          |    }
+//        """.stripMargin).fieldDeclarations()
+//        .foreach(f => clazz.addMember(f))
+//
+//    }
+//  }
 
   class DFSVertex(incoming:Type, outgoing:Type) extends UnitModifier(incoming, outgoing) {
     override def modify(vertexUnit: CompilationUnit): Unit = {
@@ -331,6 +354,7 @@ trait VertexDomain extends SemanticTypes {
       // add field
       clazz.addFieldWithInitializer(Java("int").tpe(), "VertexCycle", Java("0").expression[Expression](), Modifier.PUBLIC)
       clazz.addFieldWithInitializer(Java("int").tpe(), "VertexColor", Java("0").expression[Expression](), Modifier.PUBLIC)
+
 
 
       val dispStmts = Java(s"""System.out.print( " VertexCycle# " + VertexCycle + " " );""").statements

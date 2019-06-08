@@ -55,6 +55,8 @@ trait extensions extends GraphDomain with VertexDomain with EdgeDomain with Neig
     else{
       updated = updated.addCombinator(new undirectedCommon(graphExtensions.last,graphLogic(graphLogic.undirected)))
       graphExtensions = graphExtensions :+ graphLogic(graphLogic.undirected)
+//      updated = updated.addCombinator(new undirectedVertex(vertexExtensions.last,vertexLogic(vertexLogic.undirected)))
+//      vertexExtensions = vertexExtensions :+ vertexLogic(vertexLogic.undirected)
 
     }
 

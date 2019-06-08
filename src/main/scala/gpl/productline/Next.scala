@@ -16,8 +16,8 @@ class Next @Inject()(webJars: WebJarsUtil, lifeCycle: ApplicationLifecycle) exte
   // specify desired target by (a) declaring algorithm traits; (b) graph structure
   val graph:Graph =  new undirectedCycleNeighborNodes // new undirectedPrimNeighborNodesundirectedCycleNeighborNodes    // new undirectedKruskalNeighborNodes
 
-  /** KlondikeDomain for Klondike defined herein. Controllers are defined in Controllers area. */
-  lazy val repository = new GPLDomain(graph) with VertexDomain with EdgeDomain with extensions {}
+  /** Be sure to update everywhere with DriverDomain. */
+  lazy val repository = new GPLDomain(graph) with VertexDomain with EdgeDomain with DriverDomain with extensions {}
 
   lazy val Gamma = repository.init(ReflectedRepository(repository,
       classLoader = this.getClass.getClassLoader,
@@ -44,7 +44,8 @@ class Next @Inject()(webJars: WebJarsUtil, lifeCycle: ApplicationLifecycle) exte
       workSpaceLogic(workSpaceLogic.base,workSpaceLogic.complete),//complete),
       cycleWorkSpaceLogic(cycleWorkSpaceLogic.base,cycleWorkSpaceLogic.complete),
     // GRAPH as final
-    graphLogic(graphLogic.complete)
+    graphLogic(graphLogic.complete),
+    driverLogic(driverLogic.cycle)
   )
 
   lazy val results: Results = EmptyInhabitationBatchJobResults(Gamma)

@@ -97,12 +97,12 @@ trait GraphStructureDomain extends SemanticTypes with VertexDomain {
            |
            |    public Iterator<Edge> getEdges() { return edges.iterator(); }
            |
-           |    public void addEdge( Vertex start,  Vertex end, int weight ) {
-           |         Edge e = new Edge(start, end, weight);
-           |         e.source = index(start);
-           |         e.destination = index(end);
-           |         edges.add(e);
-           |    }
+           |  //  public void addEdge( Vertex start,  Vertex end, int weight ) {
+           |  //       Edge e = new Edge(start, end, weight);
+           |   //      e.source = index(start);
+           |  //       e.destination = index(end);
+           |  //       edges.add(e);
+           | //   }
            |
            |     public Vertex getVertex (int index) {
            |        int idx = 0;
@@ -844,8 +844,22 @@ trait GraphStructureDomain extends SemanticTypes with VertexDomain {
            |       vertices.add( v );
            |    }
            |
+           |     public void addEdge(Vertex start, Vertex end, int weight) {
+           |        Edge e = new Edge(start, end, weight);
+           |        e.source = index(start);
+           |        e.destination = index(end);
+           |        //added
+           |        start.addNeighbor( end);  // for Directed & unDirected
+           |
+           |
+           |        edges.add(e);
+           |    }
+           |
            |     public Edge addEdge( Vertex start,  Vertex end ) {
-           |        start.addAdjacent( end );
+           |       // start.addAdjacent( end );
+           |       //added
+           |       start.addNeighbor(end);
+           |       //added
            |        Edge e= new Edge(start,end);
            |        e.source= index(start);
            |        e.destination= index(end);
@@ -892,6 +906,16 @@ trait GraphStructureDomain extends SemanticTypes with VertexDomain {
       val methods = Java(
         s"""
            |
+           | public void addEdge(Vertex start, Vertex end, int weight) {
+           |        Edge e = new Edge(start, end, weight);
+           |        e.source = index(start);
+           |        e.destination = index(end);
+           |        //added
+           |        start.addNeighbor( end);  // for Directed & unDirected
+           |        end.addNeighbor(start); // only for unDirected
+           |
+           |        edges.add(e);
+           |    }
            |
            |    public void addVertex( Vertex v ) {
            |      vertices.add( v );

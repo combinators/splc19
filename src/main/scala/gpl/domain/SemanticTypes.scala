@@ -142,6 +142,16 @@ trait SemanticTypes {
     val connected = 'Connected
   }
 
+  object driverLogic {
+    def apply(part:Type): Constructor = 'DriverLogic (part)
+
+    val base:Type = 'Base
+    val complete: Type ='Complete
+    val cycle:Type = 'Cycle
+    val connected: Type='Connected
+    val stronglyC: Type='StronglyC
+  }
+
   // parts of the widgets during move : Dynamic Behavior
   object vertexLogic {
     def apply (part:Type): Constructor = 'VertexLogic (part)
@@ -160,6 +170,8 @@ trait SemanticTypes {
     val search='Search
     val number ='Number
     val directed='Directed
+    val undirected='unDirected
+
     val var_dfs='DFS
     val var_cyc='Cycle
     val var_stronglyC='StronglyC

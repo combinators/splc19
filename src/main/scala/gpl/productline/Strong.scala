@@ -14,13 +14,13 @@ import play.api.mvc.{Action, AnyContent}
 //This is for StronglyConnected
 //directed && DFS && TransPose
 //Transpose is only used by StronglyConnected
-class Strong @Inject()(webJars: WebJarsUtil, lifeCycle: ApplicationLifecycle) extends InhabitationController(webJars, lifeCycle) with SemanticTypes with RoutingEntries {
+class Strong @Inject()(webJars: WebJarsUtil, lifeCycle: ApplicationLifecycle) extends InhabitationController(webJars, lifeCycle)with DriverDomain with SemanticTypes with RoutingEntries {
 
   // specify desired target by (a) declaring algorithm traits; (b) graph structure
   val graph:Graph =  new directedStronglyCNeighborNodes//undirectedCycleNeighborNodes    // new undirectedKruskalNeighborNodes
 
   /** KlondikeDomain for Klondike defined herein. Controllers are defined in Controllers area. */
-  lazy val repository = new GPLDomain(graph) with VertexDomain with EdgeDomain with extensions {}
+  lazy val repository = new GPLDomain(graph) with DriverDomain with VertexDomain with EdgeDomain with extensions {}
 
   lazy val Gamma = repository.init(ReflectedRepository(repository,
       classLoader = this.getClass.getClassLoader,
@@ -53,6 +53,7 @@ class Strong @Inject()(webJars: WebJarsUtil, lifeCycle: ApplicationLifecycle) ex
 
 
     // GRAPH as final
+    driverLogic(driverLogic.stronglyC),
     graphLogic(graphLogic.complete)
   )
 
