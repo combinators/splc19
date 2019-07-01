@@ -20,7 +20,7 @@ class Strong @Inject()(webJars: WebJarsUtil, lifeCycle: ApplicationLifecycle) ex
   val graph:Graph =  new directedStronglyCNeighborNodes//undirectedCycleNeighborNodes    // new undirectedKruskalNeighborNodes
 
   /** KlondikeDomain for Klondike defined herein. Controllers are defined in Controllers area. */
-  lazy val repository = new GPLDomain(graph) with DriverDomain with VertexDomain with EdgeDomain with extensions {}
+  lazy val repository = new GPLDomain(graph) with DriverDomain with VertexDomain with EdgeDomain with TestDomain with extensions {}
 
   lazy val Gamma = repository.init(ReflectedRepository(repository,
       classLoader = this.getClass.getClassLoader,
@@ -54,6 +54,7 @@ class Strong @Inject()(webJars: WebJarsUtil, lifeCycle: ApplicationLifecycle) ex
 
     // GRAPH as final
     driverLogic(driverLogic.stronglyC),
+    testLogic(testLogic.stronglyC),
     graphLogic(graphLogic.complete)
   )
 

@@ -11,13 +11,13 @@ import org.webjars.play.WebJarsUtil
 import play.api.inject.ApplicationLifecycle
 import play.api.mvc.{Action, AnyContent}
 //This is for Cycle testing
-class Next @Inject()(webJars: WebJarsUtil, lifeCycle: ApplicationLifecycle) extends InhabitationController(webJars, lifeCycle) with SemanticTypes with RoutingEntries {
+class Next @Inject()(webJars: WebJarsUtil, lifeCycle: ApplicationLifecycle) extends InhabitationController(webJars, lifeCycle) with  SemanticTypes with RoutingEntries {
 
   // specify desired target by (a) declaring algorithm traits; (b) graph structure
   val graph:Graph =  new undirectedCycleNeighborNodes // new undirectedPrimNeighborNodesundirectedCycleNeighborNodes    // new undirectedKruskalNeighborNodes
 
   /** Be sure to update everywhere with DriverDomain. */
-  lazy val repository = new GPLDomain(graph) with VertexDomain with EdgeDomain with DriverDomain with extensions {}
+  lazy val repository = new GPLDomain(graph) with VertexDomain with EdgeDomain with DriverDomain with TestDomain with extensions {}
 
   lazy val Gamma = repository.init(ReflectedRepository(repository,
       classLoader = this.getClass.getClassLoader,
@@ -45,6 +45,7 @@ class Next @Inject()(webJars: WebJarsUtil, lifeCycle: ApplicationLifecycle) exte
       cycleWorkSpaceLogic(cycleWorkSpaceLogic.base,cycleWorkSpaceLogic.complete),
     // GRAPH as final
     graphLogic(graphLogic.complete),
+    testLogic(testLogic.cycle),
     driverLogic(driverLogic.cycle)
   )
 

@@ -152,6 +152,16 @@ trait SemanticTypes {
     val stronglyC: Type='StronglyC
   }
 
+  object testLogic {
+    def apply(part:Type): Constructor = 'TestLogic (part)
+
+    val base:Type = 'Base
+    val complete: Type ='Complete
+    val cycle:Type = 'Cycle
+    val connected: Type='Connected
+    val stronglyC: Type='StronglyC
+  }
+
   // parts of the widgets during move : Dynamic Behavior
   object vertexLogic {
     def apply (part:Type): Constructor = 'VertexLogic (part)

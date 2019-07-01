@@ -17,7 +17,7 @@ class Simple @Inject()(webJars: WebJarsUtil, lifeCycle: ApplicationLifecycle) ex
   val graph:Graph =  new undirectedPrimNeighborNodes//undirectedCycleNeighborNodes    // new undirectedKruskalNeighborNodes
 
   /** KlondikeDomain for Klondike defined herein. Controllers are defined in Controllers area. */
-  lazy val repository = new GPLDomain(graph) with VertexDomain with EdgeDomain with extensions {}
+  lazy val repository = new GPLDomain(graph) with VertexDomain with TestDomain with  EdgeDomain with extensions {}
 
   lazy val Gamma = repository.init(ReflectedRepository(repository,
       classLoader = this.getClass.getClassLoader,

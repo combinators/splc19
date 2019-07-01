@@ -13,13 +13,13 @@ import play.api.mvc.{Action, AnyContent}
 
 //This is for Connected
 //undirected && search
-class Comp @Inject()(webJars: WebJarsUtil, lifeCycle: ApplicationLifecycle) extends InhabitationController(webJars, lifeCycle) with DriverDomain with SemanticTypes with RoutingEntries {
+class Comp @Inject()(webJars: WebJarsUtil, lifeCycle: ApplicationLifecycle) extends InhabitationController(webJars, lifeCycle) with DriverDomain with TestDomain with SemanticTypes with RoutingEntries {
 
   // specify desired target by (a) declaring algorithm traits; (b) graph structure
   val graph:Graph =  new undirectedConnectedNeighborNodes//undirectedCycleNeighborNodes    // new undirectedKruskalNeighborNodes
 
   /** KlondikeDomain for Klondike defined herein. Controllers are defined in Controllers area. */
-  lazy val repository = new GPLDomain(graph) with DriverDomain with VertexDomain with EdgeDomain with extensions {}
+  lazy val repository = new GPLDomain(graph) with DriverDomain with VertexDomain with EdgeDomain with TestDomain with extensions {}
 
   lazy val Gamma = repository.init(ReflectedRepository(repository,
       classLoader = this.getClass.getClassLoader,
@@ -48,6 +48,7 @@ class Comp @Inject()(webJars: WebJarsUtil, lifeCycle: ApplicationLifecycle) exte
 
     // GRAPH as final
     driverLogic(driverLogic.connected),
+    testLogic(testLogic.connected),
 
       graphLogic(graphLogic.complete)
   )
