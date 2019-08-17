@@ -7,7 +7,7 @@ import org.combinators.cls.types.Type
 import org.combinators.cls.types.syntax._
 import org.combinators.templating.twirl.Java
 
-
+//Junit test cases
 trait TestDomain extends SemanticTypes {
 
   val graph:Graph
@@ -25,7 +25,7 @@ trait TestDomain extends SemanticTypes {
 //           |
 //           |public class Main  {
 //           |  public static void main (String[] args) {
-//           |     Graph g = new Graph();
+//           |     Graph g = new Graph(≥);
 //           |     Vertex va = new Vertex("a");
 //           |     Vertex vb = new Vertex("b");
 //           |     Vertex vc = new Vertex("c");
